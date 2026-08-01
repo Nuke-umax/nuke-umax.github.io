@@ -1,5 +1,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>ウマ娘 取得スキル 最大化くん</title>
 <meta name="description" content="スクリーンショットを選ぶだけで、所持スキルポイントの範囲で評価点が最大になるスキルの組み合わせを計算します。画像は端末外に送信しません。">
 <meta property="og:type" content="website">
@@ -287,15 +289,15 @@
   <span>制作: ぬけ　ゲームの開発・運営元とは関係のない非公式ツールです</span>
 </footer>
 
-<script src="ocr_core.js?v=79"></script>
-<script src="fields.js?v=79"></script>
-<script src="optimizer.js?v=79"></script>
-<script src="stat_eval.js?v=79"></script>
-<script src="name_match.js?v=79"></script>
-<script src="recognizer.js?v=79"></script>
-<script src="harvest.js?v=79"></script>
-<script src="dedup.js?v=79"></script>
-<script src="pipeline.js?v=79"></script>
+<script src="ocr_core.js?v=80"></script>
+<script src="fields.js?v=80"></script>
+<script src="optimizer.js?v=80"></script>
+<script src="stat_eval.js?v=80"></script>
+<script src="name_match.js?v=80"></script>
+<script src="recognizer.js?v=80"></script>
+<script src="harvest.js?v=80"></script>
+<script src="dedup.js?v=80"></script>
+<script src="pipeline.js?v=80"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
 const infoOverlay = document.getElementById("infoOverlay");
@@ -363,7 +365,7 @@ async function loadResources() {
 // ===== Web Worker経由の認識（引き継ぎ資料§10.6項目5: UIを固まらせない） =====
 let worker = null;
 function getWorker() {
-  if (worker === null) worker = new Worker("recognition_worker.js?v=79");
+  if (worker === null) worker = new Worker("recognition_worker.js?v=80");
   return worker;
 }
 
