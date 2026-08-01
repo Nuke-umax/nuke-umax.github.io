@@ -1,0 +1,225 @@
+{
+  "note": "評価ランクの評価点境界。min/maxは各ランクの評価点範囲（maxがnullは青天井）。G〜UG9はGame8(2026確定)、UF以降は2021年二次ソースの粗いアンカー(1〜9細分なし)。",
+  "sources": {
+    "game8": "https://game8.jp/umamusume/373379",
+    "legacy-2021": "https://sakamoto-kouji.com/2021/05/03/uma-musume-hyoukaten-s-rnk-suuti/"
+  },
+  "ranks": [
+    {
+      "rank": "G",
+      "min": 0,
+      "max": 299,
+      "source": "game8"
+    },
+    {
+      "rank": "G+",
+      "min": 300,
+      "max": 599,
+      "source": "game8"
+    },
+    {
+      "rank": "F",
+      "min": 600,
+      "max": 899,
+      "source": "game8"
+    },
+    {
+      "rank": "F+",
+      "min": 900,
+      "max": 1299,
+      "source": "game8"
+    },
+    {
+      "rank": "E",
+      "min": 1300,
+      "max": 1799,
+      "source": "game8"
+    },
+    {
+      "rank": "E+",
+      "min": 1800,
+      "max": 2299,
+      "source": "game8"
+    },
+    {
+      "rank": "D",
+      "min": 2300,
+      "max": 2899,
+      "source": "game8"
+    },
+    {
+      "rank": "D+",
+      "min": 2900,
+      "max": 3499,
+      "source": "game8"
+    },
+    {
+      "rank": "C",
+      "min": 3500,
+      "max": 4899,
+      "source": "game8"
+    },
+    {
+      "rank": "C+",
+      "min": 4900,
+      "max": 6499,
+      "source": "game8"
+    },
+    {
+      "rank": "B",
+      "min": 6500,
+      "max": 8199,
+      "source": "game8"
+    },
+    {
+      "rank": "B+",
+      "min": 8200,
+      "max": 9999,
+      "source": "game8"
+    },
+    {
+      "rank": "A",
+      "min": 10000,
+      "max": 12099,
+      "source": "game8"
+    },
+    {
+      "rank": "A+",
+      "min": 12100,
+      "max": 14499,
+      "source": "game8"
+    },
+    {
+      "rank": "S",
+      "min": 14500,
+      "max": 15899,
+      "source": "game8"
+    },
+    {
+      "rank": "S+",
+      "min": 15900,
+      "max": 17499,
+      "source": "game8"
+    },
+    {
+      "rank": "SS",
+      "min": 17500,
+      "max": 19199,
+      "source": "game8"
+    },
+    {
+      "rank": "SS+",
+      "min": 19200,
+      "max": 19599,
+      "source": "game8"
+    },
+    {
+      "rank": "UG",
+      "min": 19600,
+      "max": 19999,
+      "source": "game8"
+    },
+    {
+      "rank": "UG1",
+      "min": 20000,
+      "max": 20399,
+      "source": "game8"
+    },
+    {
+      "rank": "UG2",
+      "min": 20400,
+      "max": 20799,
+      "source": "game8"
+    },
+    {
+      "rank": "UG3",
+      "min": 20800,
+      "max": 21199,
+      "source": "game8"
+    },
+    {
+      "rank": "UG4",
+      "min": 21200,
+      "max": 21599,
+      "source": "game8"
+    },
+    {
+      "rank": "UG5",
+      "min": 21600,
+      "max": 22099,
+      "source": "game8"
+    },
+    {
+      "rank": "UG6",
+      "min": 22100,
+      "max": 22499,
+      "source": "game8"
+    },
+    {
+      "rank": "UG7",
+      "min": 22500,
+      "max": 22999,
+      "source": "game8"
+    },
+    {
+      "rank": "UG8",
+      "min": 23000,
+      "max": 23499,
+      "source": "game8"
+    },
+    {
+      "rank": "UG9",
+      "min": 23500,
+      "max": 23899,
+      "source": "game8"
+    },
+    {
+      "rank": "UF",
+      "min": 23900,
+      "max": 28799,
+      "source": "legacy-2021"
+    },
+    {
+      "rank": "UE",
+      "min": 28800,
+      "max": 34399,
+      "source": "legacy-2021"
+    },
+    {
+      "rank": "UD",
+      "min": 34400,
+      "max": 40699,
+      "source": "legacy-2021"
+    },
+    {
+      "rank": "UC",
+      "min": 40700,
+      "max": 47599,
+      "source": "legacy-2021"
+    },
+    {
+      "rank": "UB",
+      "min": 47600,
+      "max": 55199,
+      "source": "legacy-2021"
+    },
+    {
+      "rank": "UA",
+      "min": 55200,
+      "max": 63399,
+      "source": "legacy-2021"
+    },
+    {
+      "rank": "US",
+      "min": 63400,
+      "max": 75999,
+      "source": "legacy-2021"
+    },
+    {
+      "rank": "LG",
+      "min": 76000,
+      "max": null,
+      "source": "legacy-2021"
+    }
+  ]
+}

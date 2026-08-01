@@ -1,0 +1,47 @@
+/* プライバシーポリシー・利用規約など、読み物ページ共通のスタイル。
+   app.html とは別建てにしている（本体UIの操作系スタイルは読み物には不要なため）。 */
+
+:root {
+  --accent: #2f6f4f;
+  --accent-dark: #1f4d36;
+  --bg: #f7f8f6;
+  --card-bg: #ffffff;
+  --border: #dcdfda;
+  --text: #1e2321;
+  --muted: #6b7570;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+  margin: 0; padding: 16px 12px 60px;
+  max-width: 680px; margin-inline: auto;
+  background: var(--bg); color: var(--text);
+  line-height: 1.8;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1 { font-size: 20px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 28px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+p, li { font-size: 14px; }
+ul { padding-left: 1.3em; }
+li { margin-bottom: 4px; }
+
+.updated { color: var(--muted); font-size: 12px; margin: 0 0 20px; }
+
+/* 本文中で特に読ませたい段落（送信しない旨など）を囲む。 */
+.note {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; margin: 12px 0;
+}
+
+a { color: var(--accent-dark); }
+
+/* 全ページ共通のフッタ。app.html からも読み込む。 */
+.siteFooter {
+  margin-top: 40px; padding-top: 12px; border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+}
+.siteFooter a { color: var(--muted); }

@@ -1,0 +1,1105 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ウマ娘 取得スキル 最大化くん</title>
+<style>
+  :root {
+    --accent: #2f6f4f;
+    --accent-dark: #1f4d36;
+    --bg: #f7f8f6;
+    --card-bg: #ffffff;
+    --border: #dcdfda;
+    --text: #1e2321;
+    --muted: #6b7570;
+    --warn: #9a6b12;
+    --warn-bg: #fdf3df;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+    margin: 0; padding: 16px 12px 80px;
+    max-width: 760px; margin-inline: auto;
+    background: var(--bg); color: var(--text);
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+  }
+  /* スマホ運用が前提。入力欄は16px未満だとiOSが焦点時に拡大するので下げない。
+     タップ目標は44px以上を確保する。 */
+  input, select, button { font-size: 16px; font-family: inherit; }
+  input[type="text"], input[type="number"], select { min-height: 44px; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--text); }
+  input[type="file"] { width: 100%; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .lead { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  section {
+    margin-bottom: 16px; padding: 14px 16px;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+  }
+  label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+  .hint { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  input[type="file"], input[type="number"], input[type="text"] {
+    width: 100%; padding: 7px 9px; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text);
+  }
+  button {
+    padding: 9px 22px; font-size: 14px; font-weight: 600; cursor: pointer;
+    min-height: 44px;
+    background: var(--accent); color: #fff; border: none; border-radius: 7px;
+  }
+  button:hover { background: var(--accent-dark); }
+  button.secondary {
+    background: #fff; color: var(--accent-dark); border: 1px solid var(--accent);
+    padding: 5px 12px; font-weight: 600; font-size: 12px;
+  }
+  button.secondary:hover { background: #eef5f0; }
+  button:disabled { background: #b9bfba; cursor: not-allowed; }
+
+  #status { margin: 14px 0; font-weight: 600; font-size: 13px; color: var(--muted); }
+  #progressBar { height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; margin-top: 6px; display: none; }
+  #progressBar .fill { height: 100%; width: 0%; background: var(--accent); transition: width .15s; }
+
+  #resultList { border-collapse: collapse; width: 100%; margin-top: 8px; }
+  #resultList td, #resultList th {
+    border-bottom: 1px solid var(--border); padding: 6px 8px; font-size: 13px; text-align: left;
+  }
+  #resultList th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  #resultList tr:last-child td { border-bottom: none; }
+
+  .warn { color: var(--warn); background: var(--warn-bg); border-radius: 6px; padding: 8px 10px; margin-top: 8px; font-size: 13px; }
+  .summary { font-size: 19px; font-weight: 700; margin: 4px 0 2px; }
+  .summary .sub { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+  .ambigRow {
+    display: flex; gap: 12px; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .ambigRow:last-child { border-bottom: none; }
+  .ambigRow .thumb {
+    width: 160px; height: 34px; object-fit: contain; object-position: left center;
+    background: #fafafa; border: 1px solid var(--border); border-radius: 4px; flex-shrink: 0;
+  }
+  .ambigRow .fields { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: 1; }
+  .ambigRow input[type="text"] { width: 180px; }
+  .ambigRow input[type="number"] { width: 80px; }
+  .ambigRow .applied { color: var(--accent-dark); font-size: 12px; font-weight: 600; }
+
+  /* 認識結果の確認・修正。スマホの幅（375px）で横スクロールが出ないよう、
+     1行を「アイコン＋名前画像」「名前入力」「SP・タグ・削除」の3段に折り返す。 */
+  /* 既定で畳む。section と同じ見た目にし、見出し行がそのまま開閉ボタンになる。 */
+  .fixPanel {
+    margin-bottom: 16px; padding: 14px 16px;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+  }
+  .fixHead {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    cursor: pointer; min-height: 44px; list-style: none;
+  }
+  .fixHead::-webkit-details-marker { display: none; }
+  .fixHead .chev {
+    flex: 0 0 auto; color: var(--accent); font-size: 12px;
+    transform: rotate(-90deg); transition: transform .15s;
+  }
+  .fixPanel[open] .fixHead .chev { transform: none; }
+  .fixPanel[open] .fixHead { margin-bottom: 2px; }
+  .fixHead .title { font-weight: 700; }
+  .fixHead .count { font-size: 12px; color: var(--muted); }
+  .fixWarn { color: #b3261e; font-weight: 600; }
+  .fixRow {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .fixRow:last-of-type { border-bottom: none; }
+  .fixRow.needsFix { background: #fdf6ec; }
+  .fixRow.removed { opacity: .4; }
+  .fixRow.removed input { text-decoration: line-through; }
+  .fixBottom { display: flex; align-items: center; gap: 8px; }
+  /* 上段は3列固定。タグの有無で名前画像の枠幅が変わると、行ごとに縮小率が
+     変わって右端が不揃いに見えるため、タグが無い行でも列幅を確保する。 */
+  .fixTop {
+    display: grid; grid-template-columns: 40px minmax(0, 1fr) 56px;
+    align-items: center; gap: 8px;
+  }
+  .fixTags { display: flex; flex-wrap: wrap; gap: 3px; justify-content: flex-end; }
+  .fixRow .icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: #fafafa; border: 1px solid var(--border);
+  }
+  /* 高さは画像本来の縦横比に任せる。CSSに比を焼き込むと、切り出し高さが
+     変わった端末で画像が縦に潰れる。 */
+  .fixRow .thumb {
+    width: 100%; height: auto; display: block;
+    background: #fafafa; border: 1px solid var(--border); border-radius: 4px;
+  }
+  .fixRow span.thumb { height: 24px; }
+  .fixRow .thumb.missing { background: repeating-linear-gradient(45deg,#f6f6f4,#f6f6f4 5px,#eeefec 5px,#eeefec 10px); }
+  /* 名前欄が伸縮側。SPと削除は固定幅にして、狭い画面でも1行に収める。 */
+  .fixRow input[type="text"] { flex: 1 1 auto; width: auto; min-width: 0; }
+  .fixRow input[type="number"] { flex: 0 0 72px; width: 72px; text-align: right; }
+  .fixRow .tag { font-size: 11px; white-space: nowrap; color: var(--muted); border: 1px solid var(--border); border-radius: 99px; padding: 2px 8px; }
+  .fixRow .del {
+    flex: 0 0 auto; min-height: 44px; padding: 0 10px;
+    background: none; border: 1px solid var(--border); color: var(--muted); font-size: 13px;
+  }
+  .fixRow .del:hover { background: #fdecec; border-color: #e3b4b4; color: #b3261e; }
+  .fixBar { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+  .fixBar .dirty { font-size: 12px; color: #b3261e; font-weight: 600; }
+
+  /* ステータス・適性の確認。項目名・元画面の切り抜き・入力欄を1行に並べる。 */
+  .checkGrid { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .checkField {
+    display: flex; align-items: center; gap: 8px; margin: 0;
+    font-weight: 500; font-size: 13px; color: var(--muted);
+  }
+  .checkName { flex: 0 0 4.5em; }
+  /* 切り抜きは中身に合わせて幅が変わるので、枠の中央に置いて大きさを揃えて見せる。 */
+  .checkCrop {
+    flex: 1 1 auto; min-width: 0; height: 32px;
+    object-fit: contain; object-position: center;
+    background: #fafafa; border: 1px solid var(--border); border-radius: 4px;
+  }
+  .checkField input, .checkField select { flex: 0 0 88px; width: 88px; }
+
+  /* 進化スキルの選択。選択肢は指で押せる大きさのボタン状ラベルにする。 */
+  .evoSkill { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .evoSkill:last-of-type { border-bottom: none; }
+  .evoSkill .name { font-weight: 600; margin-bottom: 6px; }
+  .evoOptions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .evoOptions label {
+    display: flex; align-items: center; gap: 6px; margin: 0;
+    min-height: 44px; padding: 0 12px; font-weight: 500; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 22px; background: #fff; cursor: pointer;
+  }
+  .evoOptions label:has(input:checked) { border-color: var(--accent); background: #eef5f0; color: var(--accent-dark); font-weight: 700; }
+  .evoOptions input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+
+  /* 各手順の詳しい説明。本文は畳んでおき、(i) を押したときだけ重ねて出す。 */
+  .info {
+    position: relative;
+    width: 26px; height: 26px; min-height: 26px; padding: 0; border-radius: 50%;
+    background: var(--muted); color: #fff; font-size: 15px; font-weight: 700;
+    font-style: italic; line-height: 26px; vertical-align: middle;
+  }
+  /* 見た目は26pxの円のまま、指で押せるよう当たり判定だけ44px四方に広げる。 */
+  .info::after { content: ""; position: absolute; inset: -9px; }
+  .info:hover { background: var(--accent-dark); }
+  #infoOverlay {
+    position: fixed; inset: 0; display: none; z-index: 10;
+    background: rgba(20, 24, 22, .45); padding: 16px;
+    align-items: center; justify-content: center;
+  }
+  #infoOverlay.open { display: flex; }
+  #infoOverlay .card {
+    background: var(--card-bg); border-radius: 12px; padding: 18px 18px 14px;
+    max-width: 420px; max-height: 80vh; overflow-y: auto; font-size: 14px; line-height: 1.7;
+  }
+  #infoOverlay .card button { margin-top: 12px; width: 100%; min-height: 44px; }
+
+  .optRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .optRow .sub { margin: 0; font-weight: 500; font-size: 13px; color: var(--muted); flex: 0 0 110px; }
+  .optRow select { flex: 1 1 160px; }
+
+  /* 結果表は列が多いと375px幅に収まらないので、表だけ横スクロールさせる。 */
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+
+  /* 全ページ共通のフッタ。読み物ページ側は docs.css に同じ指定がある。 */
+  .siteFooter {
+    margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+  }
+  .siteFooter a { color: var(--muted); }
+</style>
+
+<h1>ウマ娘 取得スキル 最大化くん</h1>
+<p class="lead">画像は端末外に送信しません。処理はすべてこのブラウザ内で完結します。</p>
+
+<section>
+  <label>① ウマ娘詳細画面 <button type="button" class="info" data-info="detail" aria-label="説明">i</button></label>
+  <input type="file" id="detailFile" accept="image/*">
+  <template data-info-body="detail">
+    ステータス（スピード〜賢さ）と距離・脚質の適性が<b>すべて写る</b>ように撮ってください。
+    ここから現在の評価点を推定します。
+  </template>
+</section>
+
+<section>
+  <label>② スキル取得画面（複数枚） <button type="button" class="info" data-info="acq" aria-label="説明">i</button></label>
+  <input type="file" id="acqFiles" accept="image/*" multiple>
+  <template data-info-body="acq">
+    上から下へスクロールしながら撮り、<b>隣の画像と2〜3行重ねて</b>ください。重なりがあれば、行の抜けを防げるうえ、選ぶ順番が違っていても正しい順に自動で並べ直せます（多く重なる分には問題ありません）。<br>
+    <b>上端・下端で行が半分だけ見切れた画像は避けてください。</b>別の画像にその行が丸ごと写っていれば大丈夫です。<br>
+    フィルタや説明ポップアップを開いた状態、ダークモード変換・色調補正アプリを通した画像は避けてください。<br>
+    「説明省略」をONにして撮ると枚数が減ります。
+  </template>
+</section>
+
+<section>
+  <label>③ 設定（任意） <button type="button" class="info" data-info="opt" aria-label="説明">i</button></label>
+  <div class="optRow">
+    <label for="uniqueLv" class="sub">固有スキルLv</label>
+    <select id="uniqueLv">
+      <option value="1">Lv1</option>
+      <option value="2">Lv2</option>
+      <option value="3">Lv3</option>
+      <option value="4">Lv4</option>
+      <option value="5">Lv5</option>
+      <option value="6" selected>Lv6（最大）</option>
+    </select>
+  </div>
+  <div class="optRow">
+    <label for="targetRank" class="sub">目標評価ランク</label>
+    <select id="targetRank">
+      <option value="">なし（所持SP内で最大化）</option>
+    </select>
+  </div>
+  <template data-info-body="opt">
+    <b>固有スキルLv</b>は画面に出ないため自動取得できません（評価点＝170×Lv）。<br>
+    <b>目標評価ランク</b>を選ぶと、そのランクの上限を超えない範囲で評価点が最大になるよう選びます。空欄なら所持SP内で最大化します。
+  </template>
+</section>
+
+<button id="runButton" style="width:100%">計算する</button>
+<div id="status"></div>
+<div id="progressBar"><div class="fill"></div></div>
+
+<div id="results"></div>
+
+<datalist id="nameOptions"></datalist>
+
+<div id="infoOverlay"><div class="card"><div class="body"></div><button type="button">閉じる</button></div></div>
+
+<footer class="siteFooter">
+  <a href="usage.html">使い方</a>
+  <a href="privacy.html">プライバシーポリシー</a>
+  <a href="terms.html">利用規約</a>
+  <a href="contact.html">お問い合わせ</a>
+  <span>制作: ぬけ　ゲームの開発・運営元とは関係のない非公式ツールです</span>
+</footer>
+
+<script src="ocr_core.js?v=78"></script>
+<script src="fields.js?v=78"></script>
+<script src="optimizer.js?v=78"></script>
+<script src="stat_eval.js?v=78"></script>
+<script src="name_match.js?v=78"></script>
+<script src="recognizer.js?v=78"></script>
+<script src="harvest.js?v=78"></script>
+<script src="dedup.js?v=78"></script>
+<script src="pipeline.js?v=78"></script>
+<script>
+// ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
+const infoOverlay = document.getElementById("infoOverlay");
+document.querySelectorAll("button.info").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const body = document.querySelector(`template[data-info-body="${btn.dataset.info}"]`);
+    infoOverlay.querySelector(".body").replaceChildren(body.content.cloneNode(true));
+    infoOverlay.classList.add("open");
+  });
+});
+infoOverlay.addEventListener("click", () => infoOverlay.classList.remove("open"));
+
+const statusEl = document.getElementById("status");
+const resultsEl = document.getElementById("results");
+const progressBarEl = document.getElementById("progressBar");
+const progressFillEl = progressBarEl.querySelector(".fill");
+
+function setStatus(text) { statusEl.textContent = text; }
+
+function setProgress(done, total) {
+  if (total === 0) { progressBarEl.style.display = "none"; return; }
+  progressBarEl.style.display = "block";
+  progressFillEl.style.width = `${Math.round((done / total) * 100)}%`;
+  if (done >= total) setTimeout(() => { progressBarEl.style.display = "none"; }, 300);
+}
+
+let cache = null;   // { master, index, nameAtlas, digitAtlas, rankAtlas }（メインスレッド側。最適化計算と候補検索に使う）
+let rankBorders = null;   // 評価ランク境界（rank_borders.jsonのranks）。ランク表示・目標ランクに使う
+
+// 目標ランクselectはRun前に選べる必要があるため、境界だけページ読込直後に先読みする。
+(async function preloadRankBorders() {
+  try {
+    rankBorders = (await (await fetch("rank_borders.json", { cache: "no-store" })).json()).ranks;
+    populateTargetRankSelect(rankBorders);
+  } catch (e) { /* 失敗時はloadResourcesで再取得される */ }
+})();
+
+async function loadResources() {
+  if (cache !== null) return cache;
+  setStatus("マスタ・アトラスを読み込み中...");
+  // 開発中はアトラスの更新頻度が高いため、常に最新を取得する
+  // （HTTPキャッシュに古いアトラスが残ると原因不明の認識劣化に見える）。
+  const noCache = { cache: "no-store" };
+  const master = loadMaster(await fetchMasterJson(noCache));
+  const index = buildNameIndex(master);
+  const nameAtlas = unpackAtlas(await (await fetch("atlas_v1.json", noCache)).json());
+  const digitAtlas = unpackAtlas(await (await fetch("digit_atlas.json", noCache)).json());
+  const rankAtlas = unpackAtlas(await (await fetch("rank_atlas.json", noCache)).json());
+  if (rankBorders === null) rankBorders = (await (await fetch("rank_borders.json", noCache)).json()).ranks;
+  cache = { master, index, nameAtlas, digitAtlas, rankAtlas, rankBorders };
+  populateTargetRankSelect(rankBorders);
+
+  const datalist = document.getElementById("nameOptions");
+  const seen = new Set();
+  for (const entry of index) {
+    if (seen.has(entry.name)) continue;
+    seen.add(entry.name);
+    const opt = document.createElement("option");
+    opt.value = entry.name;
+    datalist.appendChild(opt);
+  }
+  return cache;
+}
+
+// ===== Web Worker経由の認識（引き継ぎ資料§10.6項目5: UIを固まらせない） =====
+let worker = null;
+function getWorker() {
+  if (worker === null) worker = new Worker("recognition_worker.js?v=78");
+  return worker;
+}
+
+function recognizeAcquisitionsViaWorker(files, onProgress) {
+  return new Promise((resolve, reject) => {
+    const w = getWorker();
+    const handler = (e) => {
+      const msg = e.data;
+      if (msg.type === "progress") onProgress(msg.done, msg.total);
+      else if (msg.type === "acquisitionResult") { w.removeEventListener("message", handler); resolve(msg); }
+      else if (msg.type === "error") { w.removeEventListener("message", handler); reject(new Error(msg.message)); }
+    };
+    w.addEventListener("message", handler);
+    w.postMessage({ type: "recognizeAcquisitions", blobs: Array.from(files) });
+  });
+}
+
+function recognizeDetailViaWorker(file) {
+  return new Promise((resolve, reject) => {
+    const w = getWorker();
+    const handler = (e) => {
+      const msg = e.data;
+      if (msg.type === "detailResult") {
+        w.removeEventListener("message", handler);
+        resolve(msg);
+      } else if (msg.type === "error") { w.removeEventListener("message", handler); reject(new Error(msg.message)); }
+    };
+    w.addEventListener("message", handler);
+    w.postMessage({ type: "recognizeDetail", blob: file });
+  });
+}
+
+// ===== 実行状態（曖昧行のユーザー確認→再計算のために保持する） =====
+const session = {
+  recognizedRows: [], aptitudes: null, skillPointsGuess: null,
+  budget: null, characterCardId: null, thumbnailUrls: [], evolutionChoices: {},
+  stats: null,           // 詳細画面OCRの5ステータス現在値 { speed, ... }
+  uniqueSkillLv: 6,      // 固有スキルLv（1〜6・OCR不可のため選択入力。既定=最大）
+  currentEval: null,     // 現在の総合評価点（ステ＋固有＋獲得スキルから自動算出）
+  targetRankName: "",    // 目標評価ランク名（空なら所持SP内で最大化）
+  hasRun: false,         // 一度でも計算したか（設定変更時の再計算判定用）
+};
+
+// ===== 評価ランク（rank_borders.json） =====
+// スコア次元DPの配列サイズ上限。目標ランク上限−現在評価点がこれを超える場合は
+// 実質SP律速なので通常最大化に切り替える（巨大配列の確保を避ける）。
+const RANK_SCORE_CAP_MAX = 40000;
+
+// ★3以上の固有スキル評価点は 170×Lv（★1-2は120×Lv）。競技用の主力は★3以上が
+// 標準のため170を用いる。eval_validation_test.html で実サンプル4件（★3-5）に対し
+// 実機表示との完全一致を確認済み。
+const UNIQUE_EVAL_PER_LV = 170;
+
+// 現在の総合評価点（推定）を算出する。ステOCR失敗時はnull（＝ランク表示を出さない）。
+// 総合評価点 = ステータス評価点 + 170×固有Lv + 獲得済みスキル評価点。
+function computeCurrentEval(state) {
+  if (!session.stats) return null;
+  const values = Object.values(session.stats);
+  if (values.some(v => v == null)) return null;   // 1つでも読めなければ推定しない
+  const statTotal = totalStatEval(session.stats);
+  const uniqueTotal = UNIQUE_EVAL_PER_LV * session.uniqueSkillLv;
+  const skillTotal = acquiredSkillEval(cache.master, state);
+  return statTotal + uniqueTotal + skillTotal;
+}
+
+function populateTargetRankSelect(ranks) {
+  const sel = document.getElementById("targetRank");
+  if (sel.options.length > 1) return;   // 二重生成を防ぐ
+  for (const r of ranks) {
+    const opt = document.createElement("option");
+    opt.value = r.rank;
+    opt.textContent = r.max == null ? `${r.rank}（${r.min}〜）` : `${r.rank}（${r.min}〜${r.max}）`;
+    sel.appendChild(opt);
+  }
+}
+
+// 総合評価点 → 評価ランク名。min ≤ total ≤ max（最上位rankはmax=null）。
+function rankOf(total) {
+  const ranks = rankBorders || [];
+  for (const r of ranks) {
+    if (total >= r.min && (r.max == null || total <= r.max)) return r.rank;
+  }
+  return ranks.length ? ranks[ranks.length - 1].rank : "?";
+}
+function rankByName(name) {
+  return (rankBorders || []).find(r => r.rank === name) || null;
+}
+
+// ③設定の変更で再計算する（計算済みのときのみ）。
+document.getElementById("uniqueLv").addEventListener("change", (e) => {
+  session.uniqueSkillLv = parseInt(e.target.value, 10);
+  if (session.hasRun) recalcAndRender();
+});
+document.getElementById("targetRank").addEventListener("change", (e) => {
+  session.targetRankName = e.target.value;
+  if (session.hasRun) recalcAndRender();
+});
+
+function revokeThumbnailUrls() {
+  session.thumbnailUrls.forEach(u => URL.revokeObjectURL(u));
+  session.thumbnailUrls = [];
+}
+
+function renderResults(optResult, baseline = null, rankNote = null) {
+  const { skillPointsGuess, aptitudes } = session;
+
+  resultsEl.textContent = "";
+
+  const summary = document.createElement("div");
+  summary.className = "summary";
+  summary.innerHTML = `評価点 +${optResult.totalScore}点 <span class="sub">（消費 ${optResult.totalCost} / ${session.budget}SP）</span>`;
+  resultsEl.appendChild(summary);
+
+  // 獲得後の総合評価点と評価ランク（ステータスから現在評価点を推定できた場合のみ）。
+  if (baseline != null) {
+    const postEval = baseline + optResult.totalScore;
+    const postRank = rankOf(postEval);
+    const box = document.createElement("div");
+    box.className = "summary";
+    box.style.fontSize = "16px";
+    box.innerHTML = `獲得後の総合評価点（推定） <b>${postEval.toLocaleString()}</b>`
+      + ` <span class="sub">評価ランク <b>${postRank}</b>（現在 推定${baseline.toLocaleString()} → +${optResult.totalScore}）</span>`;
+    resultsEl.appendChild(box);
+
+    if (rankNote && rankNote.kind === "capped") {
+      const tr = rankNote.targetRank;
+      const remaining = tr.max - postEval;
+      const note = document.createElement("div");
+      note.className = "warn";
+      note.style.background = "#eef5f0"; note.style.color = "var(--accent-dark)";
+      note.textContent = `目標ランク ${tr.rank}（上限 ${tr.max.toLocaleString()}）の範囲内で評価点を最大化しました。`
+        + `上限まで残り ${Math.max(0, remaining).toLocaleString()}点。`;
+      resultsEl.appendChild(note);
+    } else if (rankNote && rankNote.kind === "over") {
+      const note = document.createElement("div");
+      note.className = "warn";
+      note.textContent = `⚠ 現在の総合評価点が目標ランク ${rankNote.targetRank.rank}`
+        + `（上限 ${rankNote.targetRank.max.toLocaleString()}）を既に超えています。所持SP内での最大化結果を表示しています。`;
+      resultsEl.appendChild(note);
+    }
+  } else if (rankNote && rankNote.kind === "needEval") {
+    const note = document.createElement("div");
+    note.className = "warn";
+    note.textContent = "①詳細画面からステータスを読み取れなかったため、現在の総合評価点を推定できません（ステータスと距離・脚質適性がすべて写った詳細画面を使ってください）。所持SP内での最大化結果を表示しています。";
+    resultsEl.appendChild(note);
+  }
+
+  resultsEl.appendChild(renderInputCheckPanel());
+
+  if (optResult.warnings.length) {
+    const warnBox = document.createElement("div");
+    warnBox.className = "warn";
+    warnBox.innerHTML = optResult.warnings.map(w => `⚠ ${w}`).join("<br>");
+    resultsEl.appendChild(warnBox);
+  }
+
+  const evolutionPanel = renderEvolutionChoicePanel();
+  if (evolutionPanel !== null) resultsEl.appendChild(evolutionPanel);
+
+  const table = document.createElement("table");
+  table.id = "resultList";
+  const thead = document.createElement("tr");
+  ["評価点", "消費SP", "プラン名"].forEach(h => {
+    const th = document.createElement("th"); th.textContent = h; thead.appendChild(th);
+  });
+  table.appendChild(thead);
+  for (const o of optResult.selectedPlans) {
+    const tr = document.createElement("tr");
+    [`+${o.score}`, `${o.cost}`, o.plan.name].forEach(text => {
+      const td = document.createElement("td"); td.textContent = text; tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  }
+  const tableWrap = document.createElement("div");
+  tableWrap.className = "tableWrap";
+  tableWrap.appendChild(table);
+  resultsEl.appendChild(tableWrap);
+
+  resultsEl.appendChild(renderRowEditor(aptitudes, skillPointsGuess));
+}
+
+// 詳細画面から読み取ったステータスと適性の確認・修正パネル。
+//
+// 読み取り値をそのまま画面に出し、その場で直せるようにする。理由は3つある。
+//  ・ステータスは「現在の総合評価点」の土台で、誤ると評価点がまるごとずれる。
+//    しかも誤読は無言で通るため、値を見せない限りユーザーは気付けない。
+//  ・適性は評価点の倍率に効くので、誤ると購入プランそのものが変わる。
+//  ・動作を確認できている端末は限られる。未知の端末で誤読しても、直せれば使える。
+// 評価点の表示のすぐ下に置き、誤った数値と、その元になった値が並んで見えるようにする。
+const APTITUDE_FIELDS = [
+  ["短距離", "tanKyori"], ["マイル", "mile"], ["中距離", "chuKyori"], ["長距離", "choKyori"],
+  ["逃げ", "nige"], ["先行", "senko"], ["差し", "sashi"], ["追込", "oikomi"],
+];
+const APTITUDE_RANK_CHOICES = ["S", "A", "B", "C", "D", "E", "F", "G"];
+const STAT_FIELDS = [
+  ["スピード", "speed"], ["スタミナ", "stamina"], ["パワー", "power"],
+  ["根性", "guts"], ["賢さ", "wisdom"],
+];
+
+function renderInputCheckPanel() {
+  const stats = session.stats;
+  const aptitudes = session.aptitudes || {};
+  const unreadable = !stats || Object.values(stats).some(v => v == null);
+
+  const section = document.createElement("details");
+  section.className = "fixPanel";
+  section.open = unreadable;      // 読めなかったときだけ開く
+
+  const head = document.createElement("summary");
+  head.className = "fixHead";
+  const chevron = document.createElement("span");
+  chevron.className = "chev";
+  chevron.textContent = "▼";
+  head.appendChild(chevron);
+  const title = document.createElement("span");
+  title.className = "title";
+  title.textContent = "ステータス・適性の確認";
+  head.appendChild(title);
+  const summaryText = document.createElement("span");
+  summaryText.className = "count";
+  summaryText.textContent = stats
+    ? STAT_FIELDS.map(([, k]) => stats[k] ?? "?").join(" / ")
+    : "読み取れませんでした";
+  head.appendChild(summaryText);
+  section.appendChild(head);
+
+  const hint = document.createElement("div");
+  hint.className = "hint";
+  hint.textContent = unreadable
+    ? "詳細画面から読み取れませんでした。手で入力すると総合評価点を計算できます。"
+    : "①の詳細画面から読み取った値です。ゲーム画面と見比べて、違っていれば直してください。";
+  section.appendChild(hint);
+
+  // 切り抜きは詳細画面から切り出したもの。ゲームを開き直さずに突き合わせられる。
+  const addCrop = (wrap, blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    session.thumbnailUrls.push(url);
+    const img = document.createElement("img");
+    img.className = "checkCrop"; img.src = url; img.alt = "";
+    wrap.appendChild(img);
+  };
+
+  const statInputs = {};
+  const statGrid = document.createElement("div");
+  statGrid.className = "checkGrid";
+  STAT_FIELDS.forEach(([label, key], i) => {
+    const wrap = document.createElement("label");
+    wrap.className = "checkField";
+    const name = document.createElement("span");
+    name.className = "checkName"; name.textContent = label;
+    wrap.appendChild(name);
+    addCrop(wrap, session.statCrops && session.statCrops[i]);
+    const input = document.createElement("input");
+    input.type = "number"; input.min = "0"; input.max = "2500";
+    input.value = stats && stats[key] != null ? stats[key] : "";
+    statInputs[key] = input;
+    wrap.appendChild(input);
+    statGrid.appendChild(wrap);
+  });
+  section.appendChild(statGrid);
+
+  const aptInputs = {};
+  const aptGrid = document.createElement("div");
+  aptGrid.className = "checkGrid";
+  APTITUDE_FIELDS.forEach(([label, key], i) => {
+    const wrap = document.createElement("label");
+    wrap.className = "checkField";
+    const name = document.createElement("span");
+    name.className = "checkName"; name.textContent = label;
+    wrap.appendChild(name);
+    addCrop(wrap, session.aptitudeCrops && session.aptitudeCrops[i]);
+    const select = document.createElement("select");
+    for (const rank of APTITUDE_RANK_CHOICES) {
+      const opt = document.createElement("option");
+      opt.value = rank; opt.textContent = rank;
+      if (aptitudes[key] === rank) opt.selected = true;
+      select.appendChild(opt);
+    }
+    aptInputs[key] = select;
+    wrap.appendChild(select);
+    aptGrid.appendChild(wrap);
+  });
+  section.appendChild(aptGrid);
+
+  const bar = document.createElement("div");
+  bar.className = "fixBar";
+  const applyBtn = document.createElement("button");
+  applyBtn.type = "button";
+  applyBtn.textContent = "反映して再計算";
+  applyBtn.addEventListener("click", () => {
+    const next = {};
+    for (const [, key] of STAT_FIELDS) {
+      const v = parseInt(statInputs[key].value, 10);
+      next[key] = Number.isFinite(v) ? v : null;
+    }
+    session.stats = next;
+    // 芝ダは既定で倍率に使わないため、読み取った値をそのまま残す。
+    session.aptitudes = { ...session.aptitudes };
+    for (const [, key] of APTITUDE_FIELDS) session.aptitudes[key] = aptInputs[key].value;
+    recalcAndRender();
+  });
+  bar.appendChild(applyBtn);
+  section.appendChild(bar);
+
+  return section;
+}
+
+// 認識結果の確認・修正パネル。読み取った全行を原画のサムネイル付きで並べ、
+// 名前・SPの手直し、行の削除、行の追加をまとめて行えるようにする。
+//
+// 全行を出すのは、確信して誤読した行はユーザーが気付かない限り直せないため。
+// 並び順はスキル取得画面と同じ（＝認識順）。曖昧行は色で強調する。
+// 変更は「反映して再計算」を押すまで確定しない（打つたびに再計算しない）。
+function renderRowEditor(aptitudes, skillPointsGuess) {
+  revokeThumbnailUrls();
+
+  const rows = session.recognizedRows;
+  const ambiguousCount = rows.filter(r => r.ambiguous).length;
+  // 並べ替えない。スキル取得画面に並んでいた順（複数スクショはその貼付順）のまま出す。
+  // 画面と同じ順に並んでいないと、ユーザーが目で突き合わせられない。
+  const order = rows.map((row, index) => ({ row, index }));
+
+  const section = document.createElement("details");
+  section.className = "fixPanel";
+  // 既定は畳む。ただし曖昧行があるときだけ開く――曖昧行は計算から除外されており、
+  // 隠れたままだと「入れたはずのスキルが入っていない」ことに気付けないため。
+  section.open = ambiguousCount > 0;
+
+  const head = document.createElement("summary");
+  head.className = "fixHead";
+  const chevron = document.createElement("span");
+  chevron.className = "chev";
+  chevron.textContent = "▼";
+  head.appendChild(chevron);
+  const title = document.createElement("span");
+  title.className = "title";
+  title.textContent = "認識結果の確認・修正";
+  head.appendChild(title);
+  const count = document.createElement("span");
+  count.className = "count";
+  count.textContent = `${rows.length}行 ・ 保有Pt ${skillPointsGuess ?? "読み取れず"}`;
+  head.appendChild(count);
+  if (ambiguousCount > 0) {
+    const warn = document.createElement("span");
+    warn.className = "fixWarn";
+    warn.textContent = `要確認 ${ambiguousCount}行`;
+    head.appendChild(warn);
+  }
+  section.appendChild(head);
+
+  const hint = document.createElement("div");
+  hint.className = "hint";
+  hint.textContent = ambiguousCount > 0
+    ? "オレンジの行は読み取れなかったため計算に入っていません。左の画像と見比べて直してください。他の行も誤りがあれば直せます。"
+    : "左の画像と見比べて、違っていれば直してください。";
+  section.appendChild(hint);
+
+  // 変更はここに溜め、「反映して再計算」で一度に適用する。
+  const edits = new Map();      // 行index → {name, sp}
+  const removed = new Set();    // 削除する行index
+  let added = [];               // 追加する行
+
+  const bar = document.createElement("div");
+  bar.className = "fixBar";
+  const applyBtn = document.createElement("button");
+  applyBtn.type = "button";
+  applyBtn.textContent = "反映して再計算";
+  applyBtn.disabled = true;
+  const dirtyLabel = document.createElement("span");
+  dirtyLabel.className = "dirty";
+
+  function markDirty() {
+    const n = edits.size + removed.size + added.length;
+    applyBtn.disabled = n === 0;
+    dirtyLabel.textContent = n === 0 ? "" : `未反映の変更 ${n}件`;
+  }
+
+  for (const { row, index } of order) {
+    section.appendChild(buildFixRow(row, index, edits, removed, markDirty));
+  }
+
+  // 取りこぼした行の追加。サムネイルが無い行なので、下段だけの1行にする。
+  const addRow = document.createElement("div");
+  addRow.className = "fixRow";
+  const addFields = document.createElement("div");
+  addFields.className = "fixBottom";
+  const addName = document.createElement("input");
+  addName.type = "text"; addName.setAttribute("list", "nameOptions");
+  addName.placeholder = "読み取れなかったスキル名";
+  addFields.appendChild(addName);
+  const addSp = document.createElement("input");
+  addSp.type = "number"; addSp.placeholder = "SP";
+  addFields.appendChild(addSp);
+  const addBtn = document.createElement("button");
+  addBtn.type = "button"; addBtn.className = "del"; addBtn.textContent = "追加";
+  addBtn.addEventListener("click", () => {
+    const entry = cache.index.find(e => e.name === addName.value.trim());
+    if (entry === undefined) { alert("マスタに無い名前です。候補から選んでください。"); return; }
+    const sp = parseInt(addSp.value, 10);
+    if (!Number.isFinite(sp)) { alert("SPを入力してください。"); return; }
+    added.push({ name: entry.name, skillId: entry.skillId, sp, evo: false,
+                 acquired: false, ambiguous: false, spReliable: true });
+    addName.value = ""; addSp.value = "";
+    markDirty();
+  });
+  addFields.appendChild(addBtn);
+  addRow.appendChild(addFields);
+  section.appendChild(addRow);
+
+  applyBtn.addEventListener("click", async () => {
+    const next = [];
+    session.recognizedRows.forEach((row, index) => {
+      if (removed.has(index)) return;
+      const edit = edits.get(index);
+      if (edit === undefined) { next.push(row); return; }
+      next.push(applyEdit(row, edit));
+    });
+    session.recognizedRows = next.concat(added);
+    await recalcAndRender();
+  });
+  bar.appendChild(applyBtn);
+  bar.appendChild(dirtyLabel);
+  section.appendChild(bar);
+
+  return section;
+}
+
+// 1行ぶんの編集欄。名前を変えたら進化先IDも取り直す（元のIDのままだと
+// 別スキルの進化先が橋渡しされてしまう）。
+function applyEdit(row, edit) {
+  const entry = cache.index.find(e => e.name === edit.name);
+  const updated = { ...row, name: entry.name, skillId: entry.skillId, ambiguous: false };
+  if (!row.acquired) { updated.sp = edit.sp; updated.spReliable = true; }
+  if (updated.evo) {
+    const fam = cache.master.families.find(f =>
+      (f.skills || []).some(s => s.skillId === entry.skillId));
+    updated.evolutionSkillIds = fam
+      ? fam.evolutions.filter(e => e.fromGoldSkillId === entry.skillId).map(e => e.skillId)
+      : [];
+  }
+  return updated;
+}
+
+function buildFixRow(row, index, edits, removed, markDirty) {
+  const wrap = document.createElement("div");
+  wrap.className = "fixRow" + (row.ambiguous ? " needsFix" : "");
+
+  // 上段: アイコンと名前画像。どちらも貼られたスクショの切り抜きで、
+  // 名前が読めなくてもアイコンの絵柄で取得画面のどの行か突き止められる。
+  const top = document.createElement("div");
+  top.className = "fixTop";
+  const icon = document.createElement(row.icon ? "img" : "span");
+  icon.className = "icon";
+  if (row.icon) {
+    const iconUrl = URL.createObjectURL(row.icon);
+    session.thumbnailUrls.push(iconUrl);
+    icon.src = iconUrl; icon.alt = "";
+  }
+  top.appendChild(icon);
+
+  if (row.thumbnail) {
+    const url = URL.createObjectURL(row.thumbnail);
+    session.thumbnailUrls.push(url);
+    const img = document.createElement("img");
+    img.className = "thumb"; img.src = url; img.alt = "";
+    top.appendChild(img);
+  } else {
+    const ph = document.createElement("span");
+    ph.className = "thumb missing";
+    top.appendChild(ph);
+  }
+
+  // タグは常に同じ幅の列に置く（中身が無くても列は残す）。ゲーム内表記に合わせ「獲得済」。
+  const tags = document.createElement("div");
+  tags.className = "fixTags";
+  for (const [cond, text] of [[row.acquired, "獲得済"], [row.evo, "進化"]]) {
+    if (!cond) continue;
+    const tag = document.createElement("span");
+    tag.className = "tag"; tag.textContent = text;
+    tags.appendChild(tag);
+  }
+  top.appendChild(tags);
+  wrap.appendChild(top);
+
+  // 下段: 名前入力・SP・削除を1行に収める。
+  const bottom = document.createElement("div");
+  bottom.className = "fixBottom";
+
+  const nameInput = document.createElement("input");
+  nameInput.type = "text"; nameInput.setAttribute("list", "nameOptions");
+  nameInput.value = row.name;
+  bottom.appendChild(nameInput);
+
+  const spInput = document.createElement("input");
+  spInput.type = "number"; spInput.placeholder = "SP";
+  spInput.value = row.sp ?? "";
+  spInput.disabled = row.acquired === true;      // 獲得済みは購入対象外
+  bottom.appendChild(spInput);
+
+  const del = document.createElement("button");
+  del.type = "button"; del.className = "del"; del.textContent = "削除";
+  bottom.appendChild(del);
+  wrap.appendChild(bottom);
+
+  function onChange() {
+    const name = nameInput.value.trim();
+    const entry = cache.index.find(e => e.name === name);
+    const sp = row.acquired ? null : parseInt(spInput.value, 10);
+    const changed = name !== row.name || (!row.acquired && sp !== row.sp) || row.ambiguous;
+    if (entry === undefined || (!row.acquired && !Number.isFinite(sp)) || !changed) {
+      edits.delete(index);
+    } else {
+      edits.set(index, { name: entry.name, sp });
+    }
+    markDirty();
+  }
+  nameInput.addEventListener("change", onChange);
+  spInput.addEventListener("change", onChange);
+
+  del.addEventListener("click", () => {
+    if (removed.has(index)) { removed.delete(index); wrap.classList.remove("removed"); del.textContent = "削除"; }
+    else { removed.add(index); edits.delete(index); wrap.classList.add("removed"); del.textContent = "戻す"; }
+    markDirty();
+  });
+
+  return wrap;
+}
+
+// 進化フラグ付きの金スキル（非曖昧・未購入の行のみ。曖昧行は最適化から
+// 除外されているため選択肢に出しても意味が無い）を、行の出現順で重複なく
+// 集める。
+function collectEvolvedGoldSkills() {
+  const seen = new Map();
+  for (const row of session.recognizedRows) {
+    if (row.ambiguous || row.acquired || !row.evo || !row.evolutionSkillIds) continue;
+    if (!seen.has(row.skillId)) seen.set(row.skillId, row.name);
+  }
+  return Array.from(seen, ([skillId, name]) => ({ skillId, name }));
+}
+
+// 進化スキルごとに「どの進化先に進化させるか（または進化しないか）」を
+// ユーザーに選ばせるパネル。
+//
+// シナリオ進化スキルは育成シナリオごとに獲得条件が決まっており、かつ
+// 1回の育成でシナリオ進化を獲得できるのは2個までという制約がある。
+// どのスキルがどの育成シナリオに属するかをマスタ上で機械的に判別するのは
+// 煩雑（マスタにシナリオ名の情報が無い）なため、本ツールでは「2個まで」の
+// 制約チェックは行わず、ユーザー自身の判断（実際のプレイ内容）に委ねる
+// 方針とした（ユーザー合意済み・2026-07-12）。
+//
+// 候補は「そのキャラ専用の進化（characterCardId一致）」または「シナリオ
+// 進化等キャラ非依存の進化（characterCardIdがnull）」のみに限定し、他キャラ
+// 専用の進化先（そのキャラでは絶対に入手できない）が紛れ込まないようにする
+// （optimizer.js の selectablePlans 側にも同じ絞り込みを実装済み。ここでの
+// 絞り込みはUI表示用）。
+function renderEvolutionChoicePanel() {
+  const evolvedSkills = collectEvolvedGoldSkills();
+  if (evolvedSkills.length === 0) return null;
+
+  const section = document.createElement("section");
+  const head = document.createElement("div");
+  head.className = "fixHead";
+  const title = document.createElement("span");
+  title.className = "title";
+  title.textContent = `進化スキルの選択（${evolvedSkills.length}件）`;
+  head.appendChild(title);
+  section.appendChild(head);
+
+  const hint = document.createElement("div");
+  hint.className = "hint";
+  hint.textContent = "シナリオ進化は1回の育成で2個までしか獲得できません。実際に進化させるものだけ選んでください。";
+  section.appendChild(hint);
+
+  // 選択は即時反映しない。複数スキルを選ぶ間ずっと再計算が走るのを避け、
+  // 「反映して再計算」を押したときにまとめて適用する。
+  const picked = new Map();
+
+  const applyBtn = document.createElement("button");
+  applyBtn.type = "button";
+  applyBtn.textContent = "反映して再計算";
+  applyBtn.disabled = true;
+
+  let hasCandidates = false;
+  for (const { skillId: goldId, name: goldName } of evolvedSkills) {
+    const family = cache.master.families.find(f => f._skillById.has(goldId));
+    if (family === undefined) continue;
+    const candidates = family.evolutions.filter(e =>
+      e.fromGoldSkillId === goldId && (e.characterCardId === session.characterCardId || e.characterCardId == null));
+    if (candidates.length === 0) continue;
+    hasCandidates = true;
+
+    const wrap = document.createElement("div");
+    wrap.className = "evoSkill";
+    const label = document.createElement("div");
+    label.className = "name";
+    label.textContent = goldName;
+    wrap.appendChild(label);
+
+    const options = document.createElement("div");
+    options.className = "evoOptions";
+    const groupName = `evo_${goldId}`;
+    // 既定は「進化しない」。進化の可否はプレイ内容次第で、勝手に進化させた前提の
+    // 計算結果はそのままでは実行できないため、選ばれたものだけを積み上げる。
+    const currentChoice = session.evolutionChoices[goldId] ?? "none";
+
+    for (const opt of [{ value: "none", label: "進化しない" },
+                       ...candidates.map(c => ({ value: String(c.skillId), label: c.name }))]) {
+      const optLabel = document.createElement("label");
+      const radio = document.createElement("input");
+      radio.type = "radio"; radio.name = groupName; radio.value = opt.value;
+      radio.checked = String(currentChoice) === opt.value;
+      radio.addEventListener("change", () => {
+        picked.set(goldId, opt.value === "none" ? "none" : Number(opt.value));
+        applyBtn.disabled = false;
+      });
+      optLabel.appendChild(radio);
+      optLabel.appendChild(document.createTextNode(opt.label));
+      options.appendChild(optLabel);
+    }
+    wrap.appendChild(options);
+    section.appendChild(wrap);
+  }
+  if (!hasCandidates) return null;
+
+  applyBtn.addEventListener("click", () => {
+    for (const [goldId, choice] of picked) session.evolutionChoices[goldId] = choice;
+    recalcAndRender();
+  });
+  const bar = document.createElement("div");
+  bar.className = "fixBar";
+  bar.appendChild(applyBtn);
+  section.appendChild(bar);
+
+  return section;
+}
+
+// 進化先が未選択のスキルは「進化しない」を既定とする。最適化に渡す前に埋める
+// （パネルの初期表示より先に計算が走るため、パネル側の既定値だけでは足りない）。
+function applyDefaultEvolutionChoices() {
+  for (const { skillId } of collectEvolvedGoldSkills()) {
+    if (session.evolutionChoices[skillId] === undefined) session.evolutionChoices[skillId] = "none";
+  }
+}
+
+async function recalcAndRender() {
+  session.hasRun = true;
+  applyDefaultEvolutionChoices();
+  const state = buildOptimizerState(
+    session.recognizedRows, session.aptitudes, session.budget, session.characterCardId,
+    session.evolutionChoices);
+
+  // 現在の総合評価点をステータス・固有Lv・獲得済みスキルから自動算出する。
+  session.currentEval = computeCurrentEval(state);
+  const baseline = session.currentEval;               // number or null（ステOCR失敗時null）
+  const targetRank = session.targetRankName ? rankByName(session.targetRankName) : null;
+
+  // 目標ランク指定時: 現在評価点が必要（上限 − 現在評価点 が追加評価点の上限）。
+  // 上限が既に負（＝現ランクが目標を超過）なら通常最大化に切り替えて警告する。
+  let optResult, rankNote = null;
+  if (targetRank && baseline != null && targetRank.max != null) {
+    const scoreCap = targetRank.max - baseline;
+    if (scoreCap < 0) {
+      optResult = solveDp(cache.master, state);
+      rankNote = { kind: "over", targetRank };
+    } else if (scoreCap > RANK_SCORE_CAP_MAX) {
+      // 目標ランクが現在より遥か上＝実質SP律速。通常最大化と同じ結果になる。
+      optResult = solveDp(cache.master, state);
+      rankNote = { kind: "capped", targetRank };
+    } else {
+      optResult = solveDpScoreCapped(cache.master, state, scoreCap);
+      rankNote = { kind: "capped", targetRank };
+    }
+  } else {
+    optResult = solveDp(cache.master, state);
+    if (targetRank && baseline == null) rankNote = { kind: "needEval", targetRank };
+  }
+
+  setStatus(`完了（認識行数 ${session.recognizedRows.length}・保有Pt ${session.budget}）`);
+  renderResults(optResult, baseline, rankNote);
+}
+
+// スキル取得画面のスクショをファイル名の自然順（数字を数として比較）に並べる。
+//
+// 本来の撮影順は認識後に画像の中身（境界の重なり）から復元する（dedup.js の
+// orderImagesByOverlap）。ここでの並べ替えは、重なりが見つからず繋がらなかった
+// 画像どうしの順序を決める保険にすぎない。
+// 更新日時は使わない――クラウドストレージに上げ下ろしすると書き換わる（実例あり）。
+function sortByFileName(fileList) {
+  return Array.from(fileList)
+              .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+}
+
+async function run() {
+  const acqFileList = sortByFileName(document.getElementById("acqFiles").files);
+  const detailFile = document.getElementById("detailFile").files[0];
+
+  if (acqFileList.length === 0) { setStatus("①のスクリーンショットを選択してください。"); return; }
+  if (!detailFile) { setStatus("②の詳細画面スクリーンショットを選択してください。"); return; }
+
+  const runButton = document.getElementById("runButton");
+  runButton.disabled = true;
+  try {
+    await loadResources();
+
+    setStatus(`スキル取得画面を認識中... (0/${acqFileList.length})`);
+    setProgress(0, acqFileList.length);
+    const { rows: recognizedRows, skillPointsGuess, characterMix } = await recognizeAcquisitionsViaWorker(
+      acqFileList, (done, total) => { setStatus(`スキル取得画面を認識中... (${done}/${total})`); setProgress(done, total); });
+
+    // 複数キャラのスクショが混在していると、別キャラのスキルが混ざって
+    // 評価点が無意味になる。保有スキルPtが画像間で食い違う場合に検知し中断する。
+    if (characterMix && characterMix.mixed) {
+      setStatus(`複数キャラのスクリーンショットが混在しています（保有スキルPtが ${characterMix.skillPointValues.join(" / ")} と食い違っています）。1キャラ分のスクショだけを選び直してください。`);
+      return;
+    }
+
+    setStatus("詳細画面（適性・ステータス）を認識中...");
+    const { aptitudeRanks, characterCardId, stats, statCrops, aptitudeCrops } =
+      await recognizeDetailViaWorker(detailFile);
+    const aptitudes = aptitudeRanksToKeys(aptitudeRanks);
+
+    const budget = skillPointsGuess;
+    if (!budget) {
+      setStatus("①のスクリーンショットから保有スキルポイントを自動取得できませんでした。ヘッダーに「現在のスキルPt」が写っている画像を含めてください。");
+      return;
+    }
+
+    session.recognizedRows = recognizedRows;
+    session.skillPointsGuess = skillPointsGuess;
+    session.aptitudes = aptitudes;
+    session.budget = budget;
+    session.characterCardId = characterCardId;
+    session.stats = stats;
+    session.statCrops = statCrops || [];
+    session.aptitudeCrops = aptitudeCrops || [];
+
+    setStatus("最適化を計算中...");
+    await recalcAndRender();
+  } catch (e) {
+    setStatus("エラー: " + e.message);
+    console.error(e);
+  } finally {
+    runButton.disabled = false;
+  }
+}
+
+document.getElementById("runButton").addEventListener("click", run);
+</script>
