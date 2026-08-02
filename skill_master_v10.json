@@ -190,7 +190,21 @@
      "conditionText": null
     }
    ],
-   "evolutions": [],
+   "evolutions": [
+    {
+     "skillId": 100201311,
+     "name": "私だけの世界",
+     "fromGoldSkillId": 200024,
+     "baseScore": 334,
+     "cumulativeScore": 508,
+     "baseCost": 130,
+     "conditionGroups": [],
+     "conditionText": null,
+     "characterCardId": "100201",
+     "characterName": "サイレンススズカ",
+     "characterCommonName": "スズカ"
+    }
+   ],
    "negativeSkill": {
     "skillId": 200023,
     "name": "左回り×",
@@ -227,6 +241,18 @@
       200024
      ],
      "usesEvolution": false
+    },
+    {
+     "name": "私だけの世界",
+     "topSkillId": 100201311,
+     "memberIds": [
+      200022,
+      200021,
+      100201311
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 200024,
+     "characterCardId": "100201"
     }
    ]
   },
@@ -5233,6 +5259,26 @@
      "characterCardId": "110701",
      "characterName": "タップダンスシチー",
      "characterCommonName": "タップ"
+    },
+    {
+     "skillId": 102003111,
+     "name": "のらりくらりdeバカンス♪",
+     "fromGoldSkillId": 200541,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "逃げ・中距離",
+     "characterCardId": "102003",
+     "characterName": "セイウンスカイ",
+     "characterCommonName": "ウンス"
     }
    ],
    "negativeSkill": null,
@@ -5353,6 +5399,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 200541,
      "characterCardId": "110701"
+    },
+    {
+     "name": "のらりくらりdeバカンス♪",
+     "topSkillId": 102003111,
+     "memberIds": [
+      200542,
+      102003111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 200541,
+     "characterCardId": "102003"
     }
    ]
   },
@@ -6234,6 +6291,9 @@
      "conditionGroups": [
       [
        "senko"
+      ],
+      [
+       "tanKyori"
       ]
      ],
      "conditionText": "作戦・先行",
@@ -16335,6 +16395,9 @@
      "baseCost": 150,
      "conditionGroups": [
       [
+       "mile"
+      ],
+      [
        "oikomi"
       ]
      ],
@@ -18978,6 +19041,10 @@
      "baseCost": 180,
      "conditionGroups": [
       [
+       "mile",
+       "tanKyori"
+      ],
+      [
        "senko"
       ]
      ],
@@ -20812,6 +20879,9 @@
      "baseCost": 180,
      "conditionGroups": [
       [
+       "chuKyori"
+      ],
+      [
        "sashi"
       ]
      ],
@@ -21141,6 +21211,9 @@
      "cumulativeScore": 633,
      "baseCost": 160,
      "conditionGroups": [
+      [
+       "choKyori"
+      ],
       [
        "sashi"
       ]
@@ -23129,6 +23202,9 @@
      "baseCost": 180,
      "conditionGroups": [
       [
+       "mile"
+      ],
+      [
        "senko"
       ]
      ],
@@ -23372,6 +23448,9 @@
      "cumulativeScore": 633,
      "baseCost": 180,
      "conditionGroups": [
+      [
+       "chuKyori"
+      ],
       [
        "nige"
       ]
@@ -23701,6 +23780,10 @@
      "cumulativeScore": 633,
      "baseCost": 180,
      "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ],
       [
        "senko"
       ]
@@ -24201,6 +24284,9 @@
      "baseCost": 180,
      "conditionGroups": [
       [
+       "chuKyori"
+      ],
+      [
        "sashi"
       ]
      ],
@@ -24367,6 +24453,9 @@
      "cumulativeScore": 633,
      "baseCost": 180,
      "conditionGroups": [
+      [
+       "chuKyori"
+      ],
       [
        "nige"
       ]
@@ -25506,6 +25595,9 @@
      "baseCost": 180,
      "conditionGroups": [
       [
+       "mile"
+      ],
+      [
        "senko"
       ]
      ],
@@ -25876,6 +25968,24 @@
      "characterCardId": "108301",
      "characterName": "シンボリクリスエス",
      "characterCommonName": "ボリクリ"
+    },
+    {
+     "skillId": 107403111,
+     "name": "浜辺の追いかけっこ",
+     "fromGoldSkillId": 202561,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "choKyori",
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離/長距離",
+     "characterCardId": "107403",
+     "characterName": "メジロブライト",
+     "characterCommonName": "ブライト"
     }
    ],
    "negativeSkill": null,
@@ -25908,6 +26018,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202561,
      "characterCardId": "108301"
+    },
+    {
+     "name": "浜辺の追いかけっこ",
+     "topSkillId": 107403111,
+     "memberIds": [
+      202562,
+      107403111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202561,
+     "characterCardId": "107403"
     }
    ]
   },
@@ -26060,6 +26181,23 @@
      "characterCardId": "107601",
      "characterName": "サクラローレル",
      "characterCommonName": "ローレル"
+    },
+    {
+     "skillId": 107403211,
+     "name": "薫風もたらすルドベキア",
+     "fromGoldSkillId": 202591,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "作戦・差し",
+     "characterCardId": "107403",
+     "characterName": "メジロブライト",
+     "characterCommonName": "ブライト"
     }
    ],
    "negativeSkill": null,
@@ -26092,6 +26230,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202591,
      "characterCardId": "107601"
+    },
+    {
+     "name": "薫風もたらすルドベキア",
+     "topSkillId": 107403211,
+     "memberIds": [
+      202592,
+      107403211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202591,
+     "characterCardId": "107403"
     }
    ]
   },
@@ -27368,8 +27517,11 @@
      "baseCost": 180,
      "conditionGroups": [
       [
-       "senko",
-       "sashi"
+       "choKyori"
+      ],
+      [
+       "sashi",
+       "senko"
       ]
      ],
      "conditionText": "先行/差し",
@@ -29024,6 +29176,10 @@
      "baseCost": 180,
      "conditionGroups": [
       [
+       "chuKyori",
+       "mile"
+      ],
+      [
        "oikomi"
       ],
       [
@@ -29162,6 +29318,26 @@
      "characterCardId": "105003",
      "characterName": "ナリタタイシン",
      "characterCommonName": "メカタイシン、ゲーミングタイシン"
+    },
+    {
+     "skillId": 105003221,
+     "name": "不屈のRebellion",
+     "fromGoldSkillId": 202881,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "oikomi"
+      ]
+     ],
+     "conditionText": "追込・中距離",
+     "characterCardId": "105003",
+     "characterName": "ナリタタイシン",
+     "characterCommonName": "タイシン"
     }
    ],
    "negativeSkill": null,
@@ -29190,6 +29366,17 @@
      "memberIds": [
       202882,
       105003211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202881,
+     "characterCardId": "105003"
+    },
+    {
+     "name": "不屈のRebellion",
+     "topSkillId": 105003221,
+     "memberIds": [
+      202882,
+      105003221
      ],
      "usesEvolution": true,
      "fromGoldSkillId": 202881,
@@ -29972,8 +30159,11 @@
      "baseCost": 160,
      "conditionGroups": [
       [
-       "senko",
-       "oikomi"
+       "chuKyori"
+      ],
+      [
+       "oikomi",
+       "senko"
       ]
      ],
      "conditionText": "先行/追込",
@@ -30059,6 +30249,9 @@
      "baseCost": 180,
      "conditionGroups": [
       [
+       "chuKyori"
+      ],
+      [
        "senko"
       ]
      ],
@@ -30075,6 +30268,9 @@
      "cumulativeScore": 633,
      "baseCost": 180,
      "conditionGroups": [
+      [
+       "chuKyori"
+      ],
       [
        "senko"
       ]
@@ -30612,6 +30808,9 @@
      "cumulativeScore": 633,
      "baseCost": 160,
      "conditionGroups": [
+      [
+       "chuKyori"
+      ],
       [
        "senko"
       ]
@@ -31288,6 +31487,10 @@
      "cumulativeScore": 633,
      "baseCost": 180,
      "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ],
       [
        "senko"
       ]
@@ -31977,6 +32180,9 @@
      "conditionGroups": [
       [
        "senko"
+      ],
+      [
+       "tanKyori"
       ]
      ],
      "conditionText": "作戦・先行",
@@ -31993,8 +32199,12 @@
      "baseCost": 160,
      "conditionGroups": [
       [
-       "senko",
-       "sashi"
+       "chuKyori",
+       "mile"
+      ],
+      [
+       "sashi",
+       "senko"
       ]
      ],
      "conditionText": "先行/差し",
@@ -32101,6 +32311,10 @@
      "cumulativeScore": 633,
      "baseCost": 180,
      "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ],
       [
        "senko"
       ]
@@ -34288,6 +34502,9 @@
      "cumulativeScore": 633,
      "baseCost": 160,
      "conditionGroups": [
+      [
+       "mile"
+      ],
       [
        "shiba"
       ]
@@ -37600,6 +37817,9 @@
      "baseCost": 180,
      "conditionGroups": [
       [
+       "chuKyori"
+      ],
+      [
        "senko"
       ]
      ],
@@ -38865,6 +39085,9 @@
      "cumulativeScore": 633,
      "baseCost": 180,
      "conditionGroups": [
+      [
+       "mile"
+      ],
       [
        "senko"
       ]
@@ -40575,6 +40798,323 @@
      "topSkillId": 204472,
      "memberIds": [
       204472
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20448,
+   "skills": [
+    {
+     "skillId": 204482,
+     "name": "筆に任せて",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 170,
+     "conditionGroups": [
+      [
+       "choKyori"
+      ],
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "逃げ・長距離"
+    },
+    {
+     "skillId": 204481,
+     "name": "レースメイカー",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 170,
+     "conditionGroups": [
+      [
+       "choKyori"
+      ],
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "逃げ・長距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "筆に任せて",
+     "topSkillId": 204482,
+     "memberIds": [
+      204482
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "レースメイカー",
+     "topSkillId": 204481,
+     "memberIds": [
+      204482,
+      204481
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20449,
+   "skills": [
+    {
+     "skillId": 204492,
+     "name": "ポイントマン",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 120,
+     "conditionGroups": [
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "作戦・逃げ"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "ポイントマン",
+     "topSkillId": 204492,
+     "memberIds": [
+      204492
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20450,
+   "skills": [
+    {
+     "skillId": 204502,
+     "name": "ダブルアクセル",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 263,
+     "cumulativeScore": 263,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離"
+    },
+    {
+     "skillId": 204501,
+     "name": "一石二鳥",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 370,
+     "cumulativeScore": 633,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "ダブルアクセル",
+     "topSkillId": 204502,
+     "memberIds": [
+      204502
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "一石二鳥",
+     "topSkillId": 204501,
+     "memberIds": [
+      204502,
+      204501
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20454,
+   "skills": [
+    {
+     "skillId": 204542,
+     "name": "先導者",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 170,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "逃げ・中距離"
+    },
+    {
+     "skillId": 204541,
+     "name": "急先鋒",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 170,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "逃げ・中距離"
+    }
+   ],
+   "evolutions": [
+    {
+     "skillId": 102003211,
+     "name": "夏風フロントランナー",
+     "fromGoldSkillId": 204541,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 170,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "逃げ・中距離",
+     "characterCardId": "102003",
+     "characterName": "セイウンスカイ",
+     "characterCommonName": "ウンス"
+    }
+   ],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "先導者",
+     "topSkillId": 204542,
+     "memberIds": [
+      204542
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "急先鋒",
+     "topSkillId": 204541,
+     "memberIds": [
+      204542,
+      204541
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "夏風フロントランナー",
+     "topSkillId": 102003211,
+     "memberIds": [
+      204542,
+      102003211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204541,
+     "characterCardId": "102003"
+    }
+   ]
+  },
+  {
+   "familyId": 20455,
+   "skills": [
+    {
+     "skillId": 204552,
+     "name": "奥の手",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "作戦・逃げ"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "奥の手",
+     "topSkillId": 204552,
+     "memberIds": [
+      204552
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20456,
+   "skills": [
+    {
+     "skillId": 204562,
+     "name": "勝負勘",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 174,
+     "cumulativeScore": 174,
+     "baseCost": 120,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "逃げ・中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "勝負勘",
+     "topSkillId": 204562,
+     "memberIds": [
+      204562
      ],
      "usesEvolution": false
     }
@@ -51277,6 +51817,22 @@
    "characterName": "ヴィクトワールピサ"
   },
   {
+   "skillId": 101451,
+   "name": "冠絶タクティクス",
+   "rarity": 5,
+   "isAwakened": true,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "senko",
+     "oikomi"
+    ]
+   ],
+   "conditionText": "先行/追込",
+   "characterCardId": "114501",
+   "characterName": "ルーラーシップ"
+  },
+  {
    "skillId": 110011,
    "name": "わやかわ♪マリンダイヴ",
    "rarity": 5,
@@ -52527,6 +53083,38 @@
    "characterName": "メジロマックイーン"
   },
   {
+   "skillId": 120201,
+   "name": "海風にまったり身を任せ",
+   "rarity": 5,
+   "isAwakened": true,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "chuKyori"
+    ],
+    [
+     "nige"
+    ],
+    [
+     "shiba"
+    ]
+   ],
+   "conditionText": "逃げ・芝",
+   "characterCardId": "102003",
+   "characterName": "セイウンスカイ"
+  },
+  {
+   "skillId": 120221,
+   "name": "麗走一直！ラーメン道",
+   "rarity": 5,
+   "isAwakened": true,
+   "cumulativeScore": 340,
+   "conditionGroups": [],
+   "conditionText": null,
+   "characterCardId": "102203",
+   "characterName": "ファインモーション"
+  },
+  {
    "skillId": 120231,
    "name": "勝利ヘ至ル累積",
    "rarity": 5,
@@ -52747,6 +53335,22 @@
    "characterName": "キタサンブラック"
   },
   {
+   "skillId": 120741,
+   "name": "夕凪のリトリート・メモリー",
+   "rarity": 5,
+   "isAwakened": true,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "choKyori",
+     "chuKyori"
+    ]
+   ],
+   "conditionText": null,
+   "characterCardId": "107403",
+   "characterName": "メジロブライト"
+  },
+  {
    "skillId": 120771,
    "name": "一杯全力、お届けします！",
    "rarity": 5,
@@ -52763,33 +53367,6 @@
    "conditionText": "先行・長距離",
    "characterCardId": "107703",
    "characterName": "ナリタトップロード"
-  },
-  {
-   "skillId": 101451,
-   "name": "冠絶タクティクス",
-   "rarity": 5,
-   "isAwakened": true,
-   "cumulativeScore": 340,
-   "conditionGroups": [
-    [
-     "senko",
-     "oikomi"
-    ]
-   ],
-   "conditionText": "先行/追込",
-   "characterCardId": "114501",
-   "characterName": "ルーラーシップ"
-  },
-  {
-   "skillId": 120221,
-   "name": "麗走一直！ラーメン道",
-   "rarity": 5,
-   "isAwakened": true,
-   "cumulativeScore": 340,
-   "conditionGroups": [],
-   "conditionText": null,
-   "characterCardId": "102203",
-   "characterName": "ファインモーション"
   }
  ],
  "scenarioSkills": [
