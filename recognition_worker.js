@@ -86,7 +86,9 @@ self.onmessage = async (e) => {
       // 保有Pt（最適化の予算）は、混在していなければ唯一の信頼値、混在時は
       // 最頻値を採る（先頭画像が別キャラでも代表値を外さない）。
       const skillPointsGuess = mostFrequentSkillPoints(skillPointsPerImage);
-      self.postMessage({ type: "acquisitionResult", rows: merged, skillPointsGuess, characterMix });
+      // 配列に付けた付加情報は postMessage の複製で落ちるので、別のフィールドで渡す。
+      const missingRangeCount = merged.missingRangeCount ?? null;
+      self.postMessage({ type: "acquisitionResult", rows: merged, skillPointsGuess, characterMix, missingRangeCount });
     } else if (msg.type === "recognizeDetail") {
       const { rankAtlas, nameAtlas, statAtlas, titleIndex } = await loadResourcesOnce();
       const { data, width, height } = await blobToRGBA(msg.blob);

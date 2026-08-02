@@ -425,6 +425,7 @@ function recognizeDetailViaWorker(file) {
 const session = {
   recognizedRows: [], aptitudes: null, skillPointsGuess: null,
   autoSkillPoints: null, // ヘッダーから読み取った保有Pt。手入力を消したときの戻り先。
+  missingRangeCount: null, // 撮り漏れと判定した箇所の数（判定できなければ null）
   budget: null, characterCardId: null, thumbnailUrls: [], evolutionChoices: {},
   stats: null,           // 詳細画面OCRの5ステータス現在値 { speed, ... }
   uniqueSkillLv: 6,      // 固有スキルLv（1〜6・OCR不可のため選択入力。既定=最大）
@@ -536,6 +537,15 @@ function renderResults(optResult, baseline = null, rankNote = null) {
   // ステータス・適性の切り抜きURLまで巻き込んで破棄し、画像が表示されなかった。
   revokeThumbnailUrls();
   resultsEl.textContent = "";
+
+  // 撮り漏れは黙って評価点を下げるので、最初に出す。結果を見る前に気付いてほしい。
+  if (session.missingRangeCount) {
+    const note = document.createElement("div");
+    note.className = "warn";
+    note.textContent = `スクリーンショットが${session.missingRangeCount}か所で飛んでいます。`
+      + "間のスキルは計算に入らず、評価点が実際より低く出ます。抜けている範囲を撮り足してやり直してください。";
+    resultsEl.appendChild(note);
+  }
 
   const summary = document.createElement("div");
   summary.className = "summary";
@@ -1173,8 +1183,9 @@ async function run() {
 
     setStatus(`スキル獲得画面を認識中... (0/${acqFileList.length})`);
     setProgress(0, acqFileList.length);
-    const { rows: recognizedRows, skillPointsGuess, characterMix } = await recognizeAcquisitionsViaWorker(
-      acqFileList, (done, total) => { setStatus(`スキル獲得画面を認識中... (${done}/${total})`); setProgress(done, total); });
+    const { rows: recognizedRows, skillPointsGuess, characterMix, missingRangeCount } =
+      await recognizeAcquisitionsViaWorker(
+        acqFileList, (done, total) => { setStatus(`スキル獲得画面を認識中... (${done}/${total})`); setProgress(done, total); });
 
     // 複数キャラのスクショが混在していると、別キャラのスキルが混ざって
     // 評価点が無意味になる。保有スキルPtが画像間で食い違う場合に検知し中断する。
@@ -1198,6 +1209,7 @@ async function run() {
     }
 
     session.recognizedRows = recognizedRows;
+    session.missingRangeCount = missingRangeCount ?? null;
     session.autoSkillPoints = skillPointsGuess;
     session.skillPointsGuess = budget;
     session.aptitudes = aptitudes;

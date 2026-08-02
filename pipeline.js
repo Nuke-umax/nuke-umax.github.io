@@ -395,7 +395,10 @@ function dedupeSameSkillMatches(rows) {
 function mergeAcquisitionRows(perImageRows, scrollProfiles) {
   const asDedupRows = perImageRows.map(rs => rs.map(r => ({ hash: r.hash, sp: r.sp, evo: r.evo, ...r })));
   // 入力の並び順は当てにならないので、画像の中身から撮影順を復元してから連結する。
-  const ordered = orderImagesByContent(asDedupRows, scrollProfiles).map(i => asDedupRows[i]);
+  const order = orderImagesByContent(asDedupRows, scrollProfiles);
+  const ordered = order.map(i => asDedupRows[i]);
+  // 撮り漏れは黙って評価点を下げるので、検出できたときは呼び出し側へ知らせる。
+  const missingRanges = scrollProfiles ? detectMissingRanges(scrollProfiles, order) : null;
   const { merged } = mergeAcrossImages(ordered);
   resolveAmbiguousByUniqueness(merged);
   resolveByPairConsensus(merged);
@@ -403,7 +406,11 @@ function mergeAcquisitionRows(perImageRows, scrollProfiles) {
   const withoutRedundant = dropRedundantDuplicates(merged);
   const withoutExactDuplicates = dedupeExactMatches(withoutRedundant);
   const deduped = dedupeSameSkillMatches(withoutExactDuplicates);
-  return resolveDistinguishedSiblings(deduped);
+  const rows = resolveDistinguishedSiblings(deduped);
+  // 撮り漏れの件数だけを添える。行の配列そのものは従来どおり返す
+  // （呼び出し側が配列として扱っている箇所を壊さないため、プロパティで持たせる）。
+  rows.missingRangeCount = missingRanges === null ? null : missingRanges.length;
+  return rows;
 }
 
 // 同長の兄弟スキルで、相違位置の字形合算マージン（distinguishingCharMargin）に

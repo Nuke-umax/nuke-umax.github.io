@@ -202,7 +202,8 @@ function scrollbarRunCenters(data, width, height) {
       if (dark) { if (runStart < 0) runStart = y; }
       else if (runStart >= 0) {
         const len = y - runStart;
-        if (len >= minLen && len <= maxLen) centers.push((runStart + y) / 2);
+        // 長さも持つ。つまみの長さ＝1画面分の移動量なので、撮り漏れの判定に使う。
+        if (len >= minLen && len <= maxLen) centers.push({ center: (runStart + y) / 2, length: len });
         runStart = -1;
       }
     }
@@ -211,7 +212,9 @@ function scrollbarRunCenters(data, width, height) {
   return { width, height, columns };
 }
 
-function orderImagesByScrollbar(profiles) {
+// つまみの位置を全画像ぶん取り出す。戻り値 { centers, lengths } は入力順。
+// 取り出せなければ null（呼び出し側は従来どおり静かに諦める）。
+function scrollbarThumbs(profiles) {
   const n = profiles.length;
   if (n < 2) return null;
   const head = profiles[0];
@@ -224,14 +227,48 @@ function orderImagesByScrollbar(profiles) {
   let best = null;
   for (let c = 0; c < head.columns.length; c++) {
     // 全画像に同じ位置で現れる暗部は動かないUI。取り除くとつまみだけが残る。
-    const moving = profiles.map(p => p.columns[c].filter(center =>
-      !profiles.every(other => other.columns[c].some(o => Math.abs(o - center) <= tolerance))));
+    const moving = profiles.map(p => p.columns[c].filter(run =>
+      !profiles.every(other => other.columns[c].some(o => Math.abs(o.center - run.center) <= tolerance))));
     if (moving.some(m => m.length !== 1)) continue;
-    const centers = moving.map(m => m[0]);
+    const centers = moving.map(m => m[0].center);
+    const lengths = moving.map(m => m[0].length);
     const spread = Math.max(...centers) - Math.min(...centers);
     if (spread < minSpread) continue;
-    if (best === null || spread > best.spread) best = { spread, centers };
+    if (best === null || spread > best.spread) best = { spread, centers, lengths };
   }
-  if (best === null) return null;
-  return profiles.map((_, i) => i).sort((a, b) => best.centers[a] - best.centers[b]);
+  return best === null ? null : { centers: best.centers, lengths: best.lengths };
+}
+
+function orderImagesByScrollbar(profiles) {
+  const thumbs = scrollbarThumbs(profiles);
+  if (thumbs === null) return null;
+  return profiles.map((_, i) => i).sort((a, b) => thumbs.centers[a] - thumbs.centers[b]);
+}
+
+// 撮り漏れ（スクロール中に1画面ぶん飛ばした箇所）を検出する。
+//
+// 原理: スクロールバーのつまみは、リスト全体に対する表示範囲を表す。1画面ぶん
+// スクロールすると、つまみはちょうど自分の長さだけ動く。したがって隣り合う2枚の
+// つまみ移動量が、つまみの長さを超えていれば、その間に写っていない範囲がある。
+//   移動量 < 長さ … 重なって撮れている（案内どおり）
+//   移動量 ≒ 長さ … 重なりは無いが連続している
+//   移動量 > 長さ … 間が抜けている ← これを警告する
+//
+// order は orderImagesByContent が返す撮影順。つまみの値は入力順の配列なので、
+// order を通して並べ替えてから隣同士を比べる。
+const SCROLL_GAP_TOLERANCE = 1.25;   // 長さのこの倍を超えたら抜けとみなす
+
+function detectMissingRanges(profiles, order) {
+  const thumbs = scrollbarThumbs(profiles);
+  if (thumbs === null) return null;          // 判定できない端末では黙る（誤警告を出さない）
+  const gaps = [];
+  for (let i = 1; i < order.length; i++) {
+    const prev = order[i - 1], curr = order[i];
+    const moved = thumbs.centers[curr] - thumbs.centers[prev];
+    const screen = (thumbs.lengths[prev] + thumbs.lengths[curr]) / 2;
+    if (screen > 0 && moved > screen * SCROLL_GAP_TOLERANCE) {
+      gaps.push({ afterOrderIndex: i - 1, missingScreens: moved / screen - 1 });
+    }
+  }
+  return gaps;
 }
