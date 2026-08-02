@@ -467,6 +467,29 @@ function revokeThumbnailUrls() {
   session.thumbnailUrls = [];
 }
 
+// 獲得するスキルの一覧を、スキル獲得画面に並んでいた順へ並べ替える。
+//
+// 最適化は master.families の順（＝familyId昇順）で解を組み立てるため、そのまま出すと
+// 画面の並びと食い違う。とくに継承固有スキルは familyId が9万台で、画面では固有スキルの
+// 直後（緑スキルより前）に出るのに一覧では必ず末尾へ回っていた。
+// プランを構成するスキルが認識行の何番目に現れたかで並べ、画面と目で突き合わせられるようにする。
+function plansInScreenOrder(selectedPlans) {
+  const firstRowIndex = new Map();
+  session.recognizedRows.forEach((row, index) => {
+    if (row.skillId !== undefined && !firstRowIndex.has(row.skillId)) firstRowIndex.set(row.skillId, index);
+  });
+  // 画面に写っていないスキルだけで構成されるプラン（表示白から推定した上位ティア等）は
+  // 突き合わせる相手がないので末尾へ寄せる。
+  const screenPosition = (option) => {
+    const indices = option.plan.memberIds.map(id => firstRowIndex.get(id)).filter(i => i !== undefined);
+    return indices.length ? Math.min(...indices) : Number.MAX_SAFE_INTEGER;
+  };
+  return selectedPlans
+    .map((option, order) => ({ option, order, position: screenPosition(option) }))
+    .sort((a, b) => (a.position - b.position) || (a.order - b.order))
+    .map(entry => entry.option);
+}
+
 function renderResults(optResult, baseline = null, rankNote = null) {
   const { skillPointsGuess, aptitudes } = session;
 
@@ -534,7 +557,7 @@ function renderResults(optResult, baseline = null, rankNote = null) {
     const th = document.createElement("th"); th.textContent = h; thead.appendChild(th);
   });
   table.appendChild(thead);
-  for (const o of optResult.selectedPlans) {
+  for (const o of plansInScreenOrder(optResult.selectedPlans)) {
     const tr = document.createElement("tr");
     [`+${o.score}`, `${o.cost}`, o.plan.name].forEach(text => {
       const td = document.createElement("td"); td.textContent = text; tr.appendChild(td);
@@ -1065,8 +1088,9 @@ async function run() {
   const acqFileList = sortByFileName(document.getElementById("acqFiles").files);
   const detailFile = document.getElementById("detailFile").files[0];
 
-  if (acqFileList.length === 0) { setStatus("①のスクリーンショットを選択してください。"); return; }
-  if (!detailFile) { setStatus("②の詳細画面スクリーンショットを選択してください。"); return; }
+  // 番号は画面の入力欄の番号に合わせる（①=ウマ娘詳細画面、②=スキル獲得画面）。
+  if (!detailFile) { setStatus("①のウマ娘詳細画面のスクリーンショットを選択してください。"); return; }
+  if (acqFileList.length === 0) { setStatus("②のスキル獲得画面のスクリーンショットを選択してください。"); return; }
 
   const runButton = document.getElementById("runButton");
   runButton.disabled = true;
