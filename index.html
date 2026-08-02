@@ -42,6 +42,8 @@
   input[type="file"] { width: 100%; }
   h1 { font-size: 20px; margin: 0 0 4px; }
   .lead { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  /* 既定の青リンクは緑基調の中で浮くので、アクセント色に寄せる。 */
+  .lead a { color: var(--accent-dark); }
   section {
     margin-bottom: 16px; padding: 14px 16px;
     background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
@@ -228,7 +230,9 @@
 
 <h1>ウマ娘 取得スキル 最大化くん</h1>
 <p class="lead">スキル獲得画面のスクショをもとに、評価点が最大になる取得スキルを一覧にします。<br>
-画像は端末外に送信しません。処理はすべてこのブラウザ内で完結します。</p>
+画像は端末外に送信しません。処理はすべてこのブラウザ内で完結します。<br>
+動作確認は制作者のスマートフォンでのみ行っています（<b>PC・タブレットは未対応</b>）。
+うまく読み取れないときは、<a href="contact.html">お問い合わせ</a>から端末の情報をお寄せいただけると助かります。</p>
 
 <section>
   <label>① ウマ娘詳細画面 <button type="button" class="info" data-info="detail" aria-label="説明">i</button></label>
