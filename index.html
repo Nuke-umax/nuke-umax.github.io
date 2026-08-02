@@ -224,25 +224,23 @@
 </style>
 
 <h1>ウマ娘 取得スキル 最大化くん</h1>
-<p class="lead">画像は端末外に送信しません。処理はすべてこのブラウザ内で完結します。</p>
+<p class="lead">スキル獲得画面のスクショをもとに、評価点が最大になる取得スキルを一覧にします。<br>
+画像は端末外に送信しません。処理はすべてこのブラウザ内で完結します。</p>
 
 <section>
   <label>① ウマ娘詳細画面 <button type="button" class="info" data-info="detail" aria-label="説明">i</button></label>
   <input type="file" id="detailFile" accept="image/*">
   <template data-info-body="detail">
-    ステータス（スピード〜賢さ）と距離・脚質の適性が<b>すべて写る</b>ように撮ってください。
-    ここから現在の評価点を推定します。
+    ウマ娘詳細（ステータスと適性が<b>すべて写っている</b>画面）を撮ってください。
   </template>
 </section>
 
 <section>
-  <label>② スキル取得画面（複数枚） <button type="button" class="info" data-info="acq" aria-label="説明">i</button></label>
+  <label>② スキル獲得画面（複数枚） <button type="button" class="info" data-info="acq" aria-label="説明">i</button></label>
   <input type="file" id="acqFiles" accept="image/*" multiple>
   <template data-info-body="acq">
-    上から下へスクロールしながら撮り、<b>隣の画像と2〜3行重ねて</b>ください。重なりがあれば、行の抜けを防げるうえ、選ぶ順番が違っていても正しい順に自動で並べ直せます（多く重なる分には問題ありません）。<br>
-    <b>上端・下端で行が半分だけ見切れた画像は避けてください。</b>別の画像にその行が丸ごと写っていれば大丈夫です。<br>
-    フィルタや説明ポップアップを開いた状態、ダークモード変換・色調補正アプリを通した画像は避けてください。<br>
-    「説明省略」をONにして撮ると枚数が減ります。
+    「説明省略」をONにして、上から下へスクロールしながら撮ってください。
+    下の画像と<b>スキル2〜3行重ねて</b>ください。
   </template>
 </section>
 
@@ -266,8 +264,8 @@
     </select>
   </div>
   <template data-info-body="opt">
-    <b>固有スキルLv</b>は画面に出ないため自動取得できません（評価点＝170×Lv）。<br>
-    <b>目標評価ランク</b>を選ぶと、そのランクの上限を超えない範囲で評価点が最大になるよう選びます。空欄なら所持SP内で最大化します。
+    <b>固有スキルLv</b>は手動で選択してください。<br>
+    <b>目標評価ランク</b>を選ぶと、そのランクの上限を超えない範囲で評価点が最大になるよう選びます。
   </template>
 </section>
 
@@ -682,12 +680,12 @@ function renderInputCheckPanel() {
 // 名前・SPの手直し、行の削除、行の追加をまとめて行えるようにする。
 //
 // 全行を出すのは、確信して誤読した行はユーザーが気付かない限り直せないため。
-// 並び順はスキル取得画面と同じ（＝認識順）。曖昧行は色で強調する。
+// 並び順はスキル獲得画面と同じ（＝認識順）。曖昧行は色で強調する。
 // 変更は「反映して再計算」を押すまで確定しない（打つたびに再計算しない）。
 function renderRowEditor(aptitudes, skillPointsGuess) {
   const rows = session.recognizedRows;
   const ambiguousCount = rows.filter(r => r.ambiguous).length;
-  // 並べ替えない。スキル取得画面に並んでいた順（複数スクショはその貼付順）のまま出す。
+  // 並べ替えない。スキル獲得画面に並んでいた順（複数スクショはその貼付順）のまま出す。
   // 画面と同じ順に並んでいないと、ユーザーが目で突き合わせられない。
   const order = rows.map((row, index) => ({ row, index }));
 
@@ -939,7 +937,9 @@ function renderEvolutionChoicePanel() {
 
   const hint = document.createElement("div");
   hint.className = "hint";
-  hint.textContent = "シナリオ進化は1回の育成で2個までしか獲得できません。実際に進化させるものだけ選んでください。";
+  // 静的な定型文のみ。外部入力を混ぜないこと（混ぜる必要が出たら textContent へ戻す）。
+  hint.innerHTML = "進化スキルは既定で「進化しない」になっています。<br>"
+                 + "実際に進化させるものだけを選び、最下段の「反映して再計算」を押してください。選択は押すまで反映されません。";
   section.appendChild(hint);
 
   // 選択は即時反映しない。複数スキルを選ぶ間ずっと再計算が走るのを避け、
@@ -1050,7 +1050,7 @@ async function recalcAndRender() {
   renderResults(optResult, baseline, rankNote);
 }
 
-// スキル取得画面のスクショをファイル名の自然順（数字を数として比較）に並べる。
+// スキル獲得画面のスクショをファイル名の自然順（数字を数として比較）に並べる。
 //
 // 本来の撮影順は認識後に画像の中身（境界の重なり）から復元する（dedup.js の
 // orderImagesByOverlap）。ここでの並べ替えは、重なりが見つからず繋がらなかった
@@ -1073,10 +1073,10 @@ async function run() {
   try {
     await loadResources();
 
-    setStatus(`スキル取得画面を認識中... (0/${acqFileList.length})`);
+    setStatus(`スキル獲得画面を認識中... (0/${acqFileList.length})`);
     setProgress(0, acqFileList.length);
     const { rows: recognizedRows, skillPointsGuess, characterMix } = await recognizeAcquisitionsViaWorker(
-      acqFileList, (done, total) => { setStatus(`スキル取得画面を認識中... (${done}/${total})`); setProgress(done, total); });
+      acqFileList, (done, total) => { setStatus(`スキル獲得画面を認識中... (${done}/${total})`); setProgress(done, total); });
 
     // 複数キャラのスクショが混在していると、別キャラのスキルが混ざって
     // 評価点が無意味になる。保有スキルPtが画像間で食い違う場合に検知し中断する。
