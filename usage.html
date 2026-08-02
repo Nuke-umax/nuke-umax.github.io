@@ -1,12 +1,13 @@
+<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>使い方 ― ウマ娘 取得スキル 最大化くん</title>
+<title>使い方 ― ウマ娘 評価点 最大化くん</title>
 <meta name="description" content="スクリーンショットを選ぶだけで、所持スキルポイントの範囲で評価点が最大になるスキルの組み合わせを計算します。画像は端末外に送信しません。">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="ウマ娘 取得スキル 最大化くん">
-<meta property="og:title" content="使い方 ― ウマ娘 取得スキル 最大化くん">
+<meta property="og:site_name" content="ウマ娘 評価点 最大化くん">
+<meta property="og:title" content="使い方 ― ウマ娘 評価点 最大化くん">
 <meta property="og:description" content="スキル獲得画面のスクショから、所持スキルPt内で評価点が最大になる組み合わせを算出します。">
 <meta property="og:url" content="https://umax-tools.com/usage.html">
 <meta property="og:image" content="https://umax-tools.com/ogp.png">
@@ -43,6 +44,7 @@
 <ul>
   <li><b>固有スキルLv</b> … 手動で選択してください。既定はLv6（最大）です。</li>
   <li><b>目標評価ランク</b> … 選ぶと、そのランクの上限を超えない範囲で評価点が最大になるよう選びます。空欄なら所持スキルポイント内で最大化します。</li>
+  <li><b>保有スキルPt</b> … 空欄なら②のヘッダーから自動で読み取ります。読み取りに失敗したときや、値が違っていたときだけ入力してください。入力した値が優先されます。</li>
 </ul>
 
 <h2>手順4: 計算する</h2>
@@ -96,7 +98,9 @@
 
 <h3 style="font-size:14px;margin:16px 0 4px">保有スキルポイントはどこから取っていますか？</h3>
 <p>スキル獲得画面の上部に表示されている「現在のスキルPt」から自動で読み取ります。
-ヘッダーが写っていない画像だけだと読み取れないため、その場合はエラーになります。</p>
+ヘッダーが写っていない画像だけだと読み取れません。その場合は、③の設定にある
+<b>「保有スキルPt」に手入力</b>すれば計算できます。読み取った値が違っていたときも、
+同じ欄に入力すれば入力値が優先されます。</p>
 
 <h3 style="font-size:14px;margin:16px 0 4px">複数のウマ娘のスクリーンショットが混ざるとどうなりますか？</h3>
 <p>保有スキルポイントの食い違いから検知して、計算を中断します。1キャラ分だけを選び直してください。</p>

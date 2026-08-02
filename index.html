@@ -1,12 +1,13 @@
+<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>ウマ娘 取得スキル 最大化くん</title>
+<title>ウマ娘 評価点 最大化くん</title>
 <meta name="description" content="スクリーンショットを選ぶだけで、所持スキルポイントの範囲で評価点が最大になるスキルの組み合わせを計算します。画像は端末外に送信しません。">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="ウマ娘 取得スキル 最大化くん">
-<meta property="og:title" content="ウマ娘 取得スキル 最大化くん">
+<meta property="og:site_name" content="ウマ娘 評価点 最大化くん">
+<meta property="og:title" content="ウマ娘 評価点 最大化くん">
 <meta property="og:description" content="スキル獲得画面のスクショから、所持スキルPt内で評価点が最大になる組み合わせを算出します。">
 <meta property="og:url" content="https://umax-tools.com/">
 <meta property="og:image" content="https://umax-tools.com/ogp.png">
@@ -230,7 +231,7 @@
   .siteFooter a { color: var(--muted); }
 </style>
 
-<h1>ウマ娘 取得スキル 最大化くん</h1>
+<h1>ウマ娘 評価点 最大化くん</h1>
 <p class="lead">スキル獲得画面のスクショをもとに、評価点が最大になる取得スキルを一覧にします。<br>
 画像は端末外に送信しません。画像の処理はすべてこのブラウザ内で完結します。<br>
 動作確認は制作者のスマートフォンでのみ行っています（<b>PC・タブレットは未対応</b>）。
@@ -272,9 +273,18 @@
       <option value="">なし（所持SP内で最大化）</option>
     </select>
   </div>
+  <!-- 保有Ptはヘッダーから自動で読むが、画面比率の違う端末では読めないことがある。
+       読めないと予算が決まらず計算そのものが止まるため、逃げ道として手入力を用意する
+       （ステータス・適性は確認パネルで直せるのに、ここだけ直せなかった）。 -->
+  <div class="optRow">
+    <label for="manualSkillPoints" class="sub">保有スキルPt</label>
+    <input type="number" id="manualSkillPoints" min="0" placeholder="自動（空欄で自動読み取り）">
+  </div>
   <template data-info-body="opt">
     <b>固有スキルLv</b>は手動で選択してください。<br>
-    <b>目標評価ランク</b>を選ぶと、そのランクの上限を超えない範囲で評価点が最大になるよう選びます。
+    <b>目標評価ランク</b>を選ぶと、そのランクの上限を超えない範囲で評価点が最大になるよう選びます。<br>
+    <b>保有スキルPt</b>は空欄なら②のヘッダーから自動で読み取ります。読み取りに失敗したときや、
+    値が違っていたときだけ入力してください。入力した値が優先されます。
   </template>
 </section>
 
@@ -408,6 +418,7 @@ function recognizeDetailViaWorker(file) {
 // ===== 実行状態（曖昧行のユーザー確認→再計算のために保持する） =====
 const session = {
   recognizedRows: [], aptitudes: null, skillPointsGuess: null,
+  autoSkillPoints: null, // ヘッダーから読み取った保有Pt。手入力を消したときの戻り先。
   budget: null, characterCardId: null, thumbnailUrls: [], evolutionChoices: {},
   stats: null,           // 詳細画面OCRの5ステータス現在値 { speed, ... }
   uniqueSkillLv: 6,      // 固有スキルLv（1〜6・OCR不可のため選択入力。既定=最大）
@@ -469,6 +480,18 @@ document.getElementById("uniqueLv").addEventListener("change", (e) => {
 document.getElementById("targetRank").addEventListener("change", (e) => {
   session.targetRankName = e.target.value;
   if (session.hasRun) recalcAndRender();
+});
+// 保有Ptは計算後でも直せるようにする。読み取り値が違っていたとき、
+// スクショを選び直して最初からやり直すのは重い。
+document.getElementById("manualSkillPoints").addEventListener("change", (e) => {
+  const points = parseInt(e.target.value, 10);
+  if (!session.hasRun) return;
+  // 空欄に戻したら自動読み取り値へ復帰する。読めていなければ計算できないので何もしない。
+  const next = Number.isFinite(points) && points >= 0 ? points : session.autoSkillPoints;
+  if (!next) return;
+  session.budget = next;
+  session.skillPointsGuess = next;
+  recalcAndRender();
 });
 
 function revokeThumbnailUrls() {
@@ -1159,14 +1182,18 @@ async function run() {
       await recognizeDetailViaWorker(detailFile);
     const aptitudes = aptitudeRanksToKeys(aptitudeRanks);
 
-    const budget = skillPointsGuess;
+    // 手入力があればそれを使う。読み取り値より、利用者が画面を見て入れた値の方が確かなため。
+    const manualPoints = parseInt(document.getElementById("manualSkillPoints").value, 10);
+    const budget = Number.isFinite(manualPoints) && manualPoints >= 0 ? manualPoints : skillPointsGuess;
     if (!budget) {
-      setStatus("①のスクリーンショットから保有スキルポイントを自動取得できませんでした。ヘッダーに「現在のスキルPt」が写っている画像を含めてください。");
+      setStatus("②のスクリーンショットから保有スキルPtを読み取れませんでした。"
+              + "ヘッダーの「現在のスキルPt」が写っている画像を含めるか、③の「保有スキルPt」に手入力してください。");
       return;
     }
 
     session.recognizedRows = recognizedRows;
-    session.skillPointsGuess = skillPointsGuess;
+    session.autoSkillPoints = skillPointsGuess;
+    session.skillPointsGuess = budget;
     session.aptitudes = aptitudes;
     session.budget = budget;
     session.characterCardId = characterCardId;
