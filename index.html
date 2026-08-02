@@ -147,6 +147,9 @@
   .fixRow input[type="text"] { flex: 1 1 auto; width: auto; min-width: 0; }
   .fixRow input[type="number"] { flex: 0 0 72px; width: 72px; text-align: right; }
   .fixRow .tag { font-size: 11px; white-space: nowrap; color: var(--muted); border: 1px solid var(--border); border-radius: 99px; padding: 2px 8px; }
+  /* 「要確認」だけは他のタグと同じ灰色にしない。見出しの件数と行を突き合わせる目印になる。 */
+  .fixRow .tag.attention { color: #b3261e; border-color: #e3b4b4; background: #fdecec; font-weight: 700; }
+  .altHint { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
   .fixRow .del {
     flex: 0 0 auto; min-height: 44px; padding: 0 10px;
     background: none; border: 1px solid var(--border); color: var(--muted); font-size: 13px;
@@ -287,15 +290,15 @@
   <span>制作: ぬけ　ゲームの開発・運営元とは関係のない非公式ツールです</span>
 </footer>
 
-<script src="ocr_core.js?v=80"></script>
-<script src="fields.js?v=80"></script>
-<script src="optimizer.js?v=80"></script>
-<script src="stat_eval.js?v=80"></script>
-<script src="name_match.js?v=80"></script>
-<script src="recognizer.js?v=80"></script>
-<script src="harvest.js?v=80"></script>
-<script src="dedup.js?v=80"></script>
-<script src="pipeline.js?v=80"></script>
+<script src="ocr_core.js?v=81"></script>
+<script src="fields.js?v=81"></script>
+<script src="optimizer.js?v=81"></script>
+<script src="stat_eval.js?v=81"></script>
+<script src="name_match.js?v=81"></script>
+<script src="recognizer.js?v=81"></script>
+<script src="harvest.js?v=81"></script>
+<script src="dedup.js?v=81"></script>
+<script src="pipeline.js?v=81"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
 const infoOverlay = document.getElementById("infoOverlay");
@@ -363,7 +366,7 @@ async function loadResources() {
 // ===== Web Worker経由の認識（引き継ぎ資料§10.6項目5: UIを固まらせない） =====
 let worker = null;
 function getWorker() {
-  if (worker === null) worker = new Worker("recognition_worker.js?v=80");
+  if (worker === null) worker = new Worker("recognition_worker.js?v=81");
   return worker;
 }
 
@@ -550,24 +553,34 @@ function renderResults(optResult, baseline = null, rankNote = null) {
   const evolutionPanel = renderEvolutionChoicePanel();
   if (evolutionPanel !== null) resultsEl.appendChild(evolutionPanel);
 
-  const table = document.createElement("table");
-  table.id = "resultList";
-  const thead = document.createElement("tr");
-  ["評価点", "消費SP", "プラン名"].forEach(h => {
-    const th = document.createElement("th"); th.textContent = h; thead.appendChild(th);
-  });
-  table.appendChild(thead);
-  for (const o of plansInScreenOrder(optResult.selectedPlans)) {
-    const tr = document.createElement("tr");
-    [`+${o.score}`, `${o.cost}`, o.plan.name].forEach(text => {
-      const td = document.createElement("td"); td.textContent = text; tr.appendChild(td);
+  if (optResult.selectedPlans.length === 0) {
+    // 見出しだけの空表は故障に見える。買えるものが無いのは正常な結果なので、
+    // そのことと理由（所持Ptが最安のスキルにも届かない）を言葉で示す。
+    const note = document.createElement("div");
+    note.className = "warn";
+    note.textContent = `所持スキルPt（${skillPointsGuess ?? "?"}）で取得できるスキルはありません。`
+      + "スキルを取得できるだけのポイントが貯まってから、もう一度お試しください。";
+    resultsEl.appendChild(note);
+  } else {
+    const table = document.createElement("table");
+    table.id = "resultList";
+    const thead = document.createElement("tr");
+    ["評価点", "消費SP", "プラン名"].forEach(h => {
+      const th = document.createElement("th"); th.textContent = h; thead.appendChild(th);
     });
-    table.appendChild(tr);
+    table.appendChild(thead);
+    for (const o of plansInScreenOrder(optResult.selectedPlans)) {
+      const tr = document.createElement("tr");
+      [`+${o.score}`, `${o.cost}`, o.plan.name].forEach(text => {
+        const td = document.createElement("td"); td.textContent = text; tr.appendChild(td);
+      });
+      table.appendChild(tr);
+    }
+    const tableWrap = document.createElement("div");
+    tableWrap.className = "tableWrap";
+    tableWrap.appendChild(table);
+    resultsEl.appendChild(tableWrap);
   }
-  const tableWrap = document.createElement("div");
-  tableWrap.className = "tableWrap";
-  tableWrap.appendChild(table);
-  resultsEl.appendChild(tableWrap);
 
   resultsEl.appendChild(renderRowEditor(aptitudes, skillPointsGuess));
 }
@@ -742,8 +755,11 @@ function renderRowEditor(aptitudes, skillPointsGuess) {
 
   const hint = document.createElement("div");
   hint.className = "hint";
+  // 要確認行は名前を並べて出す。行数だけでは、数十行のどれが対象なのか分からない。
+  const ambiguousNames = rows.filter(r => r.ambiguous).map(r => r.name).join("・");
   hint.textContent = ambiguousCount > 0
-    ? "オレンジの行は読み取れなかったため計算に入っていません。左の画像と見比べて直してください。他の行も誤りがあれば直せます。"
+    ? `「要確認」の行（${ambiguousNames}）は読み取れなかったため計算に入っていません。`
+      + "左の画像と見比べて直してください。他の行も誤りがあれば直せます。"
     : "左の画像と見比べて、違っていれば直してください。";
   section.appendChild(hint);
 
@@ -863,12 +879,17 @@ function buildFixRow(row, index, edits, removed, markDirty) {
   }
 
   // タグは常に同じ幅の列に置く（中身が無くても列は残す）。ゲーム内表記に合わせ「獲得済」。
+  //
+  // 「要確認」は文字でも出す。淡い背景色だけだと、数十行の中からどれが対象なのかを
+  // 見つけられない（見出しの「要確認 4行」と行とを突き合わせられない）。
   const tags = document.createElement("div");
   tags.className = "fixTags";
-  for (const [cond, text] of [[row.acquired, "獲得済"], [row.evo, "進化"]]) {
+  for (const [cond, text, cls] of [[row.ambiguous, "要確認", "tag attention"],
+                                   [row.acquired, "獲得済", "tag"],
+                                   [row.evo, "進化", "tag"]]) {
     if (!cond) continue;
     const tag = document.createElement("span");
-    tag.className = "tag"; tag.textContent = text;
+    tag.className = cls; tag.textContent = text;
     tags.appendChild(tag);
   }
   top.appendChild(tags);
@@ -893,6 +914,23 @@ function buildFixRow(row, index, edits, removed, markDirty) {
   del.type = "button"; del.className = "del"; del.textContent = "削除";
   bottom.appendChild(del);
   wrap.appendChild(bottom);
+
+  // 次点候補をそのまま押せるようにする。要確認行は「どちらか分からない」状態なので、
+  // もう一方の候補を提示するのが最短の解決になる（名前を手で打ち直さずに済む）。
+  if (row.ambiguous && row.secondName) {
+    const alt = document.createElement("div");
+    alt.className = "altHint";
+    alt.appendChild(document.createTextNode("もしかして: "));
+    const altButton = document.createElement("button");
+    altButton.type = "button"; altButton.className = "secondary";
+    altButton.textContent = row.secondName;
+    altButton.addEventListener("click", () => {
+      nameInput.value = row.secondName;
+      onChange();
+    });
+    alt.appendChild(altButton);
+    wrap.appendChild(alt);
+  }
 
   function onChange() {
     const name = nameInput.value.trim();

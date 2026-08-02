@@ -207,13 +207,38 @@ function glyphKeyToChar(key) {
   return i <= 0 ? key : key.slice(0, i);
 }
 
+// 字形の中央を横切る走査線に現れるインクの塊の数。
+// ○ は左右の輪郭で2つ、◎ は内側の輪が加わって4つになる。
+function middleRowRunCount(glyph) {
+  const row = glyph[GLYPH_SIZE >> 1];
+  let runs = 0, wasInk = false;
+  for (let x = 0; x < GLYPH_SIZE; x++) {
+    const isInk = ((row >>> x) & 1) === 1;
+    if (isInk && !wasInk) runs++;
+    wasInk = isInk;
+  }
+  return runs;
+}
+
+// ○ と ◎ は外周がまったく同じで、違いは内側の輪の有無だけ。32×32へ正規化すると
+// その差はごく少数のビットに縮み、ハミング距離では安定して分けられない
+// （実測: 同一の「◎」に対し ○=134 / ◎=144 と逆転し、画面の「根幹距離◎」が
+//  「根幹距離○」として距離0で確定した。○◎は評価点も必要SPも違う別スキルなので
+//  結果が変わる）。塊の数は内側の輪の有無を直接見るので、太さや滲みに左右されない。
+const RING_MARK_MIN_RUNS = 3;   // 3以上なら内側の輪があるとみなす（○=2, ◎=4）
+
 function matchGlyph(glyph, atlas) {
   let bestCh = '?', bestD = Infinity;
   for (const ch in atlas) {
     const d = hamming(glyph, atlas[ch]);
     if (d < bestD) { bestD = d; bestCh = ch; }
   }
-  return bestD <= MATCH_REJECT ? glyphKeyToChar(bestCh) : '?';
+  if (bestD > MATCH_REJECT) return '?';
+  const ch = glyphKeyToChar(bestCh);
+  if (ch === '○' || ch === '◎') {
+    return middleRowRunCount(glyph) >= RING_MARK_MIN_RUNS ? '◎' : '○';
+  }
+  return ch;
 }
 
 // 名前矩形を分割し、各文字の正規化字形（Uint32Array）配列を返す。
