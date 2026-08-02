@@ -961,7 +961,9 @@ function buildFixRow(row, index, edits, removed, markDirty) {
 function collectEvolvedGoldSkills() {
   const seen = new Map();
   for (const row of session.recognizedRows) {
-    if (row.ambiguous || row.acquired || !row.evo || !row.evolutionSkillIds) continue;
+    // 獲得済みの行も含める。獲得済みでも進化はでき、スキルPtを消費せずに
+    // 評価点だけが上がるため、選ばせないと確実な加点を取りこぼす。
+    if (row.ambiguous || !row.evo || !row.evolutionSkillIds) continue;
     if (!seen.has(row.skillId)) seen.set(row.skillId, row.name);
   }
   return Array.from(seen, ([skillId, name]) => ({ skillId, name }));
@@ -983,15 +985,24 @@ function collectEvolvedGoldSkills() {
 // （optimizer.js の selectablePlans 側にも同じ絞り込みを実装済み。ここでの
 // 絞り込みはUI表示用）。
 function renderEvolutionChoicePanel() {
-  const evolvedSkills = collectEvolvedGoldSkills();
-  if (evolvedSkills.length === 0) return null;
+  // このキャラで実際に選べる進化先を持つものだけを対象にする。他キャラ専用の
+  // 進化しか持たない金スキルは選択肢を出しようがないので、件数にも数えない
+  // （見出しの件数と並ぶ項目数が食い違うと、出ていない分を探させてしまう）。
+  const choosable = collectEvolvedGoldSkills().map(({ skillId, name }) => {
+    const family = cache.master.families.find(f => f._skillById.has(skillId));
+    const candidates = family === undefined ? [] : family.evolutions.filter(e =>
+      e.fromGoldSkillId === skillId
+      && (e.characterCardId === session.characterCardId || e.characterCardId == null));
+    return { skillId, name, candidates };
+  }).filter(entry => entry.candidates.length > 0);
+  if (choosable.length === 0) return null;
 
   const section = document.createElement("section");
   const head = document.createElement("div");
   head.className = "fixHead";
   const title = document.createElement("span");
   title.className = "title";
-  title.textContent = `進化スキルの選択（${evolvedSkills.length}件）`;
+  title.textContent = `進化スキルの選択（${choosable.length}件）`;
   head.appendChild(title);
   section.appendChild(head);
 
@@ -1011,15 +1022,7 @@ function renderEvolutionChoicePanel() {
   applyBtn.textContent = "反映して再計算";
   applyBtn.disabled = true;
 
-  let hasCandidates = false;
-  for (const { skillId: goldId, name: goldName } of evolvedSkills) {
-    const family = cache.master.families.find(f => f._skillById.has(goldId));
-    if (family === undefined) continue;
-    const candidates = family.evolutions.filter(e =>
-      e.fromGoldSkillId === goldId && (e.characterCardId === session.characterCardId || e.characterCardId == null));
-    if (candidates.length === 0) continue;
-    hasCandidates = true;
-
+  for (const { skillId: goldId, name: goldName, candidates } of choosable) {
     const wrap = document.createElement("div");
     wrap.className = "evoSkill";
     const label = document.createElement("div");
@@ -1051,7 +1054,6 @@ function renderEvolutionChoicePanel() {
     wrap.appendChild(options);
     section.appendChild(wrap);
   }
-  if (!hasCandidates) return null;
 
   applyBtn.addEventListener("click", () => {
     for (const [goldId, choice] of picked) session.evolutionChoices[goldId] = choice;

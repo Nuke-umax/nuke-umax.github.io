@@ -118,8 +118,13 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
     const nameAmbiguous = isNameAmbiguous(best);
     if (nameAmbiguous && looksUnrecognizable(best)) continue;   // 実質未認識（§10.20）
     const secondEntry = nameAmbiguous ? index.find(e => e.name === best.secondName) : undefined;
+    // 獲得済みでも進化はできる（画面にも「進化可能」バッジと「進化ⓘ」が出る）。
+    // 進化はスキルPtを消費せず評価点だけが上がるので、拾わないと取りこぼしになる。
+    // 進化バッジの矩形は行の中心とバンド高だけで決まる（＋ボタンの位置は使わない）ので、
+    // ＋ボタンを持たない獲得済み行でもそのまま判定できる。
+    const evo = hasEvolutionFlag(imageData, width, fieldRects(synthRow, width).evolution);
     outRows.push({
-      name: best.name, skillId: nameEntry.skillId, sp: null, evo: false, acquired: true,
+      name: best.name, skillId: nameEntry.skillId, sp: null, evo, acquired: true,
       hash: computeNameHash(imageData, width, nameRect), ambiguous: nameAmbiguous,
       // nameRect は全行に載せる。Worker がサムネイルを切り出したあと捨てるので
       // メインスレッドへは渡らない。確信して誤読した行もユーザーが原画と
@@ -132,6 +137,13 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
         distinguishMargin: best.distinguishMargin,
       } : {}),
     });
+    if (evo) {
+      const fam = familyOf(nameEntry.skillId);
+      if (fam) {
+        outRows[outRows.length - 1].evolutionSkillIds =
+          fam.evolutions.filter(e => e.fromGoldSkillId === nameEntry.skillId).map(e => e.skillId);
+      }
+    }
   }
 
   for (const row of rows) {
@@ -498,7 +510,20 @@ function buildOptimizerState(recognizedRows, aptitudes, skillPoints, characterCa
     // ユーザーが直せる。出さずに黙って落とすより、出して直せる方がよい。
     //
     // SP不明の行だけは値段が付けられないので下の row.sp === null で落ちる。
-    if (row.acquired) { acquired.add(row.skillId); continue; }
+    if (row.acquired) {
+      acquired.add(row.skillId);
+      // 獲得済みの金スキルでも進化はできる。進化はスキルPtを消費せず評価点だけが
+      // 上がるので、費用0の選択肢として登録する。登録しないと「取れば必ず得なのに
+      // 提示されない」取りこぼしになる（実測: 所持28Ptのキャラで進化候補が1件も出なかった）。
+      if (row.evo && row.evolutionSkillIds) {
+        evolvedGoldSkillIds.add(row.skillId);
+        for (const evoId of row.evolutionSkillIds) {
+          availableSkillIds.add(evoId);
+          displayedCost.set(evoId, 0);
+        }
+      }
+      continue;
+    }
     if (row.sp === null) continue;
     availableSkillIds.add(row.skillId);
     displayedCost.set(row.skillId, row.sp);
