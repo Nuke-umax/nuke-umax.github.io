@@ -37,22 +37,87 @@ function skillPointDigitInk(data, width, rect) {
   return warmInk(data, width, rect, { rMin: 150, rMinusB: 60 });
 }
 
-// 保有スキルPtのおおまかな探索矩形（ヘッダ内、解像度比のみに依存）。
+// 保有スキルPtのおおまかな探索矩形。
 // 実際の桁位置はこの中のインク投影から求めるので、多少広くても構わない。
 //
-// 既知の限界（§10.14と同種）: ヘッダー内要素の縦位置は画面全体に対する
-// 単純な比率ではスケールしない（実測: 1080×2412=比0.298〜0.327、
-// 1206×2622=比0.332〜0.347。アスペクト比が0.4478→0.4599と変わっただけで
-// 約0.02のズレが生じた）。安全マージンを持たせて両解像度を包含する範囲に
-// 広げてある。将来的にはヘッダーの色/構造アンカー検出に置き換えるとよい。
+// 横位置は画像幅の比率で決まる（実測: 1080×2412 と 1206×2622 で小数第3位まで一致）。
+// 一方、縦位置は画面高の比率ではスケールしない（実測: 同じ「現在のスキルPt」ラベルが
+// 1080×2412 では 0.301〜0.315H、1206×2622 では 0.332〜0.347H。縦横比が変わると
+// 約0.03ずれる）。縦横比の違う端末では固定比率の窓から数字が外れて読めなくなるため、
+// 縦位置はラベルを見つけて決める。
 const SKILL_POINT_SEARCH_RATIO = { xLeft: 0.73, xRight: 0.97, yTop: 0.29, yBottom: 0.355 };
 
-function skillPointSearchRect(width, height) {
+// 「現在のスキルPt」の緑ラベルの色と探索条件。
+// ヘッダーには同じ形の緑ラベルが縦に2本並ぶ（上=スキルフィルター、下=現在のスキルPt）。
+// どちらも幅は画像幅の0.265倍で、下側が保有Ptの行。
+const SKILL_POINT_LABEL = {
+  gMin: 170, rMin: 110, bMax: 120, grDiff: 30, gbDiff: 90,
+  searchRightRatio: 0.80,    // 右端は＋ボタンの緑と紛れるので探索から外す
+  searchBottomRatio: 0.50,   // ヘッダーは常に画面の上半分にある
+  minRowInkRatio: 0.05,      // 帯とみなす1行あたりの最小緑画素数 ÷ 画像幅
+  minBandWidthRatio: 0.20,   // ラベル幅は実測0.265W。細い緑（アイコン等）を落とす
+  bandGapPx: 3,              // これ以上離れたら別の帯
+};
+
+// 緑ラベルの帯を探し、最も下にあるものの縦範囲を返す（見つからなければ null）。
+function skillPointLabelBand(data, width, height) {
+  const cfg = SKILL_POINT_LABEL;
+  const xEnd = Math.floor(width * cfg.searchRightRatio);
+  const yEnd = Math.floor(height * cfg.searchBottomRatio);
+  const minInk = width * cfg.minRowInkRatio;
+  const minBandWidth = width * cfg.minBandWidthRatio;
+
+  const rows = [];   // { y, xLeft, xRight }
+  for (let y = 0; y < yEnd; y++) {
+    let count = 0, xLeft = width, xRight = 0;
+    for (let x = 0; x < xEnd; x++) {
+      const i = (y * width + x) * 4;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (g > cfg.gMin && r > cfg.rMin && b < cfg.bMax && g - r > cfg.grDiff && g - b > cfg.gbDiff) {
+        count++;
+        if (x < xLeft) xLeft = x;
+        if (x > xRight) xRight = x;
+      }
+    }
+    if (count > minInk) rows.push({ y, xLeft, xRight });
+  }
+  if (rows.length === 0) return null;
+
+  const bands = [];
+  let current = [rows[0]];
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i].y - current[current.length - 1].y > cfg.bandGapPx) { bands.push(current); current = []; }
+    current.push(rows[i]);
+  }
+  bands.push(current);
+
+  const wide = bands.filter(band => {
+    const left = Math.min(...band.map(r => r.xLeft));
+    const right = Math.max(...band.map(r => r.xRight));
+    return right - left >= minBandWidth;
+  });
+  if (wide.length === 0) return null;
+
+  const band = wide[wide.length - 1];   // 下側＝「現在のスキルPt」
+  return { yTop: band[0].y, yBottom: band[band.length - 1].y };
+}
+
+function skillPointSearchRect(width, height, data) {
   const r = SKILL_POINT_SEARCH_RATIO;
-  return {
-    x: Math.round(width * r.xLeft), y: Math.round(height * r.yTop),
-    w: Math.round(width * (r.xRight - r.xLeft)), h: Math.round(height * (r.yBottom - r.yTop)),
-  };
+  const x = Math.round(width * r.xLeft);
+  const w = Math.round(width * (r.xRight - r.xLeft));
+
+  const band = data === undefined ? null : skillPointLabelBand(data, width, height);
+  if (band === null) {
+    // ラベルを見つけられない画面では従来の固定比率に戻る。検証済みの端末では
+    // これで読めていたので、悪化はしない。
+    return { x, y: Math.round(height * r.yTop), w, h: Math.round(height * (r.yBottom - r.yTop)) };
+  }
+  // 数字はラベルと同じ行に並ぶ。ラベル高さの分だけ上下に余裕を取る
+  // （数字はラベルの文字より背が高いことがある）。
+  const labelHeight = band.yBottom - band.yTop + 1;
+  const center = (band.yTop + band.yBottom) / 2;
+  return { x, y: Math.round(center - labelHeight), w, h: Math.round(labelHeight * 2) };
 }
 
 // ink({data,w,h}) を分割・正規化・アトラス照合して文字列にする（数字・ランク共通）。
@@ -154,13 +219,99 @@ function recognizeDigits(rawInk, atlas) {
 }
 
 // ---- 適性ランク（詳細画面モーダル） ----
-// 距離適性・脚質適性の行帯（解像度比。詳細画面は固定モーダルレイアウト）。
-// 既知の限界: 現状は比率のみに依存しており、アスペクト比が大きく異なる端末で
-// ずれる可能性がある。将来的には緑ヘッダー等のアンカー検出に置き換えるとよい。
+// 距離適性・脚質適性の行帯（解像度比のフォールバック値）。
+// 詳細画面は固定モーダルだが、モーダルの縦位置は画面の縦横比で動く。
+// 通常は下の statHeaderBand を基準に決め、帯を見つけられないときだけこの比率に戻る。
 const APTITUDE_ROW_RATIO = {
   dist: { yTop: 903 / 2412, yBottom: 963 / 2412 },
   leg: { yTop: 963 / 2412, yBottom: 1023 / 2412 },
 };
+
+// ステータス見出しの緑帯（スピード／スタミナ／…）の検出条件。
+// 詳細画面のモーダルには横に長い緑帯が2本ある（上=「ウマ娘詳細」のタイトル、
+// 下=ステータス見出し）。下側はステータス数値のすぐ上にあり、適性行もそこから
+// 一定の距離にあるので、モーダル全体の位置合わせに使える。
+// 2本は高さで見分ける。実測の高さ÷画像幅は、見出し帯が 0.0389（1080幅）と
+// 0.0398（1206幅）、タイトル帯が 0.0852 と 0.0846 で、はっきり離れている。
+// 「2本あるうちの下」で選ぶ方法は、モーダル上部が画面外に出るとタイトル帯が
+// 消えて成立しなくなるため採らない。
+const DETAIL_GREEN_BAND = {
+  gMin: 150, grDiff: 30, gbDiff: 60,
+  sampleStepPx: 3,        // 1行を全画素見る必要はない。間引いて走査する
+  minGreenRatio: 0.5,     // 走査点のうち緑がこの割合を超えたら帯の行とみなす
+  minHeightRatio: 0.025,  // 見出し帯の高さ ÷ 画像幅の下限
+  maxHeightRatio: 0.055,  // 同・上限（タイトル帯 0.085 は入らない）
+  bandGapPx: 3,
+};
+
+// ステータス見出しの緑帯（下側の帯）を返す。見つからなければ null。
+function statHeaderBand(data, width, height) {
+  const cfg = DETAIL_GREEN_BAND;
+  const step = cfg.sampleStepPx;
+  const samplesPerRow = Math.ceil(width / step);
+  const rows = [];
+  for (let y = 0; y < height; y++) {
+    let green = 0;
+    for (let x = 0; x < width; x += step) {
+      const i = (y * width + x) * 4;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (g > cfg.gMin && g - r > cfg.grDiff && g - b > cfg.gbDiff) green++;
+    }
+    if (green > samplesPerRow * cfg.minGreenRatio) rows.push(y);
+  }
+  if (rows.length === 0) return null;
+
+  const bands = [];
+  let current = [rows[0]];
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i] - current[current.length - 1] > cfg.bandGapPx) { bands.push(current); current = []; }
+    current.push(rows[i]);
+  }
+  bands.push(current);
+
+  const minHeight = width * cfg.minHeightRatio, maxHeight = width * cfg.maxHeightRatio;
+  const candidates = bands.filter(b => b.length >= minHeight && b.length <= maxHeight);
+  if (candidates.length === 0) return null;
+  const band = candidates[candidates.length - 1];   // 該当が複数なら下側を採る
+  return { yTop: band[0], yBottom: band[band.length - 1] };
+}
+
+// 緑帯の下端から数えた各領域の位置（帯の高さを1とした倍数）。
+// 実測 1080×2412（帯 y704〜745・高さ42px）から算出し、1206×2622 でも成立を確認した。
+//   ステータス数値帯 … 帯の下端〜 +3.5   （従来の 0.29〜0.37H と同じ範囲）
+//   距離適性の行     … +3.762〜+5.190  （従来の 903〜963 / 2412）
+//   脚質適性の行     … +5.190〜+6.619  （従来の 963〜1023 / 2412）
+const DETAIL_BAND_OFFSET = {
+  stat: { top: 0, bottom: 3.5 },
+  dist: { top: 3.762, bottom: 5.190 },
+  leg:  { top: 5.190, bottom: 6.619 },
+};
+
+// 詳細画面の各領域の縦範囲を返す。緑帯が見つかればそれを基準に、
+// 見つからなければ従来の画面高比で決める（検証済み端末では同じ結果になる）。
+function detailRegionY(kind, width, height, data) {
+  const band = data === undefined ? null : statHeaderBand(data, width, height);
+  if (band !== null) {
+    const bandHeight = band.yBottom - band.yTop + 1;
+    const offset = DETAIL_BAND_OFFSET[kind];
+    return {
+      yTop: Math.round(band.yBottom + bandHeight * offset.top),
+      yBottom: Math.round(band.yBottom + bandHeight * offset.bottom),
+    };
+  }
+  if (kind === "stat") {
+    return { yTop: Math.round(height * STAT_REGION_RATIO.yTop),
+             yBottom: Math.round(height * STAT_REGION_RATIO.yBottom) };
+  }
+  const r = APTITUDE_ROW_RATIO[kind];
+  return { yTop: Math.round(height * r.yTop), yBottom: Math.round(height * r.yBottom) };
+}
+
+// 適性1行分の切り出し矩形。認識と確認UIの切り抜きで共用する。
+function aptitudeRowRect(row, width, height, data) {
+  const { yTop, yBottom } = detailRegionY(row, width, height, data);
+  return { x: 0, y: yTop, w: width, h: yBottom - yTop };
+}
 const RANK_MIN_W_RATIO = 18 / 1080, RANK_MAX_W_RATIO = 42 / 1080, CELL_GAP_RATIO = 45 / 1080;
 // ラベル語末の1文字（例:「距離適性」の「性」）は直後に大きな隙間を持つため、
 // 後方の隙間だけで判定すると誤ってランク文字扱いされる。ラベル内の字間
@@ -218,8 +369,7 @@ function rankLetterCells(data, width, rowRect) {
 function recognizeAptitudeRanks(data, width, height, atlas) {
   const out = {};
   for (const row of ["dist", "leg"]) {
-    const r = APTITUDE_ROW_RATIO[row];
-    const rect = { x: 0, y: Math.round(height * r.yTop), w: width, h: Math.round(height * (r.yBottom - r.yTop)) };
+    const rect = aptitudeRowRect(row, width, height, data);
     const { ink, cells } = rankLetterCells(data, width, rect);
     out[row] = cells.map(c => matchGlyph(normalizeGlyph(ink, c), atlas));
   }
@@ -281,11 +431,7 @@ function detailCropRects(data, width, height) {
   // 4個ずつ揃ったときだけ返す。個数が違うとどのランクの切り抜きか対応が取れない。
   const aptitudes = [];
   for (const row of ["dist", "leg"]) {
-    const r = APTITUDE_ROW_RATIO[row];
-    const rowRect = {
-      x: 0, y: Math.round(height * r.yTop),
-      w: width, h: Math.round(height * (r.yBottom - r.yTop)),
-    };
+    const rowRect = aptitudeRowRect(row, width, height, data);
     const { cells } = rankLetterCells(data, width, rowRect);
     if (cells.length !== 4) return { stats, aptitudes: [] };
     for (const [cx0, cx1] of cells) {
@@ -368,8 +514,7 @@ function statOrangeInk(r, g, b) {
 
 // ステータス数値帯（現在値帯・/最大値帯）の [yTop,yBottom) を上から順に返す。
 function statOrangeBands(data, width, height) {
-  const y0 = Math.round(height * STAT_REGION_RATIO.yTop);
-  const y1 = Math.round(height * STAT_REGION_RATIO.yBottom);
+  const { yTop: y0, yBottom: y1 } = detailRegionY("stat", width, height, data);
   const rowInk = [];
   for (let y = y0; y < y1; y++) {
     let c = 0;

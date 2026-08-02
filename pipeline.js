@@ -207,7 +207,7 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   // ゴミを誤って数値化するのを防ぐ。実測: Vodkaのスクロール画像で "1" を
   // 誤読し複数キャラ検知が誤爆した）。2桁の保有Pt（例: 28/12）は複数キャラ
   // 検知の要となるため 3桁ではなく 2桁まで読む。
-  const spRect = skillPointSearchRect(width, height);
+  const spRect = skillPointSearchRect(width, height, imageData);
   const spHeaderInk = skillPointDigitInk(imageData, width, spRect);
   const spHeaderRaw = recognizeDigits(spHeaderInk, digitAtlas);
   const skillPointsGuess = (spHeaderRaw.length >= 2 && !spHeaderRaw.includes("?"))
