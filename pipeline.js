@@ -490,11 +490,14 @@ function buildOptimizerState(recognizedRows, aptitudes, skillPoints, characterCa
   const acquired = new Set();
 
   for (const row of recognizedRows) {
-    // 曖昧マッチ(名前照合が非完全一致・SP不明を含む)の行は最適化から除外する。
-    // ユーザー確認UI(§10.13)で確定されない限り、誤ったskillIdをそのまま採用
-    // すると誤ったプランを提示しかねない。除外は「見えている加点機会を逃す」
-    // だけで安全側に倒れる。
-    if (row.ambiguous) continue;
+    // 曖昧マッチ(名前照合が非完全一致)の行も、第1候補を採用して計算に入れる。
+    //
+    // 以前は除外していたが、除外は安全側ではなかった。画面に写っているスキルが
+    // 黙って結果から消え、評価点が実際より低く出るためである。曖昧行は
+    // 「要確認」タグと次点候補ボタン付きで確認・修正UIに出るので、誤りは
+    // ユーザーが直せる。出さずに黙って落とすより、出して直せる方がよい。
+    //
+    // SP不明の行だけは値段が付けられないので下の row.sp === null で落ちる。
     if (row.acquired) { acquired.add(row.skillId); continue; }
     if (row.sp === null) continue;
     availableSkillIds.add(row.skillId);

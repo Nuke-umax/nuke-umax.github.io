@@ -558,8 +558,7 @@ function renderResults(optResult, baseline = null, rankNote = null) {
     // そのことと理由（所持Ptが最安のスキルにも届かない）を言葉で示す。
     const note = document.createElement("div");
     note.className = "warn";
-    note.textContent = `所持スキルPt（${skillPointsGuess ?? "?"}）で取得できるスキルはありません。`
-      + "スキルを取得できるだけのポイントが貯まってから、もう一度お試しください。";
+    note.textContent = `所持スキルPt（${skillPointsGuess ?? "?"}）で取得できるスキルはありません。`;
     resultsEl.appendChild(note);
   } else {
     const table = document.createElement("table");
@@ -758,8 +757,8 @@ function renderRowEditor(aptitudes, skillPointsGuess) {
   // 要確認行は名前を並べて出す。行数だけでは、数十行のどれが対象なのか分からない。
   const ambiguousNames = rows.filter(r => r.ambiguous).map(r => r.name).join("・");
   hint.textContent = ambiguousCount > 0
-    ? `「要確認」の行（${ambiguousNames}）は読み取れなかったため計算に入っていません。`
-      + "左の画像と見比べて直してください。他の行も誤りがあれば直せます。"
+    ? `「要確認」の行（${ambiguousNames}）は読み取りの確信度が低く、第1候補で計算しています。`
+      + "左の画像と見比べて、違っていれば直してください。他の行も誤りがあれば直せます。"
     : "左の画像と見比べて、違っていれば直してください。";
   section.appendChild(hint);
 
