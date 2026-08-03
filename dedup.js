@@ -62,8 +62,9 @@ function isSameRow(a, b) {
 
 // 連続する2画像の境界重複長を求める。
 // imgN の末尾 k 行が imgN+1 の先頭 k 行と一致する最大の k を返す。
-function boundaryOverlap(prevRows, currRows, same = isSameRow) {
-  const maxK = Math.min(prevRows.length, currRows.length);
+// limit を渡すとそこまでしか探さない（スクロールバー幾何による上限を効かせる用）。
+function boundaryOverlap(prevRows, currRows, same = isSameRow, limit = Infinity) {
+  const maxK = Math.min(prevRows.length, currRows.length, limit);
   for (let k = maxK; k >= 1; k--) {
     let ok = true;
     for (let j = 0; j < k; j++) {
@@ -238,12 +239,37 @@ function hasSameRowEvidence(a, b) {
 // 誤りの重さは対称ではない。重なりを見逃せば同じ行が2つ出るだけで、利用者が
 // 気づいて削除できる。重なりを誤認するとスキルが消え、しかも気づけない。
 // だから根拠の無い重なりは成立させない。
-function verifiedOverlap(prevRows, currRows) {
-  const k = boundaryOverlap(prevRows, currRows);
+function verifiedOverlap(prevRows, currRows, limit = Infinity) {
+  const k = boundaryOverlap(prevRows, currRows, isSameRow, limit);
   for (let j = 0; j < k; j++) {
     if (!hasSameRowEvidence(prevRows[prevRows.length - k + j], currRows[j])) return 0;
   }
   return k;
+}
+
+// 字形ハッシュを使わず、根拠だけで重なりを測り直す。範囲は幾何が与える。
+//
+// 画面下端で見切れた行はハッシュが崩れるため、ハッシュ主体の探索は「重なりの鎖」が
+// 末尾で切れて0になりやすい（実測: クロノジェネシス19枚では18か所の境目のうち
+// 16か所で重なり0。実際には全境目に1〜3行の重なりがあった）。
+// 探す範囲をスクロールバー幾何が示す行数に限れば、ハッシュ抜きでも安全に測れる。
+//
+// 必要SPの一致だけで繋がった鎖は採らない。同額の別スキルが並ぶ配置は珍しくない
+// （例: 中距離直線◎と中距離コーナー◎はどちらも66）。少なくとも1行は名前で
+// 一致していることを要求する。
+function overlapByEvidence(prevRows, currRows, range) {
+  const maxK = Math.min(prevRows.length, currRows.length, range.max);
+  for (let k = maxK; k >= Math.max(1, range.min); k--) {
+    let chained = true;
+    let matchedByName = 0;
+    for (let j = 0; j < k; j++) {
+      const before = prevRows[prevRows.length - k + j], after = currRows[j];
+      if (!hasSameRowEvidence(before, after)) { chained = false; break; }
+      if (before.name === after.name) matchedByName++;
+    }
+    if (chained && matchedByName > 0) return k;
+  }
+  return 0;
 }
 
 // スクロールバーのつまみ位置から撮影順を復元する。
