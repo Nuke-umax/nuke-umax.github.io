@@ -4,8 +4,8 @@
 // 画像は一切外部送信しない点はメインスレッドと同じ（フェッチ先はマスタ/アトラスJSONのみ）。
 
 importScripts(
-  "ocr_core.js?v=83", "fields.js?v=83", "optimizer.js?v=83", "name_match.js?v=83",
-  "recognizer.js?v=83", "harvest.js?v=83", "dedup.js?v=83", "pipeline.js?v=83",
+  "ocr_core.js?v=84", "fields.js?v=84", "optimizer.js?v=84", "name_match.js?v=84",
+  "recognizer.js?v=84", "harvest.js?v=84", "dedup.js?v=84", "pipeline.js?v=84",
 );
 
 let resourcesPromise = null;
