@@ -59,8 +59,10 @@ const SKILL_POINT_LABEL = {
   bandGapPx: 3,              // これ以上離れたら別の帯
 };
 
-// 緑ラベルの帯を探し、最も下にあるものの縦範囲を返す（見つからなければ null）。
-function skillPointLabelBand(data, width, height) {
+// 緑ラベルの帯を上から順にすべて返す。ヘッダーには同じ形の帯が2本ある
+// （上=スキルフィルター、下=現在のスキルPt）ので、下が隠れても上から割り出せるよう
+// 1本に絞らずに返す。
+function skillPointLabelBands(data, width, height) {
   const cfg = SKILL_POINT_LABEL;
   const xEnd = Math.floor(width * cfg.searchRightRatio);
   const yEnd = Math.floor(height * cfg.searchBottomRatio);
@@ -81,7 +83,7 @@ function skillPointLabelBand(data, width, height) {
     }
     if (count > minInk) rows.push({ y, xLeft, xRight });
   }
-  if (rows.length === 0) return null;
+  if (rows.length === 0) return [];
 
   const bands = [];
   let current = [rows[0]];
@@ -91,33 +93,59 @@ function skillPointLabelBand(data, width, height) {
   }
   bands.push(current);
 
-  const wide = bands.filter(band => {
-    const left = Math.min(...band.map(r => r.xLeft));
-    const right = Math.max(...band.map(r => r.xRight));
-    return right - left >= minBandWidth;
-  });
-  if (wide.length === 0) return null;
-
-  const band = wide[wide.length - 1];   // 下側＝「現在のスキルPt」
-  return { yTop: band[0].y, yBottom: band[band.length - 1].y };
+  return bands
+    .filter(band => Math.max(...band.map(r => r.xRight)) - Math.min(...band.map(r => r.xLeft)) >= minBandWidth)
+    .map(band => ({ yTop: band[0].y, yBottom: band[band.length - 1].y }));
 }
 
-function skillPointSearchRect(width, height, data) {
+// 帯の縦位置から数字の探索矩形を作る。数字はラベルと同じ行に並ぶので、
+// ラベル高さの分だけ上下に余裕を取る（数字はラベルの文字より背が高いことがある）。
+function skillPointRectFromBand(band, width) {
   const r = SKILL_POINT_SEARCH_RATIO;
-  const x = Math.round(width * r.xLeft);
-  const w = Math.round(width * (r.xRight - r.xLeft));
-
-  const band = data === undefined ? null : skillPointLabelBand(data, width, height);
-  if (band === null) {
-    // ラベルを見つけられない画面では従来の固定比率に戻る。検証済みの端末では
-    // これで読めていたので、悪化はしない。
-    return { x, y: Math.round(height * r.yTop), w, h: Math.round(height * (r.yBottom - r.yTop)) };
-  }
-  // 数字はラベルと同じ行に並ぶ。ラベル高さの分だけ上下に余裕を取る
-  // （数字はラベルの文字より背が高いことがある）。
   const labelHeight = band.yBottom - band.yTop + 1;
   const center = (band.yTop + band.yBottom) / 2;
-  return { x, y: Math.round(center - labelHeight), w, h: Math.round(labelHeight * 2) };
+  return {
+    x: Math.round(width * r.xLeft), w: Math.round(width * (r.xRight - r.xLeft)),
+    y: Math.round(center - labelHeight), h: Math.round(labelHeight * 2),
+  };
+}
+
+// 保有Ptの探索矩形の候補を、確からしい順に返す。
+//
+// 単一のアンカーに賭けず、外したときの代わりを用意する。呼び出し側は先頭から順に
+// 数字を読み、取れたものを採用する（読めたかどうかが、そのまま当たり判定になる）。
+//   1. 下の緑ラベル（現在のスキルPt）… 本命
+//   2. 上の緑ラベル（スキルフィルター）から割り出した位置 … 下が隠れた場合の代替
+//   3. 画面高の固定比率 … 緑ラベルを1本も取れない端末での最後の手段
+// 実測: 上帯の下端から下帯の上端までは帯高の約3.0倍（1080幅 3.00 / 1206幅 2.98）。
+const SKILL_POINT_LABEL_PITCH = 2.99;
+
+function skillPointSearchRects(width, height, data) {
+  const r = SKILL_POINT_SEARCH_RATIO;
+  const fixed = {
+    x: Math.round(width * r.xLeft), w: Math.round(width * (r.xRight - r.xLeft)),
+    y: Math.round(height * r.yTop), h: Math.round(height * (r.yBottom - r.yTop)),
+  };
+  if (data === undefined) return [fixed];
+
+  const bands = skillPointLabelBands(data, width, height);
+  const rects = [];
+  if (bands.length > 0) {
+    rects.push(skillPointRectFromBand(bands[bands.length - 1], width));
+  }
+  if (bands.length > 0) {
+    const upper = bands[0];
+    const h = upper.yBottom - upper.yTop + 1;
+    const yTop = Math.round(upper.yBottom + h * SKILL_POINT_LABEL_PITCH);
+    rects.push(skillPointRectFromBand({ yTop, yBottom: yTop + h - 1 }, width));
+  }
+  rects.push(fixed);
+  return rects;
+}
+
+// 従来の単一矩形の呼び出し口（描画確認用ページが使う）。先頭候補を返す。
+function skillPointSearchRect(width, height, data) {
+  return skillPointSearchRects(width, height, data)[0];
 }
 
 // ink({data,w,h}) を分割・正規化・アトラス照合して文字列にする（数字・ランク共通）。
@@ -242,6 +270,16 @@ const DETAIL_GREEN_BAND = {
   minHeightRatio: 0.025,  // 見出し帯の高さ ÷ 画像幅の下限
   maxHeightRatio: 0.055,  // 同・上限（タイトル帯 0.085 は入らない）
   bandGapPx: 3,
+  // 見出し帯を取れなかったときの代替経路。タイトル帯から位置を割り出す。
+  // 実測（iPhone 1206幅 / Android 1080幅）:
+  //   タイトル高 102 / 92 ÷ 画像幅 = 0.0846 / 0.0852
+  //   タイトル下端→見出し上端 ÷ タイトル高 = 3.490 / 3.467
+  //   見出し高 ÷ タイトル高 = 0.471 / 0.457
+  // 端末をまたいで一致するので、中間値を採る。
+  titleMinHeightRatio: 0.070,
+  titleMaxHeightRatio: 0.110,
+  titleToHeaderFactor: 3.478,
+  headerHeightFactor: 0.464,
 };
 
 // ステータス見出しの緑帯（下側の帯）を返す。見つからなければ null。
@@ -271,9 +309,21 @@ function statHeaderBand(data, width, height) {
 
   const minHeight = width * cfg.minHeightRatio, maxHeight = width * cfg.maxHeightRatio;
   const candidates = bands.filter(b => b.length >= minHeight && b.length <= maxHeight);
-  if (candidates.length === 0) return null;
-  const band = candidates[candidates.length - 1];   // 該当が複数なら下側を採る
-  return { yTop: band[0], yBottom: band[band.length - 1] };
+  if (candidates.length > 0) {
+    const band = candidates[candidates.length - 1];   // 該当が複数なら下側を採る
+    return { yTop: band[0], yBottom: band[band.length - 1] };
+  }
+
+  // 見出し帯が見つからないときは、タイトル帯（ウマ娘詳細）から位置を割り出す。
+  // 2本の間隔と高さの比は端末をまたいで安定している
+  // （実測 iPhone 1206幅: 間隔3.490・高さ比0.471／Android 1080幅: 3.467・0.457）。
+  const titleMin = width * cfg.titleMinHeightRatio, titleMax = width * cfg.titleMaxHeightRatio;
+  const titles = bands.filter(b => b.length >= titleMin && b.length <= titleMax);
+  if (titles.length === 0) return null;
+  const title = titles[0];                            // 該当が複数なら上側＝タイトル
+  const titleHeight = title[title.length - 1] - title[0] + 1;
+  const yTop = Math.round(title[title.length - 1] + titleHeight * cfg.titleToHeaderFactor);
+  return { yTop, yBottom: Math.round(yTop + titleHeight * cfg.headerHeightFactor) };
 }
 
 // 緑帯の下端から数えた各領域の位置（帯の高さを1とした倍数）。
