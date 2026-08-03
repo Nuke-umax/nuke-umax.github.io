@@ -161,11 +161,35 @@ function mergeAcrossImages(perImageRows) {
   for (let i = 0; i < perImageRows.length; i++) {
     const rows = perImageRows[i];
     if (i === 0) { merged.push(...rows); continue; }
-    const k = boundaryOverlap(perImageRows[i - 1], rows);
+    const previous = perImageRows[i - 1];
+    let k = boundaryOverlap(previous, rows);
+
+    // 画面の下端で見切れた行は、字形も必要SPも欠けるため次の画像の同じ行と
+    // 一致せず、重なりの検出そのものを失敗させる。重なりは「前の画像の末尾と
+    // 次の画像の先頭が連続して一致すること」を条件にするので、末尾に1行でも
+    // 一致しない行があると、その手前が揃っていても0になってしまう
+    // （実測: 新キャラ3体目では18か所の境目のうち17か所で重なり0。
+    //  「奮い立つ心／レースの真髄・体」が両方の画像に写っているのに検出できず、
+    //  重複した行が残って曖昧解消が誤作動し、存在しない「レースの真髄・速」が生まれた）。
+    //
+    // 末尾の1行を除いて測り直し、それで重なりが見つかるなら、その行は見切れた
+    // 重複とみなして捨てる。
+    if (k === 0 && previous.length > 1 && merged.length > 0
+        && isDegradedRow(merged[merged.length - 1])) {
+      const withoutLast = boundaryOverlap(previous.slice(0, -1), rows);
+      if (withoutLast > 0) { merged.pop(); k = withoutLast; }
+    }
+
     overlaps.push(k);
     merged.push(...rows.slice(k));   // 重複ぶんの先頭を捨てて連結
   }
   return { merged, overlaps };
+}
+
+// 見切れた行の兆候。未獲得なのに必要SPが読めていない、または名前が曖昧。
+// 画面の端で切れた行は字形も数字も欠けるため、この2つのどちらかに必ず現れる。
+function isDegradedRow(row) {
+  return (row.acquired !== true && row.sp === null) || row.ambiguous === true;
 }
 
 // スクロールバーのつまみ位置から撮影順を復元する。

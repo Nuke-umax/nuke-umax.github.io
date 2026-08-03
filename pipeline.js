@@ -207,11 +207,14 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   // ゴミを誤って数値化するのを防ぐ。実測: Vodkaのスクロール画像で "1" を
   // 誤読し複数キャラ検知が誤爆した）。2桁の保有Pt（例: 28/12）は複数キャラ
   // 検知の要となるため 3桁ではなく 2桁まで読む。
-  const spRect = skillPointSearchRect(width, height, imageData);
-  const spHeaderInk = skillPointDigitInk(imageData, width, spRect);
-  const spHeaderRaw = recognizeDigits(spHeaderInk, digitAtlas);
-  const skillPointsGuess = (spHeaderRaw.length >= 2 && !spHeaderRaw.includes("?"))
-    ? parseInt(spHeaderRaw, 10) : null;
+  //
+  // 探索位置は単一のアンカーに賭けず、確からしい順の候補を試す。数字が読めたか
+  // どうかがそのまま当たり判定になるので、外した候補は自然に捨てられる。
+  let skillPointsGuess = null;
+  for (const rect of skillPointSearchRects(width, height, imageData)) {
+    const raw = recognizeDigits(skillPointDigitInk(imageData, width, rect), digitAtlas);
+    if (raw.length >= 2 && !raw.includes("?")) { skillPointsGuess = parseInt(raw, 10); break; }
+  }
 
   // 撮影順の復元に使うスクロールバーの読み取り値（dedup.js）。
   // 画素を持ち出さず、暗部の中心yだけを持つ小さな配列にして返す。

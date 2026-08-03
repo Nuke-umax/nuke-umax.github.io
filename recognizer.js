@@ -255,16 +255,30 @@ function recognizeName(imageData, width, nameRect, atlas, expected = null) {
   return nameGlyphs(imageData, width, nameRect, expected).map(g => matchGlyph(g, atlas)).join('');
 }
 
-// 2パス認識。生分割で確信一致しない場合のみ分割数を段階的に増やし、
-// マスタ照合距離が最小になる分割を採る。半角Latinの過結合を救済する。
+// 2パス認識。生分割で確信一致しない場合のみ分割数を変えて試し、
+// マスタ照合距離が最小になる分割を採る。
+//
+// 増やす方向は半角Latinの過結合を救済する。減らす方向は、濁点・半濁点が本体から
+// 離れて別の字として数えられる過分割を救済する（実測: 「パイオニア」の「パ」が
+// 「!」と「（」の2セルに割れて6字になり、6字の別スキル「閃光のマギア」に
+// 距離5で一致して本来の候補を上回った。結合して5字にすれば距離0で一致する）。
+//
+// 試す順は 0 → 減 → 増。距離が同じなら先に試した方を残すので、素の分割を尊重し、
+// 明確に良くなるときだけ分割数を変える。
 // matchFn: (recogStr) => { name, distance }（マスタ最近傍）
-function recognizeNameBest(imageData, width, nameRect, atlas, matchFn, maxExtra = 8) {
+function recognizeNameBest(imageData, width, nameRect, atlas, matchFn, maxExtra = 8, maxMerge = 2) {
   const ink = binarizeRect(imageData, width, nameRect);
   const base = segmentByPitch(ink);
+  const deltas = [0];
+  for (let d = 1; d <= maxMerge; d++) deltas.push(-d);
+  for (let d = 1; d <= maxExtra; d++) deltas.push(d);
+
   let best = null, bestGlyphs = null;
-  for (let extra = 0; extra <= maxExtra; extra++) {
-    const cells = extra === 0 ? base : refineToCount(ink, base, base.length + extra);
-    if (extra > 0 && cells.length !== base.length + extra) break;   // これ以上分割できない
+  for (const delta of deltas) {
+    const target = base.length + delta;
+    if (target < 1) continue;
+    const cells = delta === 0 ? base : refineToCount(ink, base, target);
+    if (delta !== 0 && cells.length !== target) continue;   // その数には分割・結合できない
     const glyphs = cells.map(c => normalizeGlyph(ink, c));
     const recog = glyphs.map(g => matchGlyph(g, atlas)).join('');
     const res = matchFn(recog);
