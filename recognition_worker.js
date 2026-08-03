@@ -1,11 +1,11 @@
-// 認識処理をメインスレッドから切り離すWeb Worker。
+﻿// 認識処理をメインスレッドから切り離すWeb Worker。
 // 画像デコード〜字形照合〜重複除去までの重い処理をここで行い、
 // UIの応答性を保つ（引き継ぎ資料§10.6項目5）。
 // 画像は一切外部送信しない点はメインスレッドと同じ（フェッチ先はマスタ/アトラスJSONのみ）。
 
 importScripts(
-  "ocr_core.js?v=81", "fields.js?v=81", "optimizer.js?v=81", "name_match.js?v=81",
-  "recognizer.js?v=81", "harvest.js?v=81", "dedup.js?v=81", "pipeline.js?v=81",
+  "ocr_core.js?v=82", "fields.js?v=82", "optimizer.js?v=82", "name_match.js?v=82",
+  "recognizer.js?v=82", "harvest.js?v=82", "dedup.js?v=82", "pipeline.js?v=82",
 );
 
 let resourcesPromise = null;

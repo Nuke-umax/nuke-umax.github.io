@@ -162,7 +162,7 @@ function mergeAcrossImages(perImageRows) {
     const rows = perImageRows[i];
     if (i === 0) { merged.push(...rows); continue; }
     const previous = perImageRows[i - 1];
-    let k = boundaryOverlap(previous, rows);
+    let k = verifiedOverlap(previous, rows);
 
     // 画面の下端で見切れた行は、字形も必要SPも欠けるため次の画像の同じ行と
     // 一致せず、重なりの検出そのものを失敗させる。重なりは「前の画像の末尾と
@@ -176,8 +176,25 @@ function mergeAcrossImages(perImageRows) {
     // 重複とみなして捨てる。
     if (k === 0 && previous.length > 1 && merged.length > 0
         && isDegradedRow(merged[merged.length - 1])) {
-      const withoutLast = boundaryOverlap(previous.slice(0, -1), rows);
+      const withoutLast = verifiedOverlap(previous.slice(0, -1), rows);
       if (withoutLast > 0) { merged.pop(); k = withoutLast; }
+    }
+
+    // 重なった行は2枚に写っている。どちらを残すかは画面内の位置で決まる。
+    // 前の画像では画面下端（「説明省略」などのボタン列が常に重なる位置）、
+    // 次の画像では上部（遮るものが無い）に写るため、後の画像の方が確実に読める。
+    // 実測 1440×3200: 前の画像の最終行「阪神レース場○」がボタン列に隠れて
+    // 「東京レース場○」と誤読され、次の画像の無傷の行を差し置いて採用されていた。
+    // 入れ替えるのは「同じ行だという積極的な根拠があり、前の版だけが劣化している」
+    // ときに限る。重なりの判定は緩く別の行を同一と見なすことがあるため、根拠なしに
+    // 上書きすると本物の行を失う（実測: 無条件だとSP28キャラで8スキルが消え、
+    // 「劣化しているか」だけを条件にしても獲得済みの別スキルを潰した）。
+    for (let j = 0; j < k; j++) {
+      const slot = merged.length - k + j;
+      if (slot < 0) continue;
+      const before = merged[slot], after = rows[j];
+      if (!isSameRowByCost(before, after)) continue;
+      if (isDegradedRow(before) && !isDegradedRow(after)) merged[slot] = after;
     }
 
     overlaps.push(k);
@@ -190,6 +207,43 @@ function mergeAcrossImages(perImageRows) {
 // 画面の端で切れた行は字形も数字も欠けるため、この2つのどちらかに必ず現れる。
 function isDegradedRow(row) {
   return (row.acquired !== true && row.sp === null) || row.ambiguous === true;
+}
+
+// 2つの行が同じ行だと積極的に言えるか。
+//
+// 未獲得行の必要SPは強い手掛かりで、同じ値なら同じ行の可能性が高い
+// （実測: 隠れて「東京レース場○」と誤読された行と、無傷の「阪神レース場○」が
+//  どちらもSP72で一致した）。獲得済み行はSPを持たないため手掛かりが無く、
+// 名前が違えば別スキルの可能性を否定できない（実測: 「仕掛け抜群」と「深呼吸」が
+// どちらも獲得済み・SPなしで、同一行と誤認して本物の行を潰した）。
+function isSameRowByCost(a, b) {
+  return a.acquired !== true && b.acquired !== true && a.sp !== null && a.sp === b.sp;
+}
+
+// 同じ行だと言える根拠があるか。名前が語る証拠か、必要SPが語る証拠のどちらか。
+// 一方が曖昧なら次点候補まで見る（隠れて誤読された行を救うため）。
+function hasSameRowEvidence(a, b) {
+  if (a.name === b.name) return true;
+  if (a.secondName === b.name || b.secondName === a.name) return true;
+  return isSameRowByCost(a, b);
+}
+
+// 重なりの検出結果を、行ごとの根拠で裏取りする。
+//
+// 字形ハッシュは、画面下端のボタン列に隠れた行では劣化し、無関係な行と近い値になる。
+// 必要SPも獲得済み行では両方 null になり判定に効かないため、実質ハッシュ単独の
+// 判定になって別の行を同一と見なすことがある（実測: IMG_6238の最終行「仕掛け抜群」と
+// IMG_6239の先頭行「深呼吸」を同一と誤認し、実在する「深呼吸」の行が消えた）。
+//
+// 誤りの重さは対称ではない。重なりを見逃せば同じ行が2つ出るだけで、利用者が
+// 気づいて削除できる。重なりを誤認するとスキルが消え、しかも気づけない。
+// だから根拠の無い重なりは成立させない。
+function verifiedOverlap(prevRows, currRows) {
+  const k = boundaryOverlap(prevRows, currRows);
+  for (let j = 0; j < k; j++) {
+    if (!hasSameRowEvidence(prevRows[prevRows.length - k + j], currRows[j])) return 0;
+  }
+  return k;
 }
 
 // スクロールバーのつまみ位置から撮影順を復元する。

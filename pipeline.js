@@ -343,11 +343,17 @@ function dropRedundantDuplicates(rows) {
 // する（実測: Vodka 114→81行、Chrono 108→51行まで行数が激減する重大な
 // 回帰を確認）。境界を伴わない総当たり判定では、hash完全一致（境界検出済み
 // クロップの再ハーベストのような紛れが無いケース）に限定する。
+// 視覚ハッシュの完全一致だけでは足りない。獲得済み行は必要SPを持たず進化フラグも
+// 揃うため、判定材料が実質ハッシュ1つになる。名前帯は余白が多く、別スキルどうしでも
+// ハッシュが完全一致することがある（実測: 深呼吸↔打開策・早仕掛け↔中盤巧者・
+// 快速↔端緒↔光明 の5組が衝突し、実在する4スキルが消えた）。
+// そこで「同じスキルを指している」ことを名前でも裏取りする。
 function dedupeExactMatches(rows) {
   const kept = [];
   for (const row of rows) {
     const isExactDuplicate = kept.some(k =>
-      k.sp === row.sp && k.evo === row.evo && hammingDistance(k.hash, row.hash) === 0);
+      k.name === row.name
+      && k.sp === row.sp && k.evo === row.evo && hammingDistance(k.hash, row.hash) === 0);
     if (isExactDuplicate) continue;
     kept.push(row);
   }
