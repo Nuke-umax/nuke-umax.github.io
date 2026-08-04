@@ -27,17 +27,22 @@ function looksLikeUiChrome(recog) {
   return UI_CHROME_LABELS.includes(q);
 }
 
-// 名前欄が別のUI要素（スクロール終端に浮かぶ並び替えツールバー等）と
-// 重なって一部が隠れると、文字の大半が別物として読まれ、マスタ照合の
-// distanceが極端に大きくなる（実測: メジロラモーヌの最終行がツールバーと
-// 重なり「ホークアイ」5文字中4文字が誤読＝distance比0.8）。この水準まで
-// 崩れた行は、たとえ次点候補とのgapが小さくても「2択の曖昧」ではなく
-// 「実質未認識」であり、誤ったペアの片方を確定させるのは危険。該当スキルは
-// 別スクショで確信行として捕捉できていることが多いため、行ごと除外する
-// （§10.20）。
-const NAME_UNRECOGNIZABLE_DISTANCE_RATIO = 0.6;
-function looksUnrecognizable(best) {
-  return best.distance / best.name.length >= NAME_UNRECOGNIZABLE_DISTANCE_RATIO;
+// 並び替えツールバー（「説明省略」「デフォルト」「昇順」）はリストの上に浮いて
+// 最下段の行を覆う。覆われた行は文字の大半が別物として読まれ、誤った名前で
+// 確定したり、統合の重なり判定を壊したりする（実測: メジロラモーヌの最終行が
+// 「ホークアイ」5文字中4文字誤読／新キャラ3体目では覆われた行と無傷の行が
+// 重複として残り、曖昧解消の負担になっていた）。
+//
+// 位置で問答無用に捨てる。読めているかどうかを判定してから捨てる方式は、
+// 遮られていない行まで巻き込んで実在スキルを消していた（実測: SP28キャラの
+// 「ペースアップ」「急襲」「戦略家」がどの画像でも認識されず消えていた。正解値83→86）。
+//
+// 捨てても情報を失わない。ツールに「重ねて撮る」よう案内しているため、覆われた行は
+// 次の画像の上部に無傷で写る（実測: 5キャラ97枚で覆われた行25件すべてが、
+// 他の画像に確信行として存在した）。
+const TOOLBAR_TOP_RATIO = 0.74;
+function isCoveredByToolbar(nameRect, height) {
+  return nameRect.y / height >= TOOLBAR_TOP_RATIO;
 }
 
 // マスタ照合結果が曖昧（2択で確定できない）かどうかを判定する。
@@ -110,13 +115,13 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
     const synthRow = { yCenter, bandTop: yCenter - avgBandHeight / 2, bandBottom: yCenter + avgBandHeight / 2 };
     const nameRect = nameRectAdaptive(imageData, width, height, synthRow, pitch, undefined, listSearchFloorY);
     if (nameRect === null) continue;
+    if (isCoveredByToolbar(nameRect, height)) continue;
     const best = recognizeNameBest(imageData, width, nameRect, nameAtlas, matchFn);
     if (best === null || best.name === null) continue;
     if (looksLikeUiChrome(best.recog)) continue;   // ヘッダー/フッターUIの取り違え（§10.17）
     const nameEntry = index.find(e => e.name === best.name);
     if (nameEntry === undefined) continue;
     const nameAmbiguous = isNameAmbiguous(best);
-    if (nameAmbiguous && looksUnrecognizable(best)) continue;   // 実質未認識（§10.20）
     const secondEntry = nameAmbiguous ? index.find(e => e.name === best.secondName) : undefined;
     // 獲得済みでも進化はできる（画面にも「進化可能」バッジと「進化ⓘ」が出る）。
     // 進化はスキルPtを消費せず評価点だけが上がるので、拾わないと取りこぼしになる。
@@ -149,6 +154,7 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   for (const row of rows) {
     const nameRect = nameRectAdaptive(imageData, width, height, row, pitch, undefined, listSearchFloorY);
     if (nameRect === null) continue;
+    if (isCoveredByToolbar(nameRect, height)) continue;
     const rects = fieldRects(row, width);
     const evo = hasEvolutionFlag(imageData, width, rects.evolution);
 
@@ -169,7 +175,6 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
     // isNameAmbiguous の設計意図（gap基準の確信判定、distance=0の安全弁、
     // 同名タイの除外、短い名前の特例）はコメント参照。
     const nameAmbiguous = isNameAmbiguous(best);
-    if (nameAmbiguous && looksUnrecognizable(best)) continue;   // 実質未認識（§10.20）
     const hash = computeNameHash(imageData, width, nameRect);
     const ambiguous = nameAmbiguous || !spReliable;
     const secondEntry = nameAmbiguous ? index.find(e => e.name === best.secondName) : undefined;

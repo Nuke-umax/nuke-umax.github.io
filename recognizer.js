@@ -21,17 +21,59 @@ function unpackAtlas(json) {
 }
 
 // 名前矩形をグレースケール2値インク配列（{data:Uint8, w, h}）に落とす。
+//
+// 閾値は帯ごとに決める。固定値では獲得済み行が壊れるため（2026-08-04）。
+// 獲得済み行は減光表示でコントラストが通常行の約55%しかない（実測:
+// インク63/背景146に対し、通常行はインク83/背景230）。固定110はこの帯では
+// インクと背景の中間57%の位置に来てしまい、線と線の隙間の中間調まで
+// インク側へ拾う。結果、画数の多い漢字は隙間が埋まって黒い塊になる
+// （実測: 22画の「襲」が原形を失い、「急襲」が「青嵐」と誤読されて行ごと消えた）。
+//
+// そこで閾値を絶対値ではなく、インクと背景の間の割合で決める。固定110が
+// 通常行で占めていた位置（実測15〜21%）をそのまま比率として採用したので、
+// 通常行の挙動は変わらない（実測: 躍動110→114・駆け降り110→105で見た目は同一）。
+// 一方、減光行では110→78まで下がり「襲」の内部が分離する。
+//
+// インク水準は下位5%点、背景水準は中央値で推定する。名前帯は9割前後が背景なので
+// 中央値は安定して背景を指し、下位5%点は必ず文字の内部に入る。
+const INK_LEVEL_PERCENTILE = 0.05;
+const BACKGROUND_LEVEL_PERCENTILE = 0.50;
+const INK_THRESHOLD_RATIO = 0.18;
+
 function binarizeRect(imageData, width, rect) {
   const w = rect.w, h = rect.h;
-  const ink = new Uint8Array(w * h);
+  const gray = new Float32Array(w * h);
+  const histogram = new Uint32Array(256);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const i = ((rect.y + y) * width + (rect.x + x)) * 4;
       const g = imageData[i] * 0.3 + imageData[i + 1] * 0.59 + imageData[i + 2] * 0.11;
-      ink[y * w + x] = g < DARK_MAX ? 1 : 0;
+      gray[y * w + x] = g;
+      histogram[Math.min(255, Math.max(0, Math.round(g)))]++;
     }
   }
+  const threshold = inkThresholdOf(histogram, w * h);
+  const ink = new Uint8Array(w * h);
+  for (let k = 0; k < gray.length; k++) ink[k] = gray[k] < threshold ? 1 : 0;
   return { data: ink, w, h };
+}
+
+// 輝度ヒストグラムから、この帯に合う二値化閾値を求める。
+function inkThresholdOf(histogram, total) {
+  const levelAt = (ratio) => {
+    const target = total * ratio;
+    let seen = 0;
+    for (let v = 0; v < 256; v++) {
+      seen += histogram[v];
+      if (seen >= target) return v;
+    }
+    return 255;
+  };
+  const inkLevel = levelAt(INK_LEVEL_PERCENTILE);
+  const backgroundLevel = levelAt(BACKGROUND_LEVEL_PERCENTILE);
+  // 文字が無い帯では両者が接近する。従来の固定値に落として暴走を防ぐ。
+  if (backgroundLevel - inkLevel < 20) return DARK_MAX;
+  return inkLevel + (backgroundLevel - inkLevel) * INK_THRESHOLD_RATIO;
 }
 
 // 縦射影の連続インク列を断片[x0,x1)に。

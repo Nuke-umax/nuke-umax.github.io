@@ -313,15 +313,15 @@
   <span>制作: ぬけ　ゲームの開発・運営元とは関係のない非公式ツールです</span>
 </footer>
 
-<script src="ocr_core.js?v=84"></script>
-<script src="fields.js?v=84"></script>
-<script src="optimizer.js?v=84"></script>
-<script src="stat_eval.js?v=84"></script>
-<script src="name_match.js?v=84"></script>
-<script src="recognizer.js?v=84"></script>
-<script src="harvest.js?v=84"></script>
-<script src="dedup.js?v=84"></script>
-<script src="pipeline.js?v=84"></script>
+<script src="ocr_core.js?v=85"></script>
+<script src="fields.js?v=85"></script>
+<script src="optimizer.js?v=85"></script>
+<script src="stat_eval.js?v=85"></script>
+<script src="name_match.js?v=85"></script>
+<script src="recognizer.js?v=85"></script>
+<script src="harvest.js?v=85"></script>
+<script src="dedup.js?v=85"></script>
+<script src="pipeline.js?v=85"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
 const infoOverlay = document.getElementById("infoOverlay");
@@ -389,7 +389,7 @@ async function loadResources() {
 // ===== Web Worker経由の認識（引き継ぎ資料§10.6項目5: UIを固まらせない） =====
 let worker = null;
 function getWorker() {
-  if (worker === null) worker = new Worker("recognition_worker.js?v=84");
+  if (worker === null) worker = new Worker("recognition_worker.js?v=85");
   return worker;
 }
 
