@@ -40,9 +40,22 @@ function looksLikeUiChrome(recog) {
 // 捨てても情報を失わない。ツールに「重ねて撮る」よう案内しているため、覆われた行は
 // 次の画像の上部に無傷で写る（実測: 5キャラ97枚で覆われた行25件すべてが、
 // 他の画像に確信行として存在した）。
-const TOOLBAR_TOP_RATIO = 0.74;
-function isCoveredByToolbar(nameRect, height) {
-  return nameRect.y / height >= TOOLBAR_TOP_RATIO;
+//
+// 境界はボタンを色で見つけて決める（detectToolbarTopY）。位置比の決め打ちでは
+// 端末差を吸収できない。実測では同一解像度でもAndroid系80.60%・iPhone系76.16%と
+// 4.43ポイント違い、比率0.74ではAndroid側で切る必要のない行まで捨てていた。
+//
+// 判定に使うのは名前帯の上端ではなく行の中心。名前は行の上部にあるため、
+// 名前が読めていても行の下半分（必要SPの数値）がボタンに隠れることがある。
+const TOOLBAR_TOP_RATIO_FALLBACK = 0.76;   // ボタンを見つけられない端末向け
+
+function toolbarTopOf(imageData, width, height, listTopY) {
+  const detected = detectToolbarTopY(imageData, width, height, listTopY);
+  return detected === null ? height * TOOLBAR_TOP_RATIO_FALLBACK : detected;
+}
+
+function isCoveredByToolbar(rowCenterY, toolbarTopY) {
+  return rowCenterY >= toolbarTopY;
 }
 
 // マスタ照合結果が曖昧（2択で確定できない）かどうかを判定する。
@@ -88,10 +101,14 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   // リストの開始位置と一致するため、これより上を探索対象から外せば
   // ヘッダー・キャラ絵への侵入を防げる（実測: 比0.30では浅すぎて1行目の
   // 名前検索がキャラ絵を拾うことがあった。§10.17）。
-  const ACQUIRED_SEARCH_Y_RATIO = { start: SKILL_POINT_SEARCH_RATIO.yBottom, end: 0.80 };
-  const listSearchFloorY = Math.round(height * ACQUIRED_SEARCH_Y_RATIO.start);
+  // 終了側は並び替えツールバーの上端。以前は比0.80の決め打ちだったが、実測では
+  // ツールバーの位置が端末で4.43ポイント動く（Android 80.60% / iPhone 76.16%）。
+  // 決め打ちだとiPhone側では覆われた行まで探し、Android側では手前で打ち切っていた。
+  // ツールバーより下の行はどのみち破棄するので、そこを終端にすれば無駄も消える。
+  const listSearchFloorY = Math.round(height * SKILL_POINT_SEARCH_RATIO.yBottom);
+  const toolbarTopY = toolbarTopOf(imageData, width, height, listSearchFloorY);
   const acquiredYCenters = detectAcquiredRowCenters(
-    imageData, width, height, listSearchFloorY, Math.round(height * ACQUIRED_SEARCH_Y_RATIO.end));
+    imageData, width, height, listSearchFloorY, Math.round(toolbarTopY));
   const pitch = medianPitch(rows, acquiredYCenters);
   const matchFn = (s) => {
     const m = matchName(s, index);
@@ -112,10 +129,10 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
     ? rows.reduce((s, r) => s + (r.bandBottom - r.bandTop), 0) / rows.length
     : pitch * ACQUIRED_ROW_HEIGHT_FACTOR;
   for (const yCenter of acquiredYCenters) {
+    if (isCoveredByToolbar(yCenter, toolbarTopY)) continue;
     const synthRow = { yCenter, bandTop: yCenter - avgBandHeight / 2, bandBottom: yCenter + avgBandHeight / 2 };
     const nameRect = nameRectAdaptive(imageData, width, height, synthRow, pitch, undefined, listSearchFloorY);
     if (nameRect === null) continue;
-    if (isCoveredByToolbar(nameRect, height)) continue;
     const best = recognizeNameBest(imageData, width, nameRect, nameAtlas, matchFn);
     if (best === null || best.name === null) continue;
     if (looksLikeUiChrome(best.recog)) continue;   // ヘッダー/フッターUIの取り違え（§10.17）
@@ -152,9 +169,9 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   }
 
   for (const row of rows) {
+    if (isCoveredByToolbar((row.bandTop + row.bandBottom) / 2, toolbarTopY)) continue;
     const nameRect = nameRectAdaptive(imageData, width, height, row, pitch, undefined, listSearchFloorY);
     if (nameRect === null) continue;
-    if (isCoveredByToolbar(nameRect, height)) continue;
     const rects = fieldRects(row, width);
     const evo = hasEvolutionFlag(imageData, width, rects.evolution);
 

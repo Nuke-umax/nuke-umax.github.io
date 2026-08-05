@@ -100,6 +100,74 @@ function detectPlusButtonRows(data, width, height, config = OCR_CONFIG) {
   return rows;
 }
 
+// スクロール終端に浮かぶ並び替えツールバー（「説明省略」ボタン）の上端yを返す。
+// 見つからなければ null。
+//
+// このボタンより下に中心を持つ行は、必要SPの数値や字形がボタンに覆われて壊れる。
+// 位置比の決め打ちでは端末差を吸収できない（実測: 同一解像度1206×2622でも
+// Android系は画像高の80.60%、iPhone系は76.16%と4.43ポイント違う）。
+// ボタン自体を色で見つければ、どちらにも追随できる。
+//
+// 手掛かりは「緑の横方向の連続長」。画面左下には緑のスキルアイコンも並ぶが、
+// アイコンの緑は最大でも幅の9.2%しか続かない。ボタンは塗りつぶしなので19.2%続く
+// （実測97枚。両者は完全に分離し、中間の15%を基準にできる）。
+//
+// バンドは緩い基準で作ってから最大連続長で絞ること。順序を逆にすると、白い文字
+// 「説明省略」で緑が途切れる行が先に弾かれ、ボタンのバンドが成立しない。
+// 横方向の比率は端末を選ばない。実測で、画面幅に対する比は縦横比の違う2機種で
+// 0.03〜0.24%しか違わなかった（名前帯の幅0.03%・左端0.11%・高さ0.09%・
+// ＋ボタンのx 0.24%）。ゲームUIは画面幅を基準にスケールし、余った縦に行を多く
+// 表示する作りになっている。縦の位置だけが端末で動く（ツールバーは4.43ポイント）。
+const TOOLBAR_CONFIG = {
+  leftRegionRatio: 0.28,   // 「説明省略」は左端。中央の「決定」ボタンを避ける
+  bandRunRatio: 0.015,     // バンドを作る緩い基準（幅比）
+  buttonRunRatio: 0.15,    // ボタンと判定する最大連続長（幅比）
+};
+
+// searchStartY にはリストの上端を渡す。ここから下だけを探せば、リストより上にある
+// 緑の要素（「シナリオ進化スキル」バッジ等）を拾わない。比率で決め打ちしない。
+function detectToolbarTopY(data, width, height, searchStartY, config = OCR_CONFIG) {
+  const cfg = config.plus, tb = TOOLBAR_CONFIG;
+  const xEnd = Math.floor(width * tb.leftRegionRatio);
+  const yStart = Math.max(0, Math.floor(searchStartY));
+  const longestRun = new Int32Array(height);
+  for (let y = yStart; y < height; y++) {
+    let run = 0, best = 0;
+    for (let x = 0; x < xEnd; x++) {
+      const i = (y * width + x) * 4;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (g > cfg.gMin && r < cfg.rMax && b < cfg.bMax
+          && g - r > cfg.grDiff && g - b > cfg.gbDiff) { run++; if (run > best) best = run; }
+      else run = 0;
+    }
+    longestRun[y] = best;
+  }
+
+  const bandGap = Math.max(4, width * cfg.bandGapRatio);
+  const minBandHeight = width * cfg.minBandHeightRatio;
+  const minBandRun = width * tb.bandRunRatio;
+  const minButtonRun = width * tb.buttonRunRatio;
+
+  let start = -1, prev = -1;
+  const closeBand = (top, bottom) => {
+    if (bottom - top < minBandHeight) return null;
+    let maxRun = 0;
+    for (let y = top; y <= bottom; y++) if (longestRun[y] > maxRun) maxRun = longestRun[y];
+    return maxRun >= minButtonRun ? top : null;
+  };
+  for (let y = yStart; y < height; y++) {
+    if (longestRun[y] <= minBandRun) continue;
+    if (start < 0) { start = y; }
+    else if (y - prev > bandGap) {
+      const top = closeBand(start, prev);
+      if (top !== null) return top;      // 最も上のボタンバンドを採る
+      start = y;
+    }
+    prev = y;
+  }
+  return start >= 0 ? closeBand(start, prev) : null;
+}
+
 // 1行の各フィールドの切り出し矩形を返す（描画・OCR共通）。
 // 戻り値: { sp:{x,y,w,h}, name:{x,y,w,h}, evolution:{x,y,w,h} }
 function fieldRects(row, width, config = OCR_CONFIG) {
