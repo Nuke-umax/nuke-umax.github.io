@@ -242,6 +242,19 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   // 画素を持ち出さず、暗部の中心yだけを持つ小さな配列にして返す。
   const scrollProfile = scrollbarRunCenters(imageData, width, height);
 
+  // 画面に写っている順（上から下）に並べ直してから返す。
+  //
+  // 行は「獲得済み行」と「＋ボタン行」を別々のループで集めているため、
+  // outRows の並びは収集順であって画面順ではない。1画面に両方が混在すると、
+  // 未取得の行が画面上部にあっても獲得済みの後ろへ回る
+  // （実測: IMG_6217 は上から 冬ウマ娘◎(未取得)・コーナー巧者○・コーナー回復○・
+  //  直線巧者・ペースアップ の順なのに、冬ウマ娘◎が末尾に置かれていた。
+  //  結果一覧でも「ペースアップとペースキープの間」に表示されてユーザーが気付いた）。
+  //
+  // 既存の5キャラで露見しなかったのは、各画像がたまたま獲得済みだけ／未取得だけで
+  // 構成されていたため。混在する画像を1枚でも含むキャラでは必ず起きる。
+  outRows.sort((a, b) => a.nameRect.y - b.nameRect.y);
+
   return { rows: outRows, skillPointsGuess, scrollProfile };
 }
 
