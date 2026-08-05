@@ -209,7 +209,18 @@ const NAME_BAND_CONFIG = {
   xLeftRatio: 0.197, xRightRatio: 0.611,
   darkMax: 110,
   minTextRowRatio: 0.03,   // 文字行とみなす最小暗画素比率
-  minHeightFactor: 0.42,   // 名前サイズとみなす最小バンド高 ÷ ＋ボタン高
+  // 名前サイズとみなす最小バンド高 ÷ 画面幅。
+  //
+  // 以前は＋ボタン高の0.42倍としていたが、＋ボタン高は緑検出の揺れで幅比4.42〜5.39%と
+  // 22%ばらつく。フォントサイズと無関係なばらつきが閾値に乗るため、たまたまボタンが
+  // 大きく検出された行で本物の名前が弾かれた（実測: IMG_6225「パイオニア」は
+  // バンド高26pxに対し最小高27.3pxで1.3px足りず、行ごと消えていた。ユーザーが報告）。
+  //
+  // 文字サイズは画面幅に比例する（縦横比の違う2機種で名前帯の高さの幅比が0.09%しか
+  // 違わないことを実測済み）ので、幅を基準にすれば揺れが乗らない。
+  // 全6キャラ611行の実測: 本物の名前は幅比2.130%以上、雑音は1.574%以下で重ならない。
+  // その中間を採る。
+  minHeightWidthRatio: 0.0185,
   searchUpFactor: 0.48,    // 中心から上方向の探索範囲 ÷ ピッチ
   searchDownFactor: 0.10,  // 中心から下方向の探索範囲 ÷ ピッチ
 };
@@ -261,7 +272,7 @@ function findNameBand(data, width, height, row, pitch, config = NAME_BAND_CONFIG
     else bands.push(b.slice());
   }
 
-  const minHeight = buttonHeight * config.minHeightFactor;
+  const minHeight = width * config.minHeightWidthRatio;
   for (const [bTop, bBottom] of bands) {
     if (bBottom - bTop >= minHeight) return { top: ys + bTop, bottom: ys + bBottom };
   }
