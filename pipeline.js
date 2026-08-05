@@ -107,8 +107,26 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   // ツールバーより下の行はどのみち破棄するので、そこを終端にすれば無駄も消える。
   const listSearchFloorY = Math.round(height * SKILL_POINT_SEARCH_RATIO.yBottom);
   const toolbarTopY = toolbarTopOf(imageData, width, height, listSearchFloorY);
-  const acquiredYCenters = detectAcquiredRowCenters(
+  const allAcquiredCenters = detectAcquiredRowCenters(
     imageData, width, height, listSearchFloorY, Math.round(toolbarTopY));
+
+  // 獲得済み行にも＋ボタンはある（減光表示）。＋の検出条件を減光側まで下げたため、
+  // 同じ行が「ピンクの獲得済ラベル」と「＋ボタン」の両方で見つかる。両方を残すと
+  // 行が二重に出るうえ、2〜3pxずれた中心が隣接値として並ぶため medianPitch が
+  // 行間ではなくそのズレを拾って崩壊する（実測: 本来205のピッチが2.0になり、
+  // 名前帯の探索窓が潰れて認識が全滅した）。
+  //
+  // 重複の判定にピッチは使えない（ピッチを求める前に重複を除く必要があるため）。
+  // 画面幅を基準にする。レイアウトは幅に比例し、行間は幅の約16.5%、同じ行を指す
+  // 2つの検出のズレは1%未満なので、その中間の2%で確実に切り分けられる。
+  const SAME_ROW_WIDTH_RATIO = 0.02;
+  const sameRowGap = width * SAME_ROW_WIDTH_RATIO;
+  const plusCenterOf = (r) => (r.bandTop + r.bandBottom) / 2;
+  const acquiredYCenters = allAcquiredCenters.filter(
+    y => !rows.some(r => Math.abs(plusCenterOf(r) - y) < sameRowGap));
+  const acquiredCenterNear = (y) =>
+    allAcquiredCenters.some(v => Math.abs(v - y) < sameRowGap);
+
   const pitch = medianPitch(rows, acquiredYCenters);
   const matchFn = (s) => {
     const m = matchName(s, index);
@@ -128,6 +146,8 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   const avgBandHeight = rows.length
     ? rows.reduce((s, r) => s + (r.bandBottom - r.bandTop), 0) / rows.length
     : pitch * ACQUIRED_ROW_HEIGHT_FACTOR;
+
+  // acquiredYCenters は＋ボタンと重ならないものだけに絞り込み済み（上部参照）。
   for (const yCenter of acquiredYCenters) {
     if (isCoveredByToolbar(yCenter, toolbarTopY)) continue;
     const synthRow = { yCenter, bandTop: yCenter - avgBandHeight / 2, bandBottom: yCenter + avgBandHeight / 2 };
@@ -181,13 +201,18 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
     const nameEntry = index.find(e => e.name === best.name);
     if (nameEntry === undefined) continue;
 
-    const spInk = spDigitInk(imageData, width, rects.sp);
-    const spRaw = recognizeDigits(spInk, digitAtlas);
+    // 獲得済みの行は必要SPの欄が「獲得済」ラベルに置き換わる。ピンクのラベルが
+    // 近くにあるかで判定し、数字の読み取り自体を行わない（読もうとすると
+    // ラベルの模様を桁と誤読し、信頼できないSPで曖昧行が増える）。
+    const acquired = acquiredCenterNear((row.bandTop + row.bandBottom) / 2);
+
+    const spInk = acquired ? null : spDigitInk(imageData, width, rects.sp);
+    const spRaw = acquired ? "" : recognizeDigits(spInk, digitAtlas);
     // 1桁でも認識不能(?)を含む場合、桁が欠けた誤った数値になる
     // （例: "1?2"を数字だけ残すと142ではなく12になる）。無言の桁欠けを
     // 防ぐため、?を含むSPは信頼できないものとしてnullにする。
-    const spReliable = spRaw.length > 0 && !spRaw.includes("?");
-    const sp = spReliable ? parseInt(spRaw, 10) : null;
+    const spReliable = acquired ? true : (spRaw.length > 0 && !spRaw.includes("?"));
+    const sp = (acquired || !spReliable) ? null : parseInt(spRaw, 10);
 
     // isNameAmbiguous の設計意図（gap基準の確信判定、distance=0の安全弁、
     // 同名タイの除外、短い名前の特例）はコメント参照。
@@ -197,6 +222,7 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
     const secondEntry = nameAmbiguous ? index.find(e => e.name === best.secondName) : undefined;
     outRows.push({
       name: best.name, skillId: nameEntry.skillId, sp, evo, hash, ambiguous,
+      ...(acquired ? { acquired: true } : {}),
       // nameRect は全行に載せる（Worker がサムネイル化したあと捨てる）。
       // 曖昧行以外の項目は確信行では不要なので省略し、ペイロードを小さく保つ。
       nameRect, iconRect: iconRectOf(nameRect, width),
