@@ -127,6 +127,103 @@ function detectPlusButtonRows(data, width, height, config = OCR_CONFIG) {
 // 0.03〜0.24%しか違わなかった（名前帯の幅0.03%・左端0.11%・高さ0.09%・
 // ＋ボタンのx 0.24%）。ゲームUIは画面幅を基準にスケールし、余った縦に行を多く
 // 表示する作りになっている。縦の位置だけが端末で動く（ツールバーは4.43ポイント）。
+// スキル一覧の表示領域を、右端のスクロールバーの溝（トラック）から求める。
+//
+// なぜ必要か: 縦位置は端末で動く。ツールバー上端は色検出に移したが、リスト上端は
+// まだ高さ比の決め打ち（35.5%）で、実測すると2機種で逆方向にずれていた
+// （Android 機では溝の上端より26px下＝リストを削り、iPhone 機では57px上＝
+//  ヘッダーへ侵入）。実害も出ており、Android の42枚中2枚で1行目が丸ごと捨てられて
+// いた（「継続は力なり」「登山家」。隣のスクショに同じ行が写っていたため最終結果
+// では表に出ていなかっただけ）。
+//
+// 溝はリストの表示領域そのものの縁なので、上端＝リスト上端・下端＝リスト下端。
+// 横位置は幅比で端末非依存（実測: 両機種とも 0.970W）。
+//
+// 明るさは絶対値で判定しない。溝の最明画素は 213〜227 で、固定しきい値 230 では
+// 余裕が3しかなかった。代わりに「その列の背景よりどれだけ暗いか」で見る。
+// 実測のコントラストは 16.8〜20.4 なので、しきい値はその下に置く。
+const LIST_TRACK_CONFIG = {
+  xRatios: [0.962, 0.966, 0.970, 0.974, 0.978],   // 溝の横位置（幅比）。1点に賭けない
+  contrastMin: 12,          // 背景よりこれ以上暗ければ溝。実測の最小16.8の下に置く
+  minLengthRatio: 0.25,     // 溝はリスト表示領域ぶん伸びる（高さ比）
+  backgroundPercentile: 0.90,
+  backgroundSkipRatio: 0.25,   // 上部はヘッダーのキャラ絵。背景の推定から外す
+};
+
+function listTrackColumnBrightness(data, width, height, x) {
+  const v = new Float32Array(height);
+  for (let y = 0; y < height; y++) {
+    const i = (y * width + x) * 4;
+    v[y] = data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11;
+  }
+  return v;
+}
+
+function listTrackLongestRun(v, height, threshold, yStart = 0) {
+  let best = null, start = -1;
+  const keep = (top, bottom) => {
+    if (best === null || (bottom - top) > (best[1] - best[0])) best = [top, bottom];
+  };
+  for (let y = yStart; y < height; y++) {
+    if (v[y] < threshold) { if (start < 0) start = y; }
+    else if (start >= 0) { keep(start, y - 1); start = -1; }
+  }
+  if (start >= 0) keep(start, height - 1);
+  return best;
+}
+
+// 戻り値: { top, bottom }（リスト表示領域の上端・下端）。見つからなければ null。
+//
+// searchStartY にはヘッダーの下端を渡す。ここから下だけを探すのが要点で、
+// 「最も長い run を採る」だけではヘッダーのキャラ絵に負ける。リストが短い端末ほど
+// 溝が短くなる一方、絵が作る暗部の長さは変わらないためである（実測: 縦横比1.55の
+// 合成画像で、絵の609pxが溝の447pxを上回り、絵を溝と誤認して幻の行が2件生まれた）。
+// 絵の濃さはキャラごとに違うので、縦横比だけの問題ではない。
+function detectListTrack(data, width, height, searchStartY = 0, config = LIST_TRACK_CONFIG) {
+  const yStart = Math.max(0, Math.min(Math.floor(searchStartY), height - 1));
+  const minLength = height * config.minLengthRatio;
+  const skip = Math.max(yStart, Math.floor(height * config.backgroundSkipRatio));
+  let best = null;
+  for (const ratio of config.xRatios) {
+    const v = listTrackColumnBrightness(data, width, height, Math.floor(width * ratio));
+    const sample = Array.from(v.slice(skip)).sort((a, b) => a - b);
+    const background = sample[Math.floor(sample.length * config.backgroundPercentile)];
+    const run = listTrackLongestRun(v, height, background - config.contrastMin, yStart);
+    if (run === null || run[1] - run[0] < minLength) continue;
+    if (best === null || (run[1] - run[0]) > (best.bottom - best.top)) {
+      best = { top: run[0], bottom: run[1] };
+    }
+  }
+  return best;
+}
+
+// ヘッダーの下端。「現在のスキルPt」の緑ラベルの下端を使う。
+// このラベルは実測134枚すべてで検出できており、溝の上端との間隔は
+// Android機70px・iPhone機77pxの余裕がある。検出できなければ0（画像上端）を返し、
+// 従来どおり全体から探す。
+function headerBottomOf(data, width, height) {
+  const bands = skillPointLabelBands(data, width, height);
+  return bands.length === 0 ? 0 : bands[bands.length - 1].yBottom;
+}
+
+// 溝の上端から探索フロアまでの控えしろ（幅比）。
+//
+// 溝は角丸で、リストの表示領域より少し内側から始まる。溝の上端をそのまま
+// フロアにすると1行目の名前帯を削る端末がある。実測で挟み込んだ許容範囲は
+//   下限 0.0141（iPhone機: 1行目の名前が溝の上端より17px上から始まる）
+//   上限 0.0630（Android機: ヘッダーの誤検出が現れる位置）
+// その中間を採る。余裕は iPhone 側19px・Android 側36px。
+const LIST_TOP_INSET_WIDTH_RATIO = 0.030;
+
+// リスト上端（名前帯やラベルの探索フロア）を返す。
+// 溝を取れない端末では従来どおり高さ比の決め打ちに落ちる（悪化はしない）。
+function listTopOf(data, width, height, fallbackY, track) {
+  const found = track === undefined
+    ? detectListTrack(data, width, height, headerBottomOf(data, width, height)) : track;
+  if (found === null) return fallbackY;
+  return Math.max(0, Math.round(found.top - width * LIST_TOP_INSET_WIDTH_RATIO));
+}
+
 const TOOLBAR_CONFIG = {
   leftRegionRatio: 0.28,   // 「説明省略」は左端。中央の「決定」ボタンを避ける
   bandRunRatio: 0.015,     // バンドを作る緩い基準（幅比）

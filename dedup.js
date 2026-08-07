@@ -217,39 +217,36 @@ function isDegradedRow(row) {
   return (row.acquired !== true && row.sp === null) || row.ambiguous === true;
 }
 
-// 2つの行が同じ行だと積極的に言えるか。
-//
-// 未獲得行の必要SPは強い手掛かりで、同じ値なら同じ行の可能性が高い
-// （実測: 隠れて「東京レース場○」と誤読された行と、無傷の「阪神レース場○」が
-//  どちらもSP72で一致した）。獲得済み行はSPを持たないため手掛かりが無く、
-// 名前が違えば別スキルの可能性を否定できない（実測: 「仕掛け抜群」と「深呼吸」が
-// どちらも獲得済み・SPなしで、同一行と誤認して本物の行を潰した）。
+// 劣化した版を差し替えてよいか（mergeAcrossImages の入れ替え判定でのみ使う）。
+// 獲得済み行は必要SPを持たず、SPが一致しても中身は空同士の一致にすぎないため、
+// 差し替えの根拠にならない（実測: 獲得済みの別スキルを潰した）。
 function isSameRowByCost(a, b) {
   return a.acquired !== true && b.acquired !== true && a.sp !== null && a.sp === b.sp;
 }
 
-// 同じ行だと言える根拠があるか。名前が語る証拠を第一とし、一方が曖昧なら
-// 次点候補まで見る（隠れて誤読された行を救うため）。
-//
-// 必要SPの一致は「単独では」根拠にしない（2026-08-04）。同額のスキルは珍しくなく、
-// 字形ハッシュがたまたま閾値の内側に入ると、まったく別の行が同一と判定される。
-// 実測: Vodkaの境界17→18で「活路を拓く！」(SP108)と「勇気の一歩」(SP108)が
-// ハッシュ距離22（閾値24のすぐ下）で一致し、実在する「勇気の一歩」が消えていた。
-// ユーザーの指摘で発覚。期待値114もこの取りこぼしを含んだ値で、正しくは115。
+// 同じ行だと言える根拠があるか。根拠はスキル名の一致だけとする。
 //
 // 誤りの重さが非対称なので、迷ったら重ねない側に倒す。
 //   重ねすぎ   … 実在スキルが消える。利用者は気づけない
 //   重ね損ね   … 重複行が残るだけ。後段の除去が拾う
+//
+// 名前以外の根拠を2つ持っていたが、実測で両方とも外した（2026-08-05）。
+//
+// (1) 「一方の次点候補が他方の名前と一致」… 全7キャラ・境界126か所で発火0件。
+//     隠れて誤読された行を救う意図だったが、一度も使われていなかった。
+//
+// (2) 「必要SPが一致し字形ハッシュも近い」… 発火1件、そしてその1件が誤りだった。
+//     12ptキャラの境界で「秋ウマ娘○」(SP54)と「冬ウマ娘○」(SP54)を同一行と
+//     判定し、実在する「冬ウマ娘○」を消していた（字形距離3／256bit）。
+//     春夏秋冬・右回り左回り・○◎ のような兄弟スキルは、名前が1文字違いで
+//     必要SPも同額になりやすい。aHashは32×8の粗い格子なので、5文字中1文字の
+//     違いは埋もれる。この構造がある限り、SP＋字形は別スキルを区別できない。
+//
+// 名前が読めない行は重ならないままになるが、それは重複行が1つ残るだけで、
+// 後段の除去と曖昧解消がむしろその重複を材料にする（§mergeAcrossImages の注記）。
 function hasSameRowEvidence(a, b) {
-  if (a.name === b.name) return true;
-  if (a.secondName === b.name || b.secondName === a.name) return true;
-  // 必要SPが一致し、かつ字形もはっきり近いときだけ、名前が読めなくても同一とみなす。
-  // 「東京レース場○」と誤読された行と無傷の「阪神レース場○」を繋ぐための経路
-  // （どちらもSP72）。ハッシュ距離の条件を isSameRow(24) より厳しくして、
-  // 別スキルが同額で滑り込むのを防ぐ。
-  return isSameRowByCost(a, b) && hammingDistance(a.hash, b.hash) <= COST_EVIDENCE_HAMMING_MAX;
+  return a.name === b.name;
 }
-const COST_EVIDENCE_HAMMING_MAX = 12;   // 256bit中。isSameRow の 24 の半分
 
 // 重なりの検出結果を、行ごとの根拠で裏取りする。
 //
@@ -291,6 +288,10 @@ function verifiedOverlap(prevRows, currRows) {
 // つまみの太さ・色・位置は端末ごとに違うため、閾値で決め打ちせず
 // 「全画像で同じ位置に出る暗部＝静的なUI」を差し引いて、動く暗部だけを残す。
 // 検出できない端末では null を返し、呼び出し側が従来方式へ落ちる（警告は出さない）。
+// 縦の探索範囲は溝（detectListTrack）から受け取る。溝はリスト表示領域そのものの
+// 縁なので、つまみは必ずその中にある。yStart/yEnd は溝を取れない端末向けの控え。
+// 従来はこの比率だけを使っていたが、Android 機では溝の下端（高さ比0.835）を
+// yEnd=0.82 が31px切っており、末尾までスクロールした画像でつまみが断ち切られていた。
 const SCROLLBAR_BAND = { xStart: 0.94, yStart: 0.28, yEnd: 0.82 };
 const SCROLLBAR_DARK_MAX = 190;
 const SCROLLBAR_RUN_MIN_RATIO = 0.010;   // つまみの最小の長さ（画面高比）
@@ -299,10 +300,11 @@ const SCROLLBAR_STATIC_TOLERANCE_RATIO = 0.002;  // 同位置とみなすズレ
 const SCROLLBAR_MIN_SPREAD_RATIO = 0.050;        // これ未満しか動かなければ不採用
 
 // 右端の各列について、暗部の連続（＝つまみ候補）の中心yを集める。
-function scrollbarRunCenters(data, width, height) {
+// track: detectListTrack の戻り値（{top, bottom}）。null/未指定なら比率へ落ちる。
+function scrollbarRunCenters(data, width, height, track = null) {
   const xStart = Math.floor(width * SCROLLBAR_BAND.xStart);
-  const yStart = Math.floor(height * SCROLLBAR_BAND.yStart);
-  const yEnd = Math.floor(height * SCROLLBAR_BAND.yEnd);
+  const yStart = track === null ? Math.floor(height * SCROLLBAR_BAND.yStart) : track.top;
+  const yEnd = track === null ? Math.floor(height * SCROLLBAR_BAND.yEnd) : track.bottom;
   const minLen = Math.round(height * SCROLLBAR_RUN_MIN_RATIO);
   const maxLen = Math.round(height * SCROLLBAR_RUN_MAX_RATIO);
   const columns = [];

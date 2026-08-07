@@ -69,23 +69,35 @@ function editDistance(a, b) {
 const LENGTH_MISMATCH_PENALTY = 1;
 
 // OCR名を索引に照合する。
-// 戻り値: { best, second, distance, gap, ambiguous }
+// 戻り値: { best, second, distance, gap, ambiguous, tieNames }
 //   gap = 次点距離 - 最良距離。gap が小さいほど曖昧（要確認）。
+//   tieNames = 最良順位に並んだ候補名の一覧（同点が無ければ長さ1）。
+//     best/second の2つしか返さないと、同点が3つ以上のとき正解が第3候補以降に
+//     隠れても外から見えず、2択前提の曖昧解消が誤った名前を確定してしまう
+//     （実測: 「練達の一歩」が「錬連の―歩」と誤読され「会心の一歩」
+//      「勇気の一歩」と3候補同点になり、「会心の一歩」が確定した）。
 function matchName(ocrText, index, gapThreshold = 1) {
   const query = normalizeName(ocrText);
   const queryLength = query.length;
   let best = null, bestDist = Infinity, bestRank = Infinity;
   let second = null, secondDist = Infinity, secondRank = Infinity;
+  let ties = [];
   for (const entry of index) {
     const d = editDistance(query, entry.key);
     const rank = d + Math.abs(entry.key.length - queryLength) * LENGTH_MISMATCH_PENALTY;
     if (rank < bestRank) {
       second = best; secondDist = bestDist; secondRank = bestRank;
       best = entry; bestDist = d; bestRank = rank;
+      ties = [entry];
+    } else if (rank === bestRank) {
+      ties.push(entry);
+      if (rank < secondRank) { second = entry; secondDist = d; secondRank = rank; }
     } else if (rank < secondRank) {
       second = entry; secondDist = d; secondRank = rank;
     }
   }
   const gap = secondDist - bestDist;
-  return { best, second, distance: bestDist, gap, ambiguous: gap <= gapThreshold };
+  // 同じ名前が複数エントリ（スキルと進化等）で載ることがあるため名前で一意化する
+  const tieNames = [...new Set(ties.map(t => t.name))];
+  return { best, second, distance: bestDist, gap, ambiguous: gap <= gapThreshold, tieNames };
 }

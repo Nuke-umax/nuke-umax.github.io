@@ -325,12 +325,19 @@ function recognizeNameBest(imageData, width, nameRect, atlas, matchFn, maxExtra 
     const recog = glyphs.map(g => matchGlyph(g, atlas)).join('');
     const res = matchFn(recog);
     if (best === null || res.distance < best.distance) {
-      best = { recog, name: res.name, distance: res.distance, gap: res.gap, secondName: res.secondName };
+      best = { recog, name: res.name, distance: res.distance, gap: res.gap,
+               secondName: res.secondName, tieNames: res.tieNames };
       bestGlyphs = glyphs;
     }
     if (best.distance === 0) break;   // 完全一致で打ち切り（純CJKは即確定）
   }
-  if (best !== null) best.distinguishMargin = distinguishingCharMargin(best, bestGlyphs, atlas);
+  if (best !== null) {
+    best.distinguishMargin = distinguishingCharMargin(best, bestGlyphs, atlas);
+    if (best.tieNames !== undefined && best.tieNames.length >= 2) {
+      best.tieCount = best.tieNames.length;
+      best.tieDecision = decideTieByGlyphs(bestGlyphs, best.tieNames, atlas);
+    }
+  }
   return best;
 }
 
@@ -365,4 +372,69 @@ function distinguishingCharMargin(best, glyphs, atlas) {
     diffCount++;
   }
   return diffCount === 0 ? null : marginSum;
+}
+
+// 編集距離の最良順位に複数のマスタ名が並んだとき（同点）、候補どうしが食い違う
+// 位置の字形だけで直接採点する。distinguishingCharMargin のN候補一般化。
+//
+// 同点候補は名前文字列の空間では原理的に区別できないが、判定材料の画素はまだ
+// 手元にある。問いを「この切り出しは何の字か」（全アトラス最近傍＝誤読しうる）
+// から「候補Aの字と候補Bの字のどちらに近いか」という少数択へ落とせば、途中の
+// 誤読と無関係に決着できる（実測: 「練達の一歩」が「錬連の―歩」と誤読され
+// 「会心の一歩」「勇気の一歩」と3候補同点になったが、食い違う先頭2文字の
+// 直接比較では 練達:351 / 勇気:724 / 会心:812 と余裕373で正解が勝った）。
+//
+// 戻り値: { winner, margin }。winner は合計距離最小の候補名、margin は次点との
+// 差（大きいほど確信）。位置比較が成立しないときは null＝呼び出し側は曖昧のまま
+// 残す（候補の長さ不揃い・字形数と不一致・食い違い位置なし・勝者側の字が未収録）。
+function decideTieByGlyphs(glyphs, tieNames, atlas) {
+  const glyphCount = glyphs.length;
+  if (tieNames.some(n => n.length !== glyphCount)) return null;
+
+  // 表記ゆれ（一・ー・― 等）は照合キーと同じ規則で同一視する
+  const differingPositions = [];
+  for (let i = 0; i < glyphCount; i++) {
+    const classes = new Set(tieNames.map(n => normalizeName(n[i])));
+    if (classes.size > 1) differingPositions.push(i);
+  }
+  if (differingPositions.length === 0) return null;
+
+  const scored = tieNames.map(name => {
+    let total = 0, hasMissingTemplate = false;
+    for (const i of differingPositions) {
+      const d = glyphDistToChar(glyphs[i], atlas, name[i]);
+      if (d === null) { hasMissingTemplate = true; total += MATCH_REJECT; }
+      else total += d;
+    }
+    return { name, total, hasMissingTemplate };
+  });
+  scored.sort((a, b) => a.total - b.total);
+  if (scored[0].hasMissingTemplate) return null;   // 未収録の字を勝者だと確信はできない
+  return { winner: scored[0].name, margin: scored[1].total - scored[0].total };
+}
+
+// 切り出し字形と1文字の距離（同じ文字の全テンプレートの最近傍）。未収録なら null。
+// distinguishingCharMargin の atlas[ch] 直引きと違い、「文字#連番」キーの
+// 複数テンプレートも表記ゆれクラスも拾う。
+function glyphDistToChar(glyph, atlas, ch) {
+  const templates = templatesByCharOf(atlas).get(normalizeName(ch));
+  if (templates === undefined) return null;
+  let best = Infinity;
+  for (const t of templates) { const d = hamming(glyph, t); if (d < best) best = d; }
+  return best;
+}
+
+// 文字（表記ゆれクラス）→ テンプレート一覧の索引。アトラスごとに1回だけ作る。
+const _templatesByChar = new WeakMap();
+function templatesByCharOf(atlas) {
+  let map = _templatesByChar.get(atlas);
+  if (map !== undefined) return map;
+  map = new Map();
+  for (const key in atlas) {
+    const cls = normalizeName(glyphKeyToChar(key));
+    if (!map.has(cls)) map.set(cls, []);
+    map.get(cls).push(atlas[key]);
+  }
+  _templatesByChar.set(atlas, map);
+  return map;
 }

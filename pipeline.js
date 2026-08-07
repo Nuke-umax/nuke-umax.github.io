@@ -83,6 +83,26 @@ function isNameAmbiguous(best) {
   return best.gap <= gapThreshold;
 }
 
+// 編集距離の最良順位に複数候補が並んだ行（同点）に、字形決着を反映する。
+//
+// 同点の第1候補は索引の並び順で決まるだけの当てずっぽうで、正解が第3候補以降に
+// 隠れていることがある（実測: 「練達の一歩」が3候補同点になり、2択前提の曖昧解消が
+// 誤った第1候補「会心の一歩」を要確認フラグなしで確定した）。そこで候補どうしが
+// 食い違う位置の字形を直接比較し（decideTieByGlyphs）、明差で勝てば勝者へ
+// 差し替えて確信、決着できなければ曖昧のまま残す。
+//
+// 戻り値の tieCount は行に載り、2択前提の曖昧解消（resolveAmbiguousByUniqueness
+// 等）が3候補以上の行を対象外にするために使う。
+function applyTieDecision(best) {
+  if (best.tieCount === undefined || best.tieCount < 2) return { tieResolved: false, tieCount: 0 };
+  const decision = best.tieDecision;
+  if (decision != null && decision.margin >= DISTINGUISH_MARGIN_MIN) {
+    best.name = decision.winner;
+    return { tieResolved: true, tieCount: best.tieCount };
+  }
+  return { tieResolved: false, tieCount: best.tieCount };
+}
+
 // 1画面ぶんのスキル取得画面を認識する。
 // 戻り値: { rows: [{name, skillId, sp, evolution, hash, acquired}], skillPointsGuess }
 function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtlas, master, index) {
@@ -105,7 +125,13 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   // ツールバーの位置が端末で4.43ポイント動く（Android 80.60% / iPhone 76.16%）。
   // 決め打ちだとiPhone側では覆われた行まで探し、Android側では手前で打ち切っていた。
   // ツールバーより下の行はどのみち破棄するので、そこを終端にすれば無駄も消える。
-  const listSearchFloorY = Math.round(height * SKILL_POINT_SEARCH_RATIO.yBottom);
+  // リスト上端は右端のスクロールバーの溝から求める（detectListTrack）。溝は
+  // リスト表示領域そのものの縁なので、端末の縦横比が変わっても追随する。
+  // 溝を取れない端末では従来の高さ比へ落ちる。
+  const listTrack = detectListTrack(imageData, width, height,
+    headerBottomOf(imageData, width, height));
+  const listSearchFloorY = listTopOf(imageData, width, height,
+    Math.round(height * SKILL_POINT_SEARCH_RATIO.yBottom), listTrack);
   const toolbarTopY = toolbarTopOf(imageData, width, height, listSearchFloorY);
   const allAcquiredCenters = detectAcquiredRowCenters(
     imageData, width, height, listSearchFloorY, Math.round(toolbarTopY));
@@ -133,6 +159,7 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
     return {
       name: m.best ? m.best.name : "?", distance: m.distance, gap: m.gap,
       secondName: m.second ? m.second.name : null,
+      tieNames: m.tieNames,
     };
   };
 
@@ -156,9 +183,10 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
     const best = recognizeNameBest(imageData, width, nameRect, nameAtlas, matchFn);
     if (best === null || best.name === null) continue;
     if (looksLikeUiChrome(best.recog)) continue;   // ヘッダー/フッターUIの取り違え（§10.17）
+    const { tieResolved, tieCount } = applyTieDecision(best);
     const nameEntry = index.find(e => e.name === best.name);
     if (nameEntry === undefined) continue;
-    const nameAmbiguous = isNameAmbiguous(best);
+    const nameAmbiguous = tieResolved ? false : isNameAmbiguous(best);
     const secondEntry = nameAmbiguous ? index.find(e => e.name === best.secondName) : undefined;
     // 獲得済みでも進化はできる（画面にも「進化可能」バッジと「進化ⓘ」が出る）。
     // 進化はスキルPtを消費せず評価点だけが上がるので、拾わないと取りこぼしになる。
@@ -177,6 +205,7 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
         spReliable: true, secondName: best.secondName,
         secondSkillId: secondEntry ? secondEntry.skillId : null,
         distinguishMargin: best.distinguishMargin,
+        ...(tieCount >= 3 ? { tieCount } : {}),
       } : {}),
     });
     if (evo) {
@@ -198,6 +227,7 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
     const best = recognizeNameBest(imageData, width, nameRect, nameAtlas, matchFn);
     if (best === null || best.name === null) continue;
     if (looksLikeUiChrome(best.recog)) continue;   // ヘッダー/フッターUIの取り違え（§10.17）
+    const { tieResolved, tieCount } = applyTieDecision(best);
     const nameEntry = index.find(e => e.name === best.name);
     if (nameEntry === undefined) continue;
 
@@ -216,7 +246,7 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
 
     // isNameAmbiguous の設計意図（gap基準の確信判定、distance=0の安全弁、
     // 同名タイの除外、短い名前の特例）はコメント参照。
-    const nameAmbiguous = isNameAmbiguous(best);
+    const nameAmbiguous = tieResolved ? false : isNameAmbiguous(best);
     const hash = computeNameHash(imageData, width, nameRect);
     const ambiguous = nameAmbiguous || !spReliable;
     const secondEntry = nameAmbiguous ? index.find(e => e.name === best.secondName) : undefined;
@@ -232,6 +262,7 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
         secondName: nameAmbiguous ? best.secondName : null,
         secondSkillId: secondEntry ? secondEntry.skillId : null,
         distinguishMargin: nameAmbiguous ? best.distinguishMargin : null,
+        ...(nameAmbiguous && tieCount >= 3 ? { tieCount } : {}),
       } : {}),
     });
 
@@ -266,7 +297,10 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
 
   // 撮影順の復元に使うスクロールバーの読み取り値（dedup.js）。
   // 画素を持ち出さず、暗部の中心yだけを持つ小さな配列にして返す。
-  const scrollProfile = scrollbarRunCenters(imageData, width, height);
+  // 探索範囲は溝そのもの。従来の高さ比（28%〜82%）は Android 機で溝の下端
+  // （83.5%）を31px切っており、リストの末尾までスクロールした画像でつまみが
+  // 途中で断ち切られていた。
+  const scrollProfile = scrollbarRunCenters(imageData, width, height, listTrack);
 
   // 画面に写っている順（上から下）に並べ直してから返す。
   //
@@ -337,6 +371,12 @@ function mostFrequentSkillPoints(skillPointsPerImage) {
 //
 // 1回の解消が別の行の確信集合を更新しうるため、変化が無くなるまで
 // 繰り返す（例: A/Bのタイが確定したことで、別の行のB/Cのタイも解消できる）。
+//
+// 同点3候補以上の行（tieCount >= 3）は対象外。この解消は「候補はbestとsecondの
+// 2つだけ」という前提で片方を排除して他方に確定するが、正解が第3候補以降に
+// 隠れていると誤った名前を要確認フラグなしで確定してしまう（実測: 「練達の一歩」の
+// 3候補同点で、次点「勇気の一歩」が確定済みという理由で誤った第1候補
+// 「会心の一歩」が確定した）。以降の2択前提の解消も同じ理由で対象外にする。
 function resolveAmbiguousByUniqueness(rows) {
   let changed = true;
   while (changed) {
@@ -344,6 +384,7 @@ function resolveAmbiguousByUniqueness(rows) {
     const confidentNames = new Set(rows.filter(r => !r.ambiguous).map(r => r.name));
     for (const row of rows) {
       if (!row.ambiguous || !row.secondName) continue;
+      if (row.tieCount >= 3) continue;   // 2択前提が成り立たない（コメント参照）
       const bestTaken = confidentNames.has(row.name);
       const secondTaken = confidentNames.has(row.secondName);
       if (bestTaken === secondTaken) continue;   // 両方確定済み or 両方未確定 → 判別不能
@@ -372,11 +413,13 @@ function resolveByPairConsensus(rows) {
   const pairCounts = new Map();
   for (const row of rows) {
     if (!row.ambiguous || !row.secondName) continue;
+    if (row.tieCount >= 3) continue;   // 2択前提が成り立たない（resolveAmbiguousByUniqueness 参照）
     const key = row.name + " " + row.secondName;
     pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
   }
   for (const row of rows) {
     if (!row.ambiguous || !row.secondName) continue;
+    if (row.tieCount >= 3) continue;
     const key = row.name + " " + row.secondName;
     if (pairCounts.get(key) >= 2) row.ambiguous = false;
   }
@@ -497,6 +540,7 @@ function resolveDistinguishedSiblings(rows) {
   const confidentNames = new Set(rows.filter(r => !r.ambiguous).map(r => r.name));
   for (const row of rows) {
     if (!row.ambiguous || row.spReliable === false) continue;
+    if (row.tieCount >= 3) continue;   // 2択前提が成り立たない（resolveAmbiguousByUniqueness 参照）
     const margin = row.distinguishMargin;
     if (typeof margin !== "number") continue;
     if (margin >= DISTINGUISH_MARGIN_MIN) {
