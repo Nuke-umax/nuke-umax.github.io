@@ -564,10 +564,29 @@ function recognizeAptitudeImage(imageData, width, height, rankAtlas) {
 // キャラ名・称号それぞれの照合用インデックスを構築する。
 // キャラ名は複数カードで共有されるため、name→[{characterCardId,title,name}]の
 // グループに、称号は正規化済み文字列そのものを保持する。
+// キャラ名の照合キーは濁点・半濁点を落とす。
+//
+// 32×32へ正規化すると「゛」「゜」は数ビットにしかならず、原理的に読み分けられない
+// （実測: ビワハヤヒデ が「ピワハヤヒテ」と読まれ、ビ→ピ・デ→テ の2字誤読になった）。
+// 名前の許容誤読は1字なので距離2で弾かれ、称号を読む前に判別を放棄していた。
+//
+// 許容を2字に緩める案は採らない。キャラ名どうしが距離2以内の組が実在するため
+// （キセキ/フジキセキ、ゴールドシチー/ゴールドシップ）、別キャラを取り違える。
+// 一方、濁点・半濁点を落としても全131名で衝突は0件だった。区別できない字は
+// 無理に区別せず照合キー側で吸収する（name_match.js の 一/ー/― と同じ方針）。
+// 称号の読みが当たっていると認めるための上限（1位の編集距離 ÷ 読み取り文字数）。
+// 実測7件: 正解 0.23〜0.50 / 誤り 1.09。その中間。詳細は recognizeCharacterCardId 参照。
+const TITLE_MATCH_MAX_DISTANCE_RATIO = 0.75;
+
+function characterNameKey(name) {
+  return normalizeName(name).normalize("NFD")
+    .replace(/[゙゚]/g, "").normalize("NFC");
+}
+
 function buildCharacterTitleIndex(titles) {
   const byName = new Map();
   for (const [characterCardId, { title, name }] of Object.entries(titles)) {
-    const key = normalizeName(name);
+    const key = characterNameKey(name);
     if (!byName.has(key)) byName.set(key, []);
     byName.get(key).push({ characterCardId, title, name, titleKey: normalizeName(title) });
   }
@@ -586,7 +605,7 @@ function recognizeCharacterCardId(imageData, width, height, nameAtlas, titleInde
   const rects = characterInfoRects(imageData, width, height);   // 行検出（解像度非依存）
   if (rects === null) return null;
   const nameRecog = recognizeName(imageData, width, rects.name, nameAtlas);
-  const nameKey = normalizeName(nameRecog);
+  const nameKey = characterNameKey(nameRecog);   // 濁点・半濁点は落として比べる
   let candidates = titleIndex.get(nameKey);
   if (candidates === undefined) {
     // 完全一致キーが無ければ、登録済みキャラ名の中から最近傍を探す
@@ -610,6 +629,18 @@ function recognizeCharacterCardId(imageData, width, height, nameAtlas, titleInde
     else if (d < secondDist) { secondDist = d; }
   }
   if (best === null || secondDist - bestDist < 1) return null;   // 称号でも判別できない＝安全側でnull
+
+  // 「2位より近い」だけでは足りない。称号が全く読めていないときも、たまたま
+  // どれかが少し近くなって差が開き、別カードを確信して選んでしまう
+  // （実測: ビワハヤヒデの称号「[Engineered Victory]」はラテン文字でほぼ全滅し
+  //  「In小nーmd!い∞☆」と読まれ、無関係な「[ノエルージュ・キャロル]」を選んだ）。
+  // 読みが当たっているかを絶対値でも確かめる。距離が読み取り文字数を超えるなら、
+  // 共通する構造が無い＝照合として無意味。
+  //
+  // 実測7件の分離: 正解した5件は 0.23/0.25/0.36/0.50、外した1件は 1.09。
+  // 間が2倍以上空いているので、その中間を採る。誤りの重さが非対称なので迷ったら
+  // 捨てる側に倒す（null なら評価点最大の進化を仮採用する安全側の挙動になる）。
+  if (bestDist > titleKey.length * TITLE_MATCH_MAX_DISTANCE_RATIO) return null;
   return best.characterCardId;
 }
 
