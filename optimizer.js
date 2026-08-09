@@ -138,6 +138,34 @@ function selectablePlans(family, state) {
   return result;
 }
 
+// 画面に出ている白ティアより下の白ティアは、取得済みだから一覧から消えている。
+//
+// ゲームは1ファミリーにつき白ティアを1行しか出さない（未取得なら次に買えるティア、
+// 取得済みなら最上位ティアを「獲得済」として）。したがって下位が一覧に無いことは
+// 「取得済み」の証拠になる。○を取得すると○の行は消え、◎が増分SPで表示される
+// （実測: 中距離直線◎ の表示SP66 は ◎ の増分コスト110×ヒント割引0.6）。
+//
+// 見落とすと上位ティアを「新規取得」として丸ごと数える。実測: 中距離直線◎ が
+// ○の239を引かずに288と出ていた（正しくは差分の49）。8キャラ中5キャラ・32件が
+// 該当し、右回り◎・春ウマ娘◎・先行直線◎ のような適性/脚質系のありふれたスキル
+// ばかりだった。上位ティアの価値が5〜6倍に見え、最適化が過剰に優先していた。
+// ユーザーが実機で発見（2026-08-10）。
+//
+// 金ティア（rarity=2）は下位と独立に表示されるので対象外。白ティアだけを見る。
+// availableSkillIds が null（スクショによる絞り込み無し）のときは全スキルが
+// 「一覧にある」扱いになり、この推論は働かない（安全側）。
+function impliedAcquiredWhites(family, state) {
+  const acquired = state.acquired || new Set();
+  const displayedCost = state.displayedCost || null;
+  const available = state.availableSkillIds || null;
+  const whites = family.skills.filter(s => s.rarity === 1).sort((a, b) => a.tier - b.tier);
+  const isListed = (s) => acquired.has(s.skillId)
+    || (displayedCost !== null && displayedCost.has(s.skillId))
+    || (available !== null && available.has(s.skillId));
+  const firstListed = whites.findIndex(isListed);
+  return firstListed > 0 ? whites.slice(0, firstListed) : [];
+}
+
 // ファミリーから選べる (コスト, 評価点増分, プラン) を列挙する。
 function enumerateFamilyOptions(family, state) {
   const aptitudes = state.aptitudes;
@@ -148,7 +176,9 @@ function enumerateFamilyOptions(family, state) {
   const displayedCost = state.displayedCost || null;
   const byId = family._skillById;
 
-  const acquiredHere = family.skills.filter(s => acquired.has(s.skillId));
+  // 一覧に無い下位の白ティアも取得済みとして数える（impliedAcquiredWhites 参照）。
+  const acquiredHere = family.skills.filter(s => acquired.has(s.skillId))
+    .concat(impliedAcquiredWhites(family, state));
   let currentScore = 0;
   if (acquiredHere.length) {
     const topAcquired = acquiredHere.reduce((a, b) =>
@@ -423,6 +453,19 @@ function acquiredSkillEval(master, state) {
     if (scenarioById.has(skillId)) extraTotal += scoreOf(scenarioById.get(skillId), aptitudes, surface);
     // それ以外（uniqueSkills側の固有スキル等）は総合評価点では別枠のためスキップ
   }
+
+  // 一覧に無い下位の白ティアも現在評価点に含める（impliedAcquiredWhites 参照）。
+  // enumerateFamilyOptions の増分計算と同じ集合を見ないと、
+  // 「現在評価点 ＋ 増分 ＝ 獲得後評価点」が崩れる（上のコメント参照）。
+  for (const family of master.families) {
+    for (const implied of impliedAcquiredWhites(family, state)) {
+      const cur = familyTop.get(family.familyId);
+      if (!cur || implied.cumulativeScore > cur.cumulativeScore) {
+        familyTop.set(family.familyId, implied);
+      }
+    }
+  }
+
   let total = extraTotal;
   for (const skill of familyTop.values()) total += scoreOf(skill, aptitudes, surface);
   return total;
