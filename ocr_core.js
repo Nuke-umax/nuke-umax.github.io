@@ -137,17 +137,22 @@ function detectPlusButtonRows(data, width, height, config = OCR_CONFIG) {
 // では表に出ていなかっただけ）。
 //
 // 溝はリストの表示領域そのものの縁なので、上端＝リスト上端・下端＝リスト下端。
-// 横位置は幅比で端末非依存（実測: 両機種とも 0.970W）。
+//
+// 横位置は決め打ちにしない。当初は2機種の実測（どちらも 0.970W）から
+// 「幅比で端末非依存」と決め打ちしたが、3機種目（1440x3200）では 0.956W にあり
+// 探索列を外した。しかも null に落ちず画面下部の暗部（2282〜画面下端3199）を
+// 溝と誤認し、16枚で17行まで崩れた（ユーザーが実機で報告）。範囲を走査する。
 //
 // 明るさは絶対値で判定しない。溝の最明画素は 213〜227 で、固定しきい値 230 では
 // 余裕が3しかなかった。代わりに「その列の背景よりどれだけ暗いか」で見る。
 // 実測のコントラストは 16.8〜20.4 なので、しきい値はその下に置く。
 const LIST_TRACK_CONFIG = {
-  xRatios: [0.962, 0.966, 0.970, 0.974, 0.978],   // 溝の横位置（幅比）。1点に賭けない
+  xFrom: 0.940, xTo: 0.995,   // 溝の横位置の探索範囲（幅比）。実測 0.956／0.971 を含む
   contrastMin: 12,          // 背景よりこれ以上暗ければ溝。実測の最小16.8の下に置く
   minLengthRatio: 0.25,     // 溝はリスト表示領域ぶん伸びる（高さ比）
   backgroundPercentile: 0.90,
   backgroundSkipRatio: 0.25,   // 上部はヘッダーのキャラ絵。背景の推定から外す
+  bottomEdgeMargin: 2,      // 画面下端に接する暗部は溝ではない（下記）
 };
 
 function listTrackColumnBrightness(data, width, height, x) {
@@ -159,17 +164,17 @@ function listTrackColumnBrightness(data, width, height, x) {
   return v;
 }
 
-function listTrackLongestRun(v, height, threshold, yStart = 0) {
-  let best = null, start = -1;
-  const keep = (top, bottom) => {
-    if (best === null || (bottom - top) > (best[1] - best[0])) best = [top, bottom];
-  };
+// 列の暗部の連続をすべて返す。最長の1本だけを返すと、その1本が下端に接していて
+// 除外されたときに、同じ列にある本物の溝まで一緒に失う。
+function listTrackRuns(v, height, threshold, yStart) {
+  const runs = [];
+  let start = -1;
   for (let y = yStart; y < height; y++) {
     if (v[y] < threshold) { if (start < 0) start = y; }
-    else if (start >= 0) { keep(start, y - 1); start = -1; }
+    else if (start >= 0) { runs.push([start, y - 1]); start = -1; }
   }
-  if (start >= 0) keep(start, height - 1);
-  return best;
+  if (start >= 0) runs.push([start, height - 1]);
+  return runs;
 }
 
 // 戻り値: { top, bottom }（リスト表示領域の上端・下端）。見つからなければ null。
@@ -179,19 +184,27 @@ function listTrackLongestRun(v, height, threshold, yStart = 0) {
 // 溝が短くなる一方、絵が作る暗部の長さは変わらないためである（実測: 縦横比1.55の
 // 合成画像で、絵の609pxが溝の447pxを上回り、絵を溝と誤認して幻の行が2件生まれた）。
 // 絵の濃さはキャラごとに違うので、縦横比だけの問題ではない。
+//
+// 画面下端に接する暗部は溝ではない。溝はツールバーの少し下で必ず終わり、画面の
+// 縁までは伸びないためである。この規則が無いと、リストが短い端末で画面下部の暗部が
+// 溝より長くなって勝つ（実測: 縦横比1.55の合成画像で、下端に接する471pxが本物の
+// 溝443pxを上回った。1440x3200の実機でも下部の917pxを溝と誤認していた）。
 function detectListTrack(data, width, height, searchStartY = 0, config = LIST_TRACK_CONFIG) {
   const yStart = Math.max(0, Math.min(Math.floor(searchStartY), height - 1));
   const minLength = height * config.minLengthRatio;
   const skip = Math.max(yStart, Math.floor(height * config.backgroundSkipRatio));
+  const bottomEdge = height - 1 - config.bottomEdgeMargin;
+  const xFrom = Math.floor(width * config.xFrom);
+  const xTo = Math.min(width, Math.floor(width * config.xTo));
   let best = null;
-  for (const ratio of config.xRatios) {
-    const v = listTrackColumnBrightness(data, width, height, Math.floor(width * ratio));
+  for (let x = xFrom; x < xTo; x++) {
+    const v = listTrackColumnBrightness(data, width, height, x);
     const sample = Array.from(v.slice(skip)).sort((a, b) => a - b);
     const background = sample[Math.floor(sample.length * config.backgroundPercentile)];
-    const run = listTrackLongestRun(v, height, background - config.contrastMin, yStart);
-    if (run === null || run[1] - run[0] < minLength) continue;
-    if (best === null || (run[1] - run[0]) > (best.bottom - best.top)) {
-      best = { top: run[0], bottom: run[1] };
+    for (const [top, bottom] of listTrackRuns(v, height, background - config.contrastMin, yStart)) {
+      if (bottom - top < minLength) continue;
+      if (bottom >= bottomEdge) continue;              // 画面の縁まで伸びる＝溝ではない
+      if (best === null || (bottom - top) > (best.bottom - best.top)) best = { top, bottom };
     }
   }
   return best;
