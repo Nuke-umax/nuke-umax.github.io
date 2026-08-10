@@ -153,6 +153,7 @@ const LIST_TRACK_CONFIG = {
   backgroundPercentile: 0.90,
   backgroundSkipRatio: 0.25,   // 上部はヘッダーのキャラ絵。背景の推定から外す
   bottomEdgeMargin: 2,      // 画面下端に接する暗部は溝ではない（下記）
+  sameBandOverlapMin: 0.8,  // 同じ帯とみなす縦方向の重なり（横幅を数えるため）
 };
 
 function listTrackColumnBrightness(data, width, height, x) {
@@ -189,6 +190,8 @@ function listTrackRuns(v, height, threshold, yStart) {
 // 縁までは伸びないためである。この規則が無いと、リストが短い端末で画面下部の暗部が
 // 溝より長くなって勝つ（実測: 縦横比1.55の合成画像で、下端に接する471pxが本物の
 // 溝443pxを上回った。1440x3200の実機でも下部の917pxを溝と誤認していた）。
+// 戻り値には溝の横幅（bandWidth）も載せる。溝は縦長の帯なので、同じ縦位置の run が
+// 隣り合う列にいくつ並んだかが横幅になる。妥当性の検査に使う（verifiedListTrack）。
 function detectListTrack(data, width, height, searchStartY = 0, config = LIST_TRACK_CONFIG) {
   const yStart = Math.max(0, Math.min(Math.floor(searchStartY), height - 1));
   const minLength = height * config.minLengthRatio;
@@ -196,7 +199,8 @@ function detectListTrack(data, width, height, searchStartY = 0, config = LIST_TR
   const bottomEdge = height - 1 - config.bottomEdgeMargin;
   const xFrom = Math.floor(width * config.xFrom);
   const xTo = Math.min(width, Math.floor(width * config.xTo));
-  let best = null;
+
+  const runs = [];   // { x, top, bottom }
   for (let x = xFrom; x < xTo; x++) {
     const v = listTrackColumnBrightness(data, width, height, x);
     const sample = Array.from(v.slice(skip)).sort((a, b) => a - b);
@@ -204,10 +208,22 @@ function detectListTrack(data, width, height, searchStartY = 0, config = LIST_TR
     for (const [top, bottom] of listTrackRuns(v, height, background - config.contrastMin, yStart)) {
       if (bottom - top < minLength) continue;
       if (bottom >= bottomEdge) continue;              // 画面の縁まで伸びる＝溝ではない
-      if (best === null || (bottom - top) > (best.bottom - best.top)) best = { top, bottom };
+      runs.push({ x, top, bottom });
     }
   }
-  return best;
+  if (runs.length === 0) return null;
+
+  const best = runs.reduce((a, b) => (b.bottom - b.top) > (a.bottom - a.top) ? b : a);
+  // 縦に十分重なる run を持つ列を数える。溝の中の列はどれもほぼ同じ範囲を返す。
+  const span = best.bottom - best.top;
+  let left = best.x, right = best.x;
+  for (const r of runs) {
+    const overlap = Math.min(best.bottom, r.bottom) - Math.max(best.top, r.top);
+    if (overlap / span < config.sameBandOverlapMin) continue;
+    if (r.x < left) left = r.x;
+    if (r.x > right) right = r.x;
+  }
+  return { top: best.top, bottom: best.bottom, bandWidth: right - left + 1 };
 }
 
 // 溝の下端とツールバー上端の間隔として許す範囲（幅比）。
@@ -218,6 +234,19 @@ function detectListTrack(data, width, height, searchStartY = 0, config = LIST_TR
 // 弾きたい誤検出は桁違いに外れるため、広くしても検知力は落ちない
 // （実測: 画面下部の暗部を溝と誤認した事故では 0.55 前後だった）。
 const TRACK_TOOLBAR_GAP_RATIO = { min: 0.03, max: 0.12 };
+
+// 溝の横幅として許す範囲（幅比）。
+//
+// 溝は幅に比例してスケールする部品なので、横幅の幅比は端末が変わっても動かない。
+// 実測150枚（3機種）で 1080機=0.0093 / 1206機=0.0091 / 1440機=0.0090 と、
+// 各解像度の中で1枚もばらつかなかった（幅が1.33倍違っても幅比は0.0003しか違わない）。
+//
+// 弾きたい誤検出は桁違いに細い。実測: 1440機で溝と誤認していた画面下部の暗部は
+// 幅比0.0007（約1px）で、本物の13分の1だった。
+//
+// ツールバーとの距離検査（TRACK_TOOLBAR_GAP_RATIO）とは見る観点が独立している
+// ので、片方をすり抜けてももう片方で止まる。許容は実測の半分〜2倍に広く取る。
+const TRACK_BAND_WIDTH_RATIO = { min: 0.0045, max: 0.0190 };
 
 // 溝を検出し、ツールバーと突き合わせて妥当なものだけを返す。合わなければ null。
 //
@@ -233,9 +262,18 @@ const TRACK_TOOLBAR_GAP_RATIO = { min: 0.03, max: 0.12 };
 function verifiedListTrack(data, width, height, headerBottomY, toolbarTopY) {
   const track = detectListTrack(data, width, height, headerBottomY);
   if (track === null) return null;
+
+  // 検査1: ツールバー上端との距離。2つの目印の位置関係が実物とかけ離れていないか。
   const gap = (track.bottom - toolbarTopY) / width;
-  const r = TRACK_TOOLBAR_GAP_RATIO;
-  return (gap >= r.min && gap <= r.max) ? track : null;
+  const g = TRACK_TOOLBAR_GAP_RATIO;
+  if (gap < g.min || gap > g.max) return null;
+
+  // 検査2: 溝そのものの横幅。細い線や太い面を溝と取り違えていないか。
+  const band = track.bandWidth / width;
+  const b = TRACK_BAND_WIDTH_RATIO;
+  if (band < b.min || band > b.max) return null;
+
+  return track;
 }
 
 // ヘッダーの下端。「現在のスキルPt」の緑ラベルの下端を使う。

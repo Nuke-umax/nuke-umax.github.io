@@ -597,6 +597,42 @@ function buildCharacterTitleIndex(titles) {
   return byName;
 }
 
+// 獲得画面の1行目にある「自前の固有スキル」から characterCardId を特定する。
+//
+// 詳細画面の称号より確実な手掛かりになる（ユーザー提案、2026-08-10）。
+//   ・固有スキル名は characterCardId と完全に1対1（マスタ全260カードで重複0件）。
+//     複数カードを持つ99名も全員区別できる
+//   ・日本語のスキル名なので字形アトラスの被覆が良い。称号はラテン文字が混ざり、
+//     実測で「[Engineered Victory]」が「In小nーmd!い∞☆」と読めず判別できなかった
+//
+// **1行目に限る**のが必須条件。2行目以降には継承固有が並ぶため、位置を無視して
+// 探すと別キャラになる（実測: クロノジェネシスの5行目はビワハヤヒデの固有
+// 「勝利ヘ至ル累積」。全体から探せばビワハヤヒデと誤判定していた）。
+//
+// 照合はskillIdではなく名前で行う。同じ固有スキルが uniqueSkills 側と families 側
+// （kind="inheritedUnique"）に別々のIDで載っており、行のskillIdは families 側が
+// 引かれるため一致しない（実測: カッティング×DRIVE！は 100081 と 900081）。
+//
+// リストの途中から撮り始めた素材では1行目が固有ではないので null を返し、
+// 呼び出し側が従来の称号照合へ落ちる（実測8キャラ中1件が該当）。
+function buildUniqueSkillCidIndex(master) {
+  const byName = new Map();
+  for (const u of master.uniqueSkills || []) {
+    if (u.characterCardId == null) continue;
+    byName.set(normalizeName(u.name), u.characterCardId);
+  }
+  return byName;
+}
+
+// rows: mergeAcquisitionRows の戻り値（統合済み・画面順）。
+function characterCardIdFromRows(rows, uniqueCidIndex) {
+  const head = rows && rows.length ? rows[0] : null;
+  // 曖昧な行は名前自体が当てずっぽうなので使わない（安全側）。
+  if (head === null || head.ambiguous === true) return null;
+  const cid = uniqueCidIndex.get(normalizeName(head.name));
+  return cid === undefined ? null : cid;
+}
+
 // 詳細画面の「[称号]」＋キャラ名の2行からcharacterCardIdを特定する。
 // 2段階マッチング: ①キャラ名（安定して読める。多くのスキル名と同じ
 // カタカナのため字形アトラスの被覆が良い）で候補カードを絞り込み、

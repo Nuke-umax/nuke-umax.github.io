@@ -313,15 +313,15 @@
   <span>制作: ぬけ　ゲームの開発・運営元とは関係のない非公式ツールです</span>
 </footer>
 
-<script src="ocr_core.js?v=100"></script>
-<script src="fields.js?v=100"></script>
-<script src="optimizer.js?v=100"></script>
-<script src="stat_eval.js?v=100"></script>
-<script src="name_match.js?v=100"></script>
-<script src="recognizer.js?v=100"></script>
-<script src="harvest.js?v=100"></script>
-<script src="dedup.js?v=100"></script>
-<script src="pipeline.js?v=100"></script>
+<script src="ocr_core.js?v=102"></script>
+<script src="fields.js?v=102"></script>
+<script src="optimizer.js?v=102"></script>
+<script src="stat_eval.js?v=102"></script>
+<script src="name_match.js?v=102"></script>
+<script src="recognizer.js?v=102"></script>
+<script src="harvest.js?v=102"></script>
+<script src="dedup.js?v=102"></script>
+<script src="pipeline.js?v=102"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
 const infoOverlay = document.getElementById("infoOverlay");
@@ -371,7 +371,9 @@ async function loadResources() {
   const digitAtlas = unpackAtlas(await (await fetch("digit_atlas.json", noCache)).json());
   const rankAtlas = unpackAtlas(await (await fetch("rank_atlas.json", noCache)).json());
   if (rankBorders === null) rankBorders = (await (await fetch("rank_borders.json", noCache)).json()).ranks;
-  cache = { master, index, nameAtlas, digitAtlas, rankAtlas, rankBorders };
+  // 獲得画面1行目の固有スキルからキャラを特定するための索引（pipeline.js）。
+  const uniqueCidIndex = buildUniqueSkillCidIndex(master);
+  cache = { master, index, nameAtlas, digitAtlas, rankAtlas, rankBorders, uniqueCidIndex };
   populateTargetRankSelect(rankBorders);
 
   const datalist = document.getElementById("nameOptions");
@@ -389,7 +391,7 @@ async function loadResources() {
 // ===== Web Worker経由の認識（引き継ぎ資料§10.6項目5: UIを固まらせない） =====
 let worker = null;
 function getWorker() {
-  if (worker === null) worker = new Worker("recognition_worker.js?v=100");
+  if (worker === null) worker = new Worker("recognition_worker.js?v=102");
   return worker;
 }
 
@@ -1215,7 +1217,10 @@ async function run() {
     session.skillPointsGuess = budget;
     session.aptitudes = aptitudes;
     session.budget = budget;
-    session.characterCardId = characterCardId;
+    // キャラの特定は、獲得画面1行目の固有スキルを優先する（詳細画面の称号より確実。
+    // 称号はラテン文字が混ざると読めない）。1行目が固有でない撮り方のときだけ称号へ落ちる。
+    session.characterCardId =
+      characterCardIdFromRows(recognizedRows, cache.uniqueCidIndex) ?? characterCardId;
     session.stats = stats;
     session.statCrops = statCrops || [];
     session.aptitudeCrops = aptitudeCrops || [];
