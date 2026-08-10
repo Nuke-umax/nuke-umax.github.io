@@ -210,6 +210,34 @@ function detectListTrack(data, width, height, searchStartY = 0, config = LIST_TR
   return best;
 }
 
+// 溝の下端とツールバー上端の間隔として許す範囲（幅比）。
+//
+// 溝はツールバーの少し下で終わる。この間隔は端末が変わってもほぼ一定で、
+// 実測150枚（3機種・幅は1.33倍違う）で 0.0590〜0.0657 に収まった。
+// 許容はその半分〜約2倍に広く取る。未知の端末の個体差には寛容にしたい一方、
+// 弾きたい誤検出は桁違いに外れるため、広くしても検知力は落ちない
+// （実測: 画面下部の暗部を溝と誤認した事故では 0.55 前後だった）。
+const TRACK_TOOLBAR_GAP_RATIO = { min: 0.03, max: 0.12 };
+
+// 溝を検出し、ツールバーと突き合わせて妥当なものだけを返す。合わなければ null。
+//
+// なぜ必要か: 溝の誤検出は「見つからない」ではなく「別のものを溝だと確信する」形で
+// 起きる。実測（2026-08-10、ユーザーが実機で報告）: 3機種目で探索列が溝を外し、
+// 画面下部の暗部（画面下端まで伸びる917px）を溝と判定して、16枚から17行まで崩れた。
+// null に落ちていれば従来の高さ比フォールバックで無事だったが、確信していたため
+// 落ちなかった。
+//
+// 溝とツールバーは別々の目印（薄灰の縦帯／緑の「説明省略」ボタン）から独立に
+// 検出できる。実物では必ず一定の位置関係にあるので、食い違えば片方が誤りと分かる。
+// 判定は内部だけで完結し、利用者には何も表示しない（対処できない情報のため）。
+function verifiedListTrack(data, width, height, headerBottomY, toolbarTopY) {
+  const track = detectListTrack(data, width, height, headerBottomY);
+  if (track === null) return null;
+  const gap = (track.bottom - toolbarTopY) / width;
+  const r = TRACK_TOOLBAR_GAP_RATIO;
+  return (gap >= r.min && gap <= r.max) ? track : null;
+}
+
 // ヘッダーの下端。「現在のスキルPt」の緑ラベルの下端を使う。
 // このラベルは実測134枚すべてで検出できており、溝の上端との間隔は
 // Android機70px・iPhone機77pxの余裕がある。検出できなければ0（画像上端）を返し、

@@ -125,14 +125,18 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   // ツールバーの位置が端末で4.43ポイント動く（Android 80.60% / iPhone 76.16%）。
   // 決め打ちだとiPhone側では覆われた行まで探し、Android側では手前で打ち切っていた。
   // ツールバーより下の行はどのみち破棄するので、そこを終端にすれば無駄も消える。
-  // リスト上端は右端のスクロールバーの溝から求める（detectListTrack）。溝は
-  // リスト表示領域そのものの縁なので、端末の縦横比が変わっても追随する。
-  // 溝を取れない端末では従来の高さ比へ落ちる。
-  const listTrack = detectListTrack(imageData, width, height,
-    headerBottomOf(imageData, width, height));
+  //
+  // 縦位置は3つのアンカーから求める。ヘッダー下端（緑の「現在のスキルPt」ラベル）を
+  // 起点に、ツールバー上端（緑の「説明省略」ボタン）と溝（スクロールバー）を
+  // **互いに独立に**検出し、最後に2つを突き合わせて溝の妥当性を確かめる
+  // （verifiedListTrack）。ツールバー検出の起点に溝由来の値を渡すと巻き添えで
+  // 壊れて突き合わせが意味を失うため、起点はヘッダー下端にしてある
+  // （実測150枚で、起点を変えてもツールバーの検出位置は1枚も動かない）。
+  const headerBottomY = headerBottomOf(imageData, width, height);
+  const toolbarTopY = toolbarTopOf(imageData, width, height, headerBottomY);
+  const listTrack = verifiedListTrack(imageData, width, height, headerBottomY, toolbarTopY);
   const listSearchFloorY = listTopOf(imageData, width, height,
     Math.round(height * SKILL_POINT_SEARCH_RATIO.yBottom), listTrack);
-  const toolbarTopY = toolbarTopOf(imageData, width, height, listSearchFloorY);
   const allAcquiredCenters = detectAcquiredRowCenters(
     imageData, width, height, listSearchFloorY, Math.round(toolbarTopY));
 
