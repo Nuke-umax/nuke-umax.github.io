@@ -45,3 +45,12 @@ a { color: var(--accent-dark); }
   display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
 }
 .siteFooter a { color: var(--muted); }
+
+/* 解説ページの小見出しと数表。スマホ幅で溢れないよう、表は横スクロールさせる。 */
+h3 { font-size: 14px; margin: 18px 0 4px; color: var(--accent-dark); }
+
+.tableWrap { overflow-x: auto; margin: 8px 0 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { border-bottom: 1px solid var(--border); padding: 5px 8px; text-align: left; white-space: nowrap; }
+th { color: var(--muted); font-size: 12px; font-weight: 600; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }

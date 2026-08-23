@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>評価点の計算の仕組み ― ウマ娘 評価点 最大化くん</title>
+<meta name="description" content="ウマ娘の評価点がどう決まるかを、ステータス・固有スキル・獲得スキルの3要素に分けて説明します。ステータスは上げるほど1あたりの評価点が増える累進構造です。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ウマ娘 評価点 最大化くん">
+<meta property="og:title" content="評価点の計算の仕組み">
+<meta property="og:description" content="評価点はステータス・固有スキル・獲得スキルの合計。ステータスの累進構造と、スキルの適性倍率・積み上げ式を数値で説明します。">
+<link rel="canonical" href="https://umax-tools.com/scoring.html">
+<meta property="og:url" content="https://umax-tools.com/scoring.html">
+<meta property="og:image" content="https://umax-tools.com/ogp.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3369405192035986"
+     crossorigin="anonymous"></script>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<h1>評価点の計算の仕組み</h1>
+<p class="updated">育成後に付く評価点が、何からどう積み上がっているかを分解して説明します。</p>
+
+<h2>評価点は3つの合計</h2>
+<p>評価点は次の3つを足したものです。それ以上でも以下でもありません。</p>
+<ul>
+  <li><b>ステータス評価点</b> … スピード・スタミナ・パワー・根性・賢さの5つを、それぞれ点数に換算して合計したもの</li>
+  <li><b>固有スキルの評価点</b> … 固有スキルLv × 170</li>
+  <li><b>獲得スキルの評価点</b> … 取得したスキル1つずつの点数の合計</li>
+</ul>
+<p>3つのうち、育成の終盤に自分の判断で動かせるのは主に<b>獲得スキル</b>です。ステータスはトレーニングの積み重ねで決まり、固有スキルのレベルも育成中に決まってしまいます。だから最後に残ったスキルポイントをどう使うかが、評価点の詰めの部分になります。</p>
+
+<h2>ステータス評価点は累進する</h2>
+<p>ここが直感に反するところです。ステータスは<b>上げれば上げるほど、1あたりの評価点が増えます</b>。同じ「100上げる」でも、低い段階と高い段階では価値がまったく違います。</p>
+
+<h3>ステータス値と評価点の対応</h3>
+<div class="tableWrap">
+<table>
+  <tr><th>ステータス値</th><th class="num">評価点</th><th class="num">直前の100で増えた分</th></tr>
+  <tr><td>100</td><td class="num">66</td><td class="num">―</td></tr>
+  <tr><td>300</td><td class="num">352</td><td class="num">+171</td></tr>
+  <tr><td>600</td><td class="num">1,143</td><td class="num">+296</td></tr>
+  <tr><td>900</td><td class="num">2,209</td><td class="num">+401</td></tr>
+  <tr><td>1200</td><td class="num">3,841</td><td class="num">+670</td></tr>
+  <tr><td>1500</td><td class="num">6,773</td><td class="num">+1,108</td></tr>
+  <tr><td>1800</td><td class="num">10,884</td><td class="num">+1,501</td></tr>
+  <tr><td>2100</td><td class="num">16,125</td><td class="num">+1,845</td></tr>
+  <tr><td>2400</td><td class="num">21,900</td><td class="num">+1,965</td></tr>
+</table>
+</div>
+<p>200から300へ上げると171点ですが、2300から2400へ上げると1,965点です。同じ100でも<b>11倍以上</b>の差があります。</p>
+
+<h3>1だけ上げたときの増え方</h3>
+<div class="tableWrap">
+<table>
+  <tr><th>ステータス</th><th class="num">1増やすと</th></tr>
+  <tr><td>600 → 601</td><td class="num">+3</td></tr>
+  <tr><td>1200 → 1201</td><td class="num">+8</td></tr>
+  <tr><td>1800 → 1801</td><td class="num">+16</td></tr>
+  <tr><td>2000 → 2001</td><td class="num">+18</td></tr>
+  <tr><td>2400 → 2401</td><td class="num">+20</td></tr>
+</table>
+</div>
+<p>「あと少しでキリのいい数字」というときに1上げる価値も、ステータスが高いほど大きくなります。</p>
+
+<h2>固有スキルはレベル×170</h2>
+<p>固有スキルの評価点は<b>固有スキルLv × 170</b>です。Lv1なら170点、Lv6なら1,020点。ここは単純な比例で、他の要素と違って条件も倍率もかかりません。</p>
+
+<h2>スキルの評価点は適性で変わる</h2>
+<p>スキルには「中距離」「先行」といった発動条件があり、<b>その条件に対する適性ランクで点数が変わります</b>。同じスキルでも、そのウマ娘の適性次第で評価点が違うということです。</p>
+
+<div class="tableWrap">
+<table>
+  <tr><th>適性ランク</th><th class="num">倍率</th></tr>
+  <tr><td>S・A</td><td class="num">1.1倍</td></tr>
+  <tr><td>B・C</td><td class="num">0.9倍</td></tr>
+  <tr><td>D・E・F</td><td class="num">0.8倍</td></tr>
+  <tr><td>G</td><td class="num">0.7倍</td></tr>
+</table>
+</div>
+
+<p>条件が複数あるスキルは、条件ごとの倍率を<b>掛け合わせます</b>。たとえば「先行・中距離」が条件のスキルなら、先行の適性倍率 × 中距離の適性倍率です。両方Aなら1.1×1.1＝1.21倍、両方Gなら0.7×0.7＝0.49倍。同じスキルで<b>2.5倍近い開き</b>が出ます。</p>
+
+<div class="note">
+  <p>芝・ダートの適性は評価点の倍率に<b>影響しません</b>。距離適性と脚質適性だけが効きます。</p>
+</div>
+
+<h3>条件が複数あるときの読み方</h3>
+<p>条件の中には「先行または差し」のように、どちらかを満たせばよいものがあります。この場合は<b>良い方の適性が使われます</b>。先行A・差しCなら、Aの1.1倍が適用されます。</p>
+<p>一方、「先行かつ中距離」のように両方必要なものは、両方の倍率が掛かります。表示上どちらなのかは、スキルの説明文の＜＞内の区切りで読み分けられます。</p>
+
+<h2>○と◎は積み上げ式</h2>
+<p>「中距離直線○」と「中距離直線◎」のような上位・下位の関係にあるスキルは、点数が独立していません。<b>◎の点数は○を含んだ合計値</b>です。</p>
+
+<div class="tableWrap">
+<table>
+  <tr><th>スキル</th><th class="num">合計点</th><th class="num">○から増える分</th></tr>
+  <tr><td>中距離直線○</td><td class="num">217</td><td class="num">217</td></tr>
+  <tr><td>中距離直線◎</td><td class="num">262</td><td class="num">45</td></tr>
+</table>
+</div>
+
+<p>すでに○を持っている状態で◎を取っても、増えるのは差分の<b>45点だけ</b>です。◎の表示だけを見て262点が増えると考えると、大きく見誤ります。</p>
+
+<h2>進化スキルは評価点だけが増える</h2>
+<p>条件を満たした金スキルは進化します。<b>進化にスキルポイントはかかりません</b>。金スキルを取った時点で自動的に進化し、評価点だけが上がります。</p>
+<p>たとえば「シンギュラリティ」（461点）が「ラプラスの悪魔」に進化すると508点になります。同じ120ポイントで47点多く得られる計算です。進化できるスキルはウマ娘やシナリオごとに違うため、どれが進化するのかを把握しておくと計算が変わります。</p>
+
+<h2>この数字はどこから来ているか</h2>
+<p>本ページの数値は、当サイトのツールが実際に計算に使っている値です。ステータスの換算は、外部の参照値（ステータス100→66点、600→1,143点、1000→2,635点、1100→3,171点、1200→3,841点）と照合して一致することを確認しています。</p>
+<p>ただし<b>ゲームの更新で仕様が変わる可能性はあります</b>。実際の表示と食い違う場合は、ゲーム側の表示が正です。お気づきの点は<a href="contact.html">お問い合わせ</a>からご連絡ください。</p>
+
+<div class="note">
+  <p>ここまでの計算を自動でやるのが<a href="index.html">このツール</a>です。スキル獲得画面のスクリーンショットから、持っているポイントで評価点が最大になる組み合わせを出します。</p>
+</div>
+
+<footer class="siteFooter">
+  <a href="index.html">ツールへ戻る</a>
+  <a href="usage.html">使い方</a>
+  <a href="strategy.html">スキル取得の考え方</a>
+  <a href="privacy.html">プライバシーポリシー</a>
+  <a href="terms.html">利用規約</a>
+  <a href="contact.html">お問い合わせ</a>
+  <span>制作: ぬけ</span>
+</footer>
+</body>
+</html>

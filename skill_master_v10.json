@@ -27398,6 +27398,26 @@
      "characterCardId": "103202",
      "characterName": "アグネスタキオン",
      "characterCommonName": "水着タキオン"
+    },
+    {
+     "skillId": 111302111,
+     "name": "愛されすぎてマジごめん♡",
+     "fromGoldSkillId": 202701,
+     "baseScore": 334,
+     "cumulativeScore": 508,
+     "baseCost": 120,
+     "conditionGroups": [
+      [
+       "senko"
+      ],
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "先行・中距離",
+     "characterCardId": "111302",
+     "characterName": "フサイチパンドラ",
+     "characterCommonName": "水着パンドラ"
     }
    ],
    "negativeSkill": null,
@@ -33669,6 +33689,23 @@
      "characterCardId": "109102",
      "characterName": "ヴィブロス",
      "characterCommonName": "水着ヴィブロス"
+    },
+    {
+     "skillId": 111302211,
+     "name": "秘める気のない才気",
+     "fromGoldSkillId": 203431,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 170,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離",
+     "characterCardId": "111302",
+     "characterName": "フサイチパンドラ",
+     "characterCommonName": "水着パンドラ"
     }
    ],
    "negativeSkill": null,
@@ -52921,6 +52958,21 @@
    "conditionText": "作戦・先行",
    "characterCardId": "111002",
    "characterName": "シーザリオ"
+  },
+  {
+   "skillId": 111131,
+   "name": "渚のヴィーナスタイム♡",
+   "rarity": 5,
+   "isAwakened": true,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "chuKyori"
+    ]
+   ],
+   "conditionText": "中距離",
+   "characterCardId": "111302",
+   "characterName": "フサイチパンドラ"
   },
   {
    "skillId": 111161,

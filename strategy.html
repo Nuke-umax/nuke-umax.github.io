@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>スキル取得の考え方 ― ウマ娘 評価点 最大化くん</title>
+<meta name="description" content="限られたスキルポイントで評価点を伸ばすための考え方。スキルごとの効率の差、◎が割に合わない理由、効率順に取るだけでは最大にならない理由を実データで説明します。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ウマ娘 評価点 最大化くん">
+<meta property="og:title" content="スキル取得の考え方">
+<meta property="og:description" content="スキルの効率は7倍以上ばらつきます。効率順に取るだけでは最大にならない理由を、実際の計算結果で示します。">
+<link rel="canonical" href="https://umax-tools.com/strategy.html">
+<meta property="og:url" content="https://umax-tools.com/strategy.html">
+<meta property="og:image" content="https://umax-tools.com/ogp.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3369405192035986"
+     crossorigin="anonymous"></script>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<h1>スキル取得の考え方</h1>
+<p class="updated">育成の最後に残ったスキルポイントを、評価点にできるだけ多く変えるための考え方をまとめます。</p>
+
+<h2>スキルの「効率」には7倍以上の差がある</h2>
+<p>スキル1ポイントあたり何点の評価点になるかを<b>効率</b>と呼ぶことにします。購入できるスキル1,084件で調べると、効率は<b>0.32から2.39まで</b>ばらついていました。中央値は1.31です。</p>
+<p>つまり、同じ100ポイントを使っても、選び方次第で得られる評価点は<b>7倍以上変わります</b>。「余ったから何か取る」のと「効率を見て取る」のとでは、結果がまったく違うということです。</p>
+
+<h3>種類別の効率</h3>
+<div class="tableWrap">
+<table>
+  <tr><th>種類</th><th class="num">件数</th><th class="num">効率の中央値</th><th class="num">最小</th><th class="num">最大</th></tr>
+  <tr><td>金スキル</td><td class="num">330</td><td class="num">1.71</td><td class="num">0.97</td><td class="num">2.39</td></tr>
+  <tr><td>○（下位）</td><td class="num">65</td><td class="num">1.67</td><td class="num">1.36</td><td class="num">2.17</td></tr>
+  <tr><td>白スキル</td><td class="num">624</td><td class="num">1.21</td><td class="num">0.71</td><td class="num">2.17</td></tr>
+  <tr><td>◎（上位）</td><td class="num">65</td><td class="num">0.41</td><td class="num">0.32</td><td class="num">0.56</td></tr>
+</table>
+</div>
+<p>ここで言う「○（下位）」は、<b>同じ系統に◎が存在するもの</b>を指します。名前に○が付いていても上位が◎でないスキル（コーナー巧者○など、上位が「弧線のプロフェッサー」といった別名の金スキルになるもの）は、通常の白スキルとして数えています。</p>
+<p>金スキルの効率が高いのは想像どおりでしょう。注目すべきは<b>◎の低さ</b>です。</p>
+
+<h2>◎が割に合わない理由</h2>
+<p>◎の効率が突出して低いのは、<a href="scoring.html">評価点が積み上げ式</a>だからです。○をすでに持っている状態で◎を取ると、増えるのは<b>差分だけ</b>です。</p>
+<p>実例として「右回り◎」は、増える評価点が45点でコストが110ポイント。効率は0.41です。全体の中央値1.31と比べると<b>3分の1以下</b>になります。</p>
+<p>もちろん◎にはレース性能を上げる意味があります。ここで言っているのは<b>評価点だけを見た場合</b>の話です。走らせるための育成なら判断は変わります。</p>
+
+<h2>効率順に取るだけでは最大にならない</h2>
+<p>では効率の高い順に取っていけばよいかというと、それでは<b>最大になりません</b>。ポイントが余るからです。</p>
+<p>効率順に取っていくと、最後に「あと80ポイント残っているが、残りのスキルは全部100ポイント以上」という状態になります。この80ポイントは捨てることになります。一方、途中で少し効率の低いスキルを混ぜておけば、端数まで使い切れて合計が上回ることがあります。</p>
+
+<h3>実際にどれくらい差が出るか</h3>
+<p>同じ条件（全適性A・進化なし）で、効率順に取る方法と、厳密に最大化した場合を比べました。</p>
+<div class="tableWrap">
+<table>
+  <tr><th>予算（SP）</th><th class="num">効率順</th><th class="num">厳密解</th><th class="num">差</th></tr>
+  <tr><td>500</td><td class="num">1,195</td><td class="num">1,195</td><td class="num">0</td></tr>
+  <tr><td>1,000</td><td class="num">2,346</td><td class="num">2,346</td><td class="num">0</td></tr>
+  <tr><td>2,000</td><td class="num">4,440</td><td class="num">4,462</td><td class="num">+22</td></tr>
+  <tr><td>4,000</td><td class="num">8,401</td><td class="num">8,452</td><td class="num">+51</td></tr>
+  <tr><td>6,000</td><td class="num">12,362</td><td class="num">12,399</td><td class="num">+37</td></tr>
+  <tr><td>8,000</td><td class="num">16,181</td><td class="num">16,249</td><td class="num">+68</td></tr>
+  <tr><td>12,000</td><td class="num">23,671</td><td class="num">23,711</td><td class="num">+40</td></tr>
+</table>
+</div>
+<p>正直に言うと、<b>差は大きくありません</b>。この条件では最大でも68点でした。予算が小さいうちは差がゼロのこともあります。</p>
+<p>効率順に取る方法は、実用上かなり良い近似です。厳密解との差が問題になるのは、評価ランクの境界をまたぐかどうかという場面くらいでしょう。ただ、その数十点で<b>ランクが1つ変わる</b>ことはあります。計算で取れるものなら取っておく、という位置づけです。</p>
+
+<h2>先に確認しておくと得なこと</h2>
+
+<h3>進化する金スキルを把握する</h3>
+<p>進化にスキルポイントはかかりません。進化する金スキルは、実質的に<b>同じコストで評価点が上乗せされる</b>ことになり、効率が跳ね上がります。進化先はウマ娘やシナリオごとに違うので、取る前に確認しておく価値があります。</p>
+
+<h3>ヒントによる割引を当てにする</h3>
+<p>スキルの必要ポイントはヒントのレベルで割り引かれます。割引の大きいスキルは、マスタ上の定価で考えるより効率が良くなります。<b>実際に画面に表示されているポイント</b>で判断してください。</p>
+
+<h3>適性の低い条件のスキルは避ける</h3>
+<p>適性がGの条件を含むスキルは倍率0.7倍です。条件が2つあれば0.49倍まで落ちます。同じコストなら、適性の高い条件のスキルを選ぶほうが有利です。</p>
+
+<h2>この記事の数字について</h2>
+<p>効率の集計は当サイトが保持するスキルデータ1,084件（購入可能なもの）に基づきます。効率順と厳密解の比較は、当サイトのツールが使っている計算エンジンで実際に走らせた結果です。</p>
+<p>条件を変えれば数字は変わります。ここに挙げたのは<b>一例であって、あらゆる状況で成り立つ数字ではありません</b>。ゲームの更新で仕様が変わる可能性もあります。</p>
+
+<div class="note">
+  <p>自分の育成での最適な組み合わせは<a href="index.html">このツール</a>で計算できます。スキル獲得画面のスクリーンショットから、持っているポイントで評価点が最大になる組み合わせを出します。</p>
+</div>
+
+<footer class="siteFooter">
+  <a href="index.html">ツールへ戻る</a>
+  <a href="usage.html">使い方</a>
+  <a href="scoring.html">評価点の計算の仕組み</a>
+  <a href="privacy.html">プライバシーポリシー</a>
+  <a href="terms.html">利用規約</a>
+  <a href="contact.html">お問い合わせ</a>
+  <span>制作: ぬけ</span>
+</footer>
+</body>
+</html>
