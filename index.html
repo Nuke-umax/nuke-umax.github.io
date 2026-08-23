@@ -166,6 +166,17 @@
     background: none; border: 1px solid var(--border); color: var(--muted); font-size: 13px;
   }
   .fixRow .del:hover { background: #fdecec; border-color: #e3b4b4; color: #b3261e; }
+  /* サンプル実行ボタン。スクショを持たない訪問者が最初に触る導線なので、
+     入力欄より前・見出しの直下に置く。 */
+  .sampleBar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0 0 16px; }
+  .sampleBar button {
+    flex: 0 0 auto; width: auto; min-height: 44px; padding: 0 18px;
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 700;
+  }
+  .sampleNote { font-size: 12px; color: var(--muted); }
+  .deviceNote { font-size: 12px; }
+
   .fixBar { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
   .fixBar .dirty { font-size: 12px; color: #b3261e; font-weight: 600; }
 
@@ -254,8 +265,18 @@
 <body>
 <h1>ウマ娘 評価点 最大化くん</h1>
 <p class="lead">スキル獲得画面のスクショをもとに、評価点が最大になる取得スキルを一覧にします。<br>
-画像は端末外に送信しません。画像の処理はすべてこのブラウザ内で完結します。<br>
-動作確認は制作者のスマートフォンでのみ行っています（<b>PC・タブレットは未対応</b>）。
+画像は端末外に送信しません。画像の処理はすべてこのブラウザ内で完結します。</p>
+
+<!-- スクショが手元に無い人（PC利用者・初めて訪れた人）が、何が出るツールなのかを
+     操作せずに確かめられるようにする。サンプルはマスタから組み立てるので、
+     ゲーム画像を一切置かずに実際の計算結果を見せられる。 -->
+<div class="sampleBar">
+  <button type="button" id="sampleButton">サンプルで試す</button>
+  <span class="sampleNote">スクリーンショットが無くても、計算結果の例をその場で表示します。</span>
+</div>
+
+<p class="lead deviceNote">スクリーンショットの<b>読み取りはスマートフォン専用</b>です。
+PC・タブレットでは画面比が異なるため読み取れません。サンプル表示と解説記事はどの端末でも見られます。<br>
 うまく読み取れないときは、<a href="contact.html">お問い合わせ</a>から端末の情報をお寄せいただけると助かります。</p>
 
 <section>
@@ -375,6 +396,7 @@
   <ul>
     <li><a href="scoring.html">評価点の計算の仕組み</a> … ステータス・固有・スキルの3要素と、ステータスの累進構造</li>
     <li><a href="strategy.html">スキル取得の考え方</a> … スキルごとの効率の差と、効率順に取るだけでは最大にならない理由</li>
+    <li><a href="evolutions.html">進化スキル一覧</a> … どの金スキルがどの進化になるか。658件を収録</li>
   </ul>
 
   <p class="note">ゲームの開発・運営元とは関係のない非公式ツールです。ゲーム内の仕様は更新で変わることがあります。</p>
@@ -384,6 +406,7 @@
   <a href="usage.html">使い方</a>
   <a href="scoring.html">評価点の計算の仕組み</a>
   <a href="strategy.html">スキル取得の考え方</a>
+  <a href="evolutions.html">進化スキル一覧</a>
   <a href="privacy.html">プライバシーポリシー</a>
   <a href="terms.html">利用規約</a>
   <a href="contact.html">お問い合わせ</a>
@@ -1248,6 +1271,100 @@ function sortByFileName(fileList) {
               .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 }
 
+// ===== サンプル実行 =====
+// スクリーンショットを持たない訪問者に、実際の計算結果を見せるための経路。
+// OCRを通さず、スキルマスタから認識結果そのものを組み立てて recalcAndRender へ渡す。
+// ゲーム画像を同梱しなくて済むこと、マスタ更新に自動追随することの二点が狙い。
+
+const SAMPLE_CARD_ID = "100703";          // ゴールドシップ[La mode 564]（進化2件を持つ）
+const SAMPLE_BUDGET = 1200;               // 育成終盤に残りがちな保有スキルPt
+const SAMPLE_APTITUDES = {                // 詳細画面から読み取る適性の代わり
+  tanKyori: "C", mile: "B", chuKyori: "A", choKyori: "A",
+  nige: "C", senko: "A", sashi: "B", oikomi: "C",
+};
+const SAMPLE_STATS = { speed: 1150, stamina: 1080, power: 900, guts: 620, wisdom: 840 };
+const SAMPLE_ACQUIRED_COUNT = 6;          // 「取得済み」として見せる件数
+const SAMPLE_OFFERED_COUNT = 22;          // 「未取得（購入候補）」として見せる件数
+
+// マスタから決め打ちの並びでサンプル行を作る。乱数を使わないので毎回同じ結果になる。
+function buildSampleRows(master) {
+  const evolutionsByGold = new Map();
+  for (const family of master.families) {
+    for (const evolution of family.evolutions || []) {
+      if (String(evolution.characterCardId) !== SAMPLE_CARD_ID) continue;
+      const list = evolutionsByGold.get(evolution.fromGoldSkillId) || [];
+      list.push(evolution.skillId);
+      evolutionsByGold.set(evolution.fromGoldSkillId, list);
+    }
+  }
+
+  // 進化を持つファミリーを先頭に寄せる。サンプルで進化の扱いを見せたいため。
+  const families = master.families
+    .filter(family => family.skills.some(skill => skill.baseCost))
+    .sort((a, b) => {
+      const hasEvolution = family =>
+        family.skills.some(skill => evolutionsByGold.has(skill.skillId)) ? 0 : 1;
+      return hasEvolution(a) - hasEvolution(b) || a.familyId - b.familyId;
+    });
+
+  const rows = [];
+  const uniqueSkill = master.uniqueSkills.find(u => String(u.characterCardId) === SAMPLE_CARD_ID);
+  if (uniqueSkill) {
+    // 1行目は固有スキル。実際の獲得画面もこの並びで、キャラ特定にも使われる。
+    rows.push(makeSampleRow(uniqueSkill.skillId, uniqueSkill.name, null, true, false, null));
+  }
+
+  for (const family of families) {
+    for (const skill of family.skills) {
+      if (!skill.baseCost) continue;
+      if (rows.length >= SAMPLE_ACQUIRED_COUNT + SAMPLE_OFFERED_COUNT) break;
+      const isAcquired = rows.length < SAMPLE_ACQUIRED_COUNT;
+      const evolutionSkillIds = evolutionsByGold.get(skill.skillId) || null;
+      rows.push(makeSampleRow(
+        skill.skillId, skill.name,
+        isAcquired ? null : skill.baseCost,   // 取得済みの行に必要SPは表示されない
+        isAcquired, Boolean(evolutionSkillIds), evolutionSkillIds));
+    }
+  }
+  return rows;
+}
+
+function makeSampleRow(skillId, name, sp, acquired, evo, evolutionSkillIds) {
+  // icon / thumbnail は切り抜き画像。サンプルには無いので null（描画側でガード済み）。
+  return { skillId, name, sp, acquired, evo, evolutionSkillIds,
+           ambiguous: false, secondName: null, icon: null, thumbnail: null };
+}
+
+async function runSample() {
+  const sampleButton = document.getElementById("sampleButton");
+  sampleButton.disabled = true;
+  try {
+    setStatus("サンプルを読み込み中...");
+    await loadResources();
+
+    const rows = buildSampleRows(cache.master);
+    session.recognizedRows   = rows;
+    session.missingRangeCount = null;
+    session.autoSkillPoints  = SAMPLE_BUDGET;
+    session.skillPointsGuess = SAMPLE_BUDGET;
+    session.budget           = SAMPLE_BUDGET;
+    session.aptitudes        = { ...SAMPLE_APTITUDES };
+    session.characterCardId  = SAMPLE_CARD_ID;
+    session.stats            = { ...SAMPLE_STATS };
+    session.statCrops        = [];
+    session.aptitudeCrops    = [];
+    session.evolutionChoices = {};
+
+    await recalcAndRender();
+    document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    setStatus("サンプルの表示に失敗しました: " + e.message);
+    console.error(e);
+  } finally {
+    sampleButton.disabled = false;
+  }
+}
+
 async function run() {
   const acqFileList = sortByFileName(document.getElementById("acqFiles").files);
   const detailFile = document.getElementById("detailFile").files[0];
@@ -1313,6 +1430,7 @@ async function run() {
 }
 
 document.getElementById("runButton").addEventListener("click", run);
+document.getElementById("sampleButton").addEventListener("click", runSample);
 </script>
 </body>
 </html>
