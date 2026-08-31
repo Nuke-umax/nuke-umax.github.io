@@ -583,7 +583,7 @@ function recognizeAptitudeImage(imageData, width, height, rankAtlas) {
 const TITLE_MATCH_MAX_DISTANCE_RATIO = 0.75;
 
 function characterNameKey(name) {
-  return normalizeName(name).normalize("NFD")
+  return matchKey(name).normalize("NFD")
     .replace(/[゙゚]/g, "").normalize("NFC");
 }
 
@@ -592,7 +592,7 @@ function buildCharacterTitleIndex(titles) {
   for (const [characterCardId, { title, name }] of Object.entries(titles)) {
     const key = characterNameKey(name);
     if (!byName.has(key)) byName.set(key, []);
-    byName.get(key).push({ characterCardId, title, name, titleKey: normalizeName(title) });
+    byName.get(key).push({ characterCardId, title, name, titleKey: matchKey(title) });
   }
   return byName;
 }
@@ -619,7 +619,7 @@ function buildUniqueSkillCidIndex(master) {
   const byName = new Map();
   for (const u of master.uniqueSkills || []) {
     if (u.characterCardId == null) continue;
-    byName.set(normalizeName(u.name), u.characterCardId);
+    byName.set(matchKey(u.name), u.characterCardId);
   }
   return byName;
 }
@@ -629,7 +629,7 @@ function characterCardIdFromRows(rows, uniqueCidIndex) {
   const head = rows && rows.length ? rows[0] : null;
   // 曖昧な行は名前自体が当てずっぽうなので使わない（安全側）。
   if (head === null || head.ambiguous === true) return null;
-  const cid = uniqueCidIndex.get(normalizeName(head.name));
+  const cid = uniqueCidIndex.get(matchKey(head.name));
   return cid === undefined ? null : cid;
 }
 
@@ -661,7 +661,7 @@ function recognizeCharacterCardId(imageData, width, height, nameAtlas, titleInde
   if (candidates.length === 1) return candidates[0].characterCardId;
 
   const titleRecog = recognizeName(imageData, width, rects.title, nameAtlas);
-  const titleKey = normalizeName(titleRecog);
+  const titleKey = matchKey(titleRecog);
   let best = null, bestDist = Infinity, secondDist = Infinity;
   for (const cand of candidates) {
     const d = editDistance(titleKey, cand.titleKey);

@@ -23,6 +23,35 @@ function normalizeName(text) {
   return text.normalize("NFKC").replace(/〇/g, "○").replace(/\s+/g, "").replace(/[一ー―—]/g, "ー");
 }
 
+// 認識が原理的に出せない字。照合キーからは両側とも落とす。
+//
+// 内訳と理由:
+//   . ' : - = ＝ / ／ ﾟ ﾞ …
+//     点と線だけの記号。32×32へ引き伸ばすと識別情報が残らず他の字の一致を奪うため、
+//     字形アトラスへ意図的に採取していない（build_name_atlas_from_cards.html の
+//     DEGENERATE_MARKS。実測で回帰あり）。
+//   [ ]
+//     採取元がスキルカードなので、称号にしか出ない角括弧は採取される機会が無い。
+//     しかも全262称号が [ ] で囲まれており、候補を分ける情報を持たない。
+//
+// マスタ側にだけ残すと、認識側が絶対に出せない分の距離が常に上乗せされる。
+// 順位は全候補に等しく乗るので変わらないが、称号照合の「読めているか」を見る
+// 絶対値ゲート（TITLE_MATCH_MAX_DISTANCE_RATIO）が本来より厳しくなり、
+// 読めているカードまで棄却する。実測: 同名複数カード230枚のうち棄却17枚 → 2枚。
+//
+// スキル名側でも、本日追加の「ただその先へ」が「彼方、その先へ…」と距離3で
+// 並ぶ引き分けが起きていた。落とすと 0 対 3 で決着する。
+// マスタ1,846名・称号262件のいずれも、落としたことで一意性は失われない（実測0件）。
+//
+// normalizeName 自体は変えない。字形採取（harvest.js）が「正規化した名前の文字数」と
+// 「切り出したセル数」の一致を前提にしており、文字を落とすと採取が止まるため。
+const UNREADABLE_IN_MATCH_KEY = /[.':\-=＝/／ﾟﾞ…\[\]]/g;
+
+// 編集距離で突き合わせるためのキー。認識側とマスタ側の両方に同じものを掛ける。
+function matchKey(text) {
+  return normalizeName(text).replace(UNREADABLE_IN_MATCH_KEY, "");
+}
+
 // マスタから照合候補の索引を構築する。
 // families の skills / evolutions / negativeSkill と uniqueSkills を対象にする。
 // 戻り値: [{ key, name, skillId, familyId, source }, ...]（key は正規化名）
@@ -30,7 +59,7 @@ function buildNameIndex(master) {
   const index = [];
   const push = (name, skillId, familyId, source) => {
     if (!name) return;
-    index.push({ key: normalizeName(name), name, skillId, familyId, source });
+    index.push({ key: matchKey(name), name, skillId, familyId, source });
   };
   for (const family of master.families) {
     for (const s of family.skills || []) push(s.name, s.skillId, family.familyId, "skill");
@@ -77,7 +106,7 @@ const LENGTH_MISMATCH_PENALTY = 1;
 //     （実測: 「練達の一歩」が「錬連の―歩」と誤読され「会心の一歩」
 //      「勇気の一歩」と3候補同点になり、「会心の一歩」が確定した）。
 function matchName(ocrText, index, gapThreshold = 1) {
-  const query = normalizeName(ocrText);
+  const query = matchKey(ocrText);
   const queryLength = query.length;
   let best = null, bestDist = Infinity, bestRank = Infinity;
   let second = null, secondDist = Infinity, secondRank = Infinity;

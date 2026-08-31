@@ -3420,6 +3420,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 200431,
      "characterCardId": "104603"
+    },
+    {
+     "name": "巧妙なるギャンビット",
+     "topSkillId": 114501111,
+     "memberIds": [
+      200432,
+      114501111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 200431,
+     "characterCardId": "114501"
     }
    ]
   },
@@ -27450,6 +27461,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202701,
      "characterCardId": "103202"
+    },
+    {
+     "name": "愛されすぎてマジごめん♡",
+     "topSkillId": 111302111,
+     "memberIds": [
+      202702,
+      111302111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202701,
+     "characterCardId": "111302"
     }
    ]
   },
@@ -30222,6 +30244,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202971,
      "characterCardId": "105702"
+    },
+    {
+     "name": "強襲トリック",
+     "topSkillId": 114501211,
+     "memberIds": [
+      202972,
+      114501211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202971,
+     "characterCardId": "114501"
     }
    ]
   },
@@ -30316,6 +30349,26 @@
      "characterCardId": "113301",
      "characterName": "クロノジェネシス",
      "characterCommonName": "クロノ"
+    },
+    {
+     "skillId": 114101111,
+     "name": "星奔光天",
+     "fromGoldSkillId": 202981,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "senko"
+      ],
+      [
+       "shiba"
+      ]
+     ],
+     "conditionText": "先行・芝",
+     "characterCardId": "114101",
+     "characterName": "エピファネイア",
+     "characterCommonName": "エピファ"
     }
    ],
    "negativeSkill": null,
@@ -30370,6 +30423,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202981,
      "characterCardId": "113301"
+    },
+    {
+     "name": "星奔光天",
+     "topSkillId": 114101111,
+     "memberIds": [
+      202982,
+      114101111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202981,
+     "characterCardId": "114101"
     }
    ]
   },
@@ -30693,6 +30757,17 @@
       203031
      ],
      "usesEvolution": false
+    },
+    {
+     "name": "熱々、上等！へいお待ち！",
+     "topSkillId": 102203211,
+     "memberIds": [
+      203032,
+      102203211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203031,
+     "characterCardId": "102203"
     }
    ]
   },
@@ -33738,6 +33813,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 203431,
      "characterCardId": "109102"
+    },
+    {
+     "name": "秘める気のない才気",
+     "topSkillId": 111302211,
+     "memberIds": [
+      203432,
+      111302211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203431,
+     "characterCardId": "111302"
     }
    ]
   },
@@ -38497,6 +38583,17 @@
       204071
      ],
      "usesEvolution": false
+    },
+    {
+     "name": "替え玉一丁、承ります♪",
+     "topSkillId": 102203111,
+     "memberIds": [
+      204072,
+      102203111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204071,
+     "characterCardId": "102203"
     }
    ]
   },
@@ -40994,6 +41091,242 @@
    ]
   },
   {
+   "familyId": 20451,
+   "skills": [
+    {
+     "skillId": 204512,
+     "name": "存在感",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 263,
+     "cumulativeScore": 263,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "choKyori"
+      ]
+     ],
+     "conditionText": "中距離/長距離"
+    },
+    {
+     "skillId": 204511,
+     "name": "超然",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 370,
+     "cumulativeScore": 633,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "choKyori"
+      ]
+     ],
+     "conditionText": "中距離/長距離"
+    }
+   ],
+   "evolutions": [
+    {
+     "skillId": 114101211,
+     "name": "天意の彼方",
+     "fromGoldSkillId": 204511,
+     "baseScore": 495,
+     "cumulativeScore": 758,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "senko"
+      ],
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "先行・中距離",
+     "characterCardId": "114101",
+     "characterName": "エピファネイア",
+     "characterCommonName": "エピファ"
+    },
+    {
+     "skillId": 114101221,
+     "name": "久遠の天際",
+     "fromGoldSkillId": 204511,
+     "baseScore": 495,
+     "cumulativeScore": 758,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "senko"
+      ],
+      [
+       "choKyori"
+      ]
+     ],
+     "conditionText": "先行・長距離",
+     "characterCardId": "114101",
+     "characterName": "エピファネイア",
+     "characterCommonName": "エピファ"
+    }
+   ],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "存在感",
+     "topSkillId": 204512,
+     "memberIds": [
+      204512
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "超然",
+     "topSkillId": 204511,
+     "memberIds": [
+      204512,
+      204511
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "天意の彼方",
+     "topSkillId": 114101211,
+     "memberIds": [
+      204512,
+      114101211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204511,
+     "characterCardId": "114101"
+    },
+    {
+     "name": "久遠の天際",
+     "topSkillId": 114101221,
+     "memberIds": [
+      204512,
+      114101221
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204511,
+     "characterCardId": "114101"
+    }
+   ]
+  },
+  {
+   "familyId": 20452,
+   "skills": [
+    {
+     "skillId": 204522,
+     "name": "潮目を掴んで",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "oikomi"
+      ]
+     ],
+     "conditionText": "作戦・追込"
+    },
+    {
+     "skillId": 204521,
+     "name": "当機立断",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "oikomi"
+      ]
+     ],
+     "conditionText": "作戦・追込"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "潮目を掴んで",
+     "topSkillId": 204522,
+     "memberIds": [
+      204522
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "当機立断",
+     "topSkillId": 204521,
+     "memberIds": [
+      204522,
+      204521
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20453,
+   "skills": [
+    {
+     "skillId": 204532,
+     "name": "華麗な踏み込み",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離"
+    },
+    {
+     "skillId": 204531,
+     "name": "清麗高雅",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "華麗な踏み込み",
+     "topSkillId": 204532,
+     "memberIds": [
+      204532
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "清麗高雅",
+     "topSkillId": 204531,
+     "memberIds": [
+      204532,
+      204531
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
    "familyId": 20454,
    "skills": [
     {
@@ -41152,6 +41485,255 @@
      "topSkillId": 204562,
      "memberIds": [
       204562
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20457,
+   "skills": [
+    {
+     "skillId": 204572,
+     "name": "ただその先へ",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "作戦・先行"
+    },
+    {
+     "skillId": 204571,
+     "name": "純真無垢",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "作戦・先行"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "ただその先へ",
+     "topSkillId": 204572,
+     "memberIds": [
+      204572
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "純真無垢",
+     "topSkillId": 204571,
+     "memberIds": [
+      204572,
+      204571
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20459,
+   "skills": [],
+   "evolutions": [],
+   "negativeSkill": {
+    "skillId": 204591,
+    "name": "アタシは抑えない！！",
+    "cumulativeScore": -174,
+    "removalCost": 0,
+    "conditionGroups": [],
+    "conditionText": null
+   },
+   "kind": "normal",
+   "plans": []
+  },
+  {
+   "familyId": 20460,
+   "skills": [],
+   "evolutions": [],
+   "negativeSkill": {
+    "skillId": 204601,
+    "name": "アタシが苦しい！？",
+    "cumulativeScore": -174,
+    "removalCost": 0,
+    "conditionGroups": [],
+    "conditionText": null
+   },
+   "kind": "normal",
+   "plans": []
+  },
+  {
+   "familyId": 20461,
+   "skills": [],
+   "evolutions": [],
+   "negativeSkill": {
+    "skillId": 204611,
+    "name": "アタシアタシアタシ！！",
+    "cumulativeScore": -174,
+    "removalCost": 0,
+    "conditionGroups": [],
+    "conditionText": null
+   },
+   "kind": "normal",
+   "plans": []
+  },
+  {
+   "familyId": 20462,
+   "skills": [
+    {
+     "skillId": 204622,
+     "name": "連綿",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 263,
+     "cumulativeScore": 263,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "連綿",
+     "topSkillId": 204622,
+     "memberIds": [
+      204622
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20463,
+   "skills": [
+    {
+     "skillId": 204632,
+     "name": "広がる景色",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "oikomi"
+      ],
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "追込・中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "広がる景色",
+     "topSkillId": 204632,
+     "memberIds": [
+      204632
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20464,
+   "skills": [
+    {
+     "skillId": 204642,
+     "name": "私の足取り",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "oikomi"
+      ]
+     ],
+     "conditionText": "作戦・追込"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "私の足取り",
+     "topSkillId": 204642,
+     "memberIds": [
+      204642
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20470,
+   "skills": [
+    {
+     "skillId": 204702,
+     "name": "突き抜ける走り",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 263,
+     "cumulativeScore": 263,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null
+    },
+    {
+     "skillId": 204701,
+     "name": "素質の証明",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 370,
+     "cumulativeScore": 633,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "突き抜ける走り",
+     "topSkillId": 204702,
+     "memberIds": [
+      204702
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "素質の証明",
+     "topSkillId": 204701,
+     "memberIds": [
+      204702,
+      204701
      ],
      "usesEvolution": false
     }
@@ -46270,6 +46852,70 @@
       901371
      ],
      "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 90141,
+   "kind": "inheritedUnique",
+   "skills": [
+    {
+     "skillId": 901411,
+     "name": "光れ！弾けろ！超新星爆発！",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "nige",
+       "senko"
+      ]
+     ],
+     "conditionText": "逃げ/先行"
+    }
+   ],
+   "evolutions": [
+    {
+     "skillId": 91101411,
+     "name": "光れ！弾けろ！超新星爆発！",
+     "fromGoldSkillId": 901411,
+     "baseScore": 240,
+     "cumulativeScore": 240,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "nige",
+       "senko"
+      ]
+     ],
+     "conditionText": "逃げ/先行",
+     "characterCardId": null,
+     "characterName": null,
+     "characterCommonName": null,
+     "isInheritedEvolution": true
+    }
+   ],
+   "negativeSkill": null,
+   "plans": [
+    {
+     "name": "光れ！弾けろ！超新星爆発！",
+     "topSkillId": 901411,
+     "memberIds": [
+      901411
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "光れ！弾けろ！超新星爆発！",
+     "topSkillId": 91101411,
+     "memberIds": [
+      91101411
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 901411,
+     "characterCardId": null
     }
    ]
   },
@@ -51837,6 +52483,22 @@
    "conditionText": "中距離/長距離",
    "characterCardId": "113701",
    "characterName": "キセキ"
+  },
+  {
+   "skillId": 101411,
+   "name": "光れ！弾けろ！超新星爆発！",
+   "rarity": 5,
+   "isAwakened": true,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "nige",
+     "senko"
+    ]
+   ],
+   "conditionText": "逃げ/先行",
+   "characterCardId": "114101",
+   "characterName": "エピファネイア"
   },
   {
    "skillId": 101431,
