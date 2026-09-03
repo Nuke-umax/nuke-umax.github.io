@@ -299,12 +299,6 @@
 <body>
 <h1>ウマ娘 評価点 最大化くん</h1>
 
-<div class="tabBar" role="tablist">
-  <button type="button" id="tabScore" role="tab" aria-selected="true" aria-controls="panelScore">評価点で選ぶ</button>
-  <button type="button" id="tabSim" role="tab" aria-selected="false" aria-controls="panelSim">走行シミュレータ<span class="wip">準備中</span></button>
-</div>
-
-<div id="panelScore" role="tabpanel">
 <p class="lead">スキル獲得画面のスクショをもとに、評価点が最大になる取得スキルを一覧にします。<br>
 画像は端末外に送信しません。画像の処理はすべてこのブラウザ内で完結します。</p>
 
@@ -336,6 +330,19 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
     下の画像と<b>スキル2〜3行重ねて</b>ください。
   </template>
 </section>
+
+<button id="runButton" style="width:100%">スクリーンショットを読み取る</button>
+<div id="status"></div>
+<div id="progressBar"><div class="fill"></div></div>
+<p class="sub" id="sharedNote">読み取り結果は「評価点で選ぶ」と「走行シミュレータ」の両方で使われます。</p>
+
+<div class="tabBar" role="tablist">
+  <button type="button" id="tabScore" role="tab" aria-selected="true" aria-controls="panelScore">評価点で選ぶ</button>
+  <button type="button" id="tabSim" role="tab" aria-selected="false" aria-controls="panelSim">走行シミュレータ<span class="wip">準備中</span></button>
+</div>
+
+<div id="panelScore" role="tabpanel">
+
 
 <section>
   <label>③ 設定（任意） <button type="button" class="info" data-info="opt" aria-label="説明">i</button></label>
@@ -371,9 +378,6 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
   </template>
 </section>
 
-<button id="runButton" style="width:100%">計算する</button>
-<div id="status"></div>
-<div id="progressBar"><div class="fill"></div></div>
 
 <div id="results"></div>
 
@@ -387,6 +391,10 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
   <div class="wipNotice">
     <p><b>この機能は準備中です。</b>計算の内容・数値の妥当性を検証している段階で、結果は目安として扱ってください。
     仕様は予告なく変わります。うまく動かないことがあります。</p>
+    <p><b>順位・追い抜き・進路といったレース中の状況で決まる条件は、すべて「満たされる」前提で計算しています。</b>
+    発動位置も、条件が許す範囲で<b>最もバ身が伸びる地点</b>を採っています。
+    実際のレースでは条件が揃わなかったり発動位置がずれたりするため、
+    <b>出る数値は噛み合ったときの上振れ側の見積り</b>です。</p>
   </div>
 
   <p class="lead">コースと条件を選ぶと、残りスキルポイントの範囲で<b>最も速く走れる</b>スキルの組み合わせを計算します。
@@ -1376,6 +1384,8 @@ async function recalcAndRender() {
 
   setStatus(`完了（認識行数 ${session.recognizedRows.length}・保有Pt ${session.budget}）`);
   renderResults(optResult, baseline, rankNote);
+  // 走行シミュレータ側の候補・ステータス表示も、同じ読み取り結果で更新する。
+  if (typeof simCandidatesFromSession === "function") simCandidatesFromSession();
 }
 
 // スキル獲得画面のスクショをファイル名の自然順（数字を数として比較）に並べる。
