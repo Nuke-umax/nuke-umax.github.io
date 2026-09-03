@@ -1606,16 +1606,40 @@ function simCandidatesFromSession() {
   }
   if (Number.isFinite(session.budget)) document.getElementById("simBudget").value = session.budget;
 
-  // 未取得かつ表示SPが読めている行だけを候補にする。
+  // 候補の作り方は評価点側（buildOptimizerState）と同じ機序に揃える。
+  //   ・未取得スキル … そのスキル自身を、表示SPで候補にする
+  //   ・進化する金スキル … 進化後こそが実際に発動するので、進化後を候補にする
+  //       未取得なら金と同じSP、取得済みならSP 0（進化はPtを消費しないため）
+  //   ・取得済みスキル … 既に効いているので候補ではなく、比較の土台へ回す
   const candidates = [];
+  const acquired = [];
   const seen = new Set();
+  const push = (skillId, sp) => {
+    const key = String(skillId);
+    if (seen.has(key)) return;
+    seen.add(key);
+    candidates.push({ skillId: key, sp });
+  };
   for (const row of session.recognizedRows) {
-    if (row.acquired || row.sp === null || seen.has(row.skillId)) continue;
-    seen.add(row.skillId);
-    candidates.push({ skillId: String(row.skillId), sp: row.sp });
+    if (row.acquired) {
+      acquired.push(String(row.skillId));
+      // 取得済みの金でも進化はできる。SPを消費しないので必ず得になる。
+      if (row.evo && row.evolutionSkillIds) {
+        for (const evoId of row.evolutionSkillIds) push(evoId, 0);
+      }
+      continue;
+    }
+    if (row.sp === null) continue;
+    push(row.skillId, row.sp);
+    if (row.evo && row.evolutionSkillIds) {
+      for (const evoId of row.evolutionSkillIds) push(evoId, row.sp);
+    }
   }
-  note.textContent = `読み取り結果から候補 ${candidates.length}件を引き継ぎました（未取得でSPが読めたスキル）。`;
-  return candidates;
+  const evoCount = candidates.filter(c => c.sp === 0).length;
+  note.textContent = `読み取り結果から候補 ${candidates.length}件を引き継ぎました`
+    + `（取得済み ${acquired.length}件は計算の土台にします`
+    + (evoCount ? `／うちSP不要の進化 ${evoCount}件` : "") + "）。";
+  return { candidates, acquired };
 }
 
 function renderSimResults(result, candidates) {
@@ -1625,9 +1649,20 @@ function renderSimResults(result, candidates) {
     el.textContent = "この条件では、バ身が伸びるスキルが見つかりませんでした。";
     return;
   }
+  // 進化スキルは獲得画面に出ないため、認識行から名前を引けない。
+  // マスタ側の進化定義から引き、どの金スキルの進化かも添える。
   const nameOf = id => {
-    const row = session.recognizedRows.find(r => String(r.skillId) === String(id));
-    return row ? row.name : id;
+    const key = String(id);
+    const row = session.recognizedRows.find(r => String(r.skillId) === key);
+    if (row) return row.name;
+    for (const family of cache.master.families) {
+      for (const evo of family.evolutions || []) {
+        if (String(evo.skillId) !== key) continue;
+        const gold = family.skills[family.skills.length - 1];
+        return `${evo.name}（${gold ? gold.name : "?"}の進化）`;
+      }
+    }
+    return key;
   };
   const headline = document.createElement("div");
   headline.className = "simHeadline";
@@ -1639,7 +1674,9 @@ function renderSimResults(result, candidates) {
   for (const s of result.selected) {
     const tr = document.createElement("tr");
     const td = document.createElement("td"); td.textContent = nameOf(s.skillId);
-    const sp = document.createElement("td"); sp.className = "num"; sp.textContent = s.sp;
+    const sp = document.createElement("td"); sp.className = "num";
+    // 進化はスキルPtを消費しない。0を数字で出すと読み違えるので言葉にする。
+    sp.textContent = s.sp === 0 ? "不要" : s.sp;
     const ba = document.createElement("td"); ba.className = "num"; ba.textContent = s.bashin.toFixed(3);
     tr.append(td, sp, ba); table.appendChild(tr);
   }
@@ -1651,11 +1688,40 @@ function renderSimResults(result, candidates) {
   el.appendChild(note);
 }
 
+// 継承スキル（kind=inheritedUnique）のID一覧。進化も含める。
+let inheritedIdCache = null;
+function inheritedSkillIdList() {
+  if (inheritedIdCache) return inheritedIdCache;
+  const ids = [];
+  for (const family of cache.master.families) {
+    if (family.kind !== "inheritedUnique") continue;
+    for (const s of family.skills) ids.push(String(s.skillId));
+    for (const e of family.evolutions || []) ids.push(String(e.skillId));
+  }
+  inheritedIdCache = ids;
+  return ids;
+}
+
+// 回復スキルのID一覧。持っていないと発動しない条件があるため送る。
+// 判定はスキル名に「回復」を含むか（マスタに効果種別が無いため）。
+let healIdCache = null;
+function healSkillIdList() {
+  if (healIdCache) return healIdCache;
+  const ids = [];
+  const add = s => { if (/回復|癒|ヒール|息|呼吸/.test(s.name)) ids.push(String(s.skillId)); };
+  for (const family of cache.master.families) {
+    family.skills.forEach(add);
+    (family.evolutions || []).forEach(add);
+  }
+  healIdCache = ids;
+  return ids;
+}
+
 async function runSim() {
   const button = document.getElementById("simRunButton");
   const status = document.getElementById("simStatus");
   const num = id => parseInt(document.getElementById(id).value, 10);
-  const candidates = simCandidatesFromSession();
+  const { candidates, acquired } = simCandidatesFromSession();
   if (!candidates.length) {
     status.textContent = "候補スキルがありません。先に「評価点で選ぶ」タブでスクリーンショットを読み取ってください。";
     return;
@@ -1673,7 +1739,12 @@ async function runSim() {
     mood: num("simMood"),
     ground: document.getElementById("simGround").value,
     budgetSp: num("simBudget"),
+    acquired,
     candidates,
+    // 「継承スキルを3つ以上持っていると効果が増える」等の判定に使う。
+    // どのIDが継承スキルかはマスタ側にしか無いので、こちらから渡す。
+    inheritedSkillIds: inheritedSkillIdList(),
+    healSkillIds: healSkillIdList(),
   };
   button.disabled = true;
   status.textContent = "計算中... 10秒ほどかかります";
