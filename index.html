@@ -168,6 +168,40 @@
   .fixRow .del:hover { background: #fdecec; border-color: #e3b4b4; color: #b3261e; }
   /* サンプル実行ボタン。スクショを持たない訪問者が最初に触る導線なので、
      入力欄より前・見出しの直下に置く。 */
+  /* タブ。評価点で選ぶ（現行）と、走行シミュレータ（準備中）を切り替える。 */
+  .tabBar { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin: 0 0 16px; }
+  .tabBar button {
+    flex: 0 1 auto; width: auto; min-height: 44px; padding: 0 14px;
+    background: none; border: none; border-bottom: 3px solid transparent;
+    color: var(--muted); font-size: 14px; font-weight: 700; border-radius: 0;
+  }
+  .tabBar button[aria-selected="true"] { color: var(--accent-dark); border-bottom-color: var(--accent); }
+  .tabBar .wip { font-size: 10px; font-weight: 700; color: #fff; background: #b3261e;
+                 border-radius: 99px; padding: 1px 6px; margin-left: 5px; vertical-align: 2px; }
+
+  /* 準備中の告知。読み飛ばされないよう本文より目立たせる。 */
+  .wipNotice {
+    background: #fdecec; border: 1px solid #e3b4b4; border-radius: 10px;
+    padding: 12px 14px; margin: 0 0 16px; font-size: 13px;
+  }
+  .wipNotice b { color: #b3261e; }
+
+  .simRow { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .simRow label { flex: 0 0 6.5em; font-size: 13px; color: var(--muted); font-weight: 500; }
+  .simRow select, .simRow input { flex: 1 1 120px; min-width: 0; }
+  /* コース名は「サンタアニタパーク ダート1200m（左）」のように長い。
+     ラベルを横に置くと選択肢が省略表示になるので、ラベルを上に出して幅を使わせる。 */
+  .simRow.wide { flex-direction: column; align-items: stretch; gap: 4px; }
+  .simRow.wide label { flex: 0 0 auto; }
+  .simRow.wide select { width: 100%; }
+
+  #simResults { margin-top: 14px; }
+  #simResults table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  #simResults th, #simResults td { border-bottom: 1px solid var(--border); padding: 5px 6px; text-align: left; }
+  #simResults th { color: var(--muted); font-size: 11px; }
+  #simResults td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .simHeadline { font-size: 15px; font-weight: 700; margin: 10px 0 4px; }
+
   .sampleBar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0 0 16px; }
   .sampleBar button {
     flex: 0 0 auto; width: auto; min-height: 44px; padding: 0 18px;
@@ -264,6 +298,13 @@
 </head>
 <body>
 <h1>ウマ娘 評価点 最大化くん</h1>
+
+<div class="tabBar" role="tablist">
+  <button type="button" id="tabScore" role="tab" aria-selected="true" aria-controls="panelScore">評価点で選ぶ</button>
+  <button type="button" id="tabSim" role="tab" aria-selected="false" aria-controls="panelSim">走行シミュレータ<span class="wip">準備中</span></button>
+</div>
+
+<div id="panelScore" role="tabpanel">
 <p class="lead">スキル獲得画面のスクショをもとに、評価点が最大になる取得スキルを一覧にします。<br>
 画像は端末外に送信しません。画像の処理はすべてこのブラウザ内で完結します。</p>
 
@@ -339,6 +380,83 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
 <datalist id="nameOptions"></datalist>
 
 <div id="infoOverlay"><div class="card"><div class="body"></div><button type="button">閉じる</button></div></div>
+
+</div><!-- /panelScore -->
+
+<div id="panelSim" role="tabpanel" hidden>
+  <div class="wipNotice">
+    <p><b>この機能は準備中です。</b>計算の内容・数値の妥当性を検証している段階で、結果は目安として扱ってください。
+    仕様は予告なく変わります。うまく動かないことがあります。</p>
+  </div>
+
+  <p class="lead">コースと条件を選ぶと、残りスキルポイントの範囲で<b>最も速く走れる</b>スキルの組み合わせを計算します。
+  評価点ではなく<b>バ身</b>（どれだけ前に出られるか）で選びます。</p>
+
+  <p class="lead deviceNote">この機能だけは計算をサーバーで行うため、
+  <b>入力した数値（ステータス・適性・スキルの識別番号）が送信されます</b>。
+  <b>スクリーンショットは送信しません。</b>詳しくは<a href="privacy.html">プライバシーポリシー</a>をご覧ください。<br>
+  計算には <a href="https://github.com/alpha123/uma-skill-tools" rel="noopener">uma-skill-tools</a>（GPL-3.0・作者 pecan）を用いています。</p>
+
+  <section>
+    <label>① コース</label>
+    <div class="simRow wide">
+      <label for="simCourse" class="sub">レース</label>
+      <select id="simCourse"></select>
+    </div>
+  </section>
+
+  <section>
+    <label>② ウマ娘</label>
+    <div class="simRow">
+      <label for="simSpeed" class="sub">スピード</label><input type="number" id="simSpeed" min="1" max="2500" value="1200">
+      <label for="simStamina" class="sub">スタミナ</label><input type="number" id="simStamina" min="1" max="2500" value="1000">
+    </div>
+    <div class="simRow">
+      <label for="simPower" class="sub">パワー</label><input type="number" id="simPower" min="1" max="2500" value="1000">
+      <label for="simGuts" class="sub">根性</label><input type="number" id="simGuts" min="1" max="2500" value="600">
+    </div>
+    <div class="simRow">
+      <label for="simWisdom" class="sub">賢さ</label><input type="number" id="simWisdom" min="1" max="2500" value="800">
+      <label for="simStrategy" class="sub">脚質</label>
+      <select id="simStrategy">
+        <option value="Nige">逃げ</option>
+        <option value="Senkou" selected>先行</option>
+        <option value="Sasi">差し</option>
+        <option value="Oikomi">追込</option>
+      </select>
+    </div>
+    <div class="simRow">
+      <label for="simAptDist" class="sub">距離適性</label><select id="simAptDist"></select>
+      <label for="simAptSurface" class="sub">バ場適性</label><select id="simAptSurface"></select>
+    </div>
+    <div class="simRow">
+      <label for="simAptStrategy" class="sub">脚質適性</label><select id="simAptStrategy"></select>
+      <label for="simMood" class="sub">やる気</label>
+      <select id="simMood">
+        <option value="-2">絶不調</option><option value="-1">不調</option>
+        <option value="0">普通</option><option value="1">好調</option>
+        <option value="2" selected>絶好調</option>
+      </select>
+    </div>
+    <div class="simRow">
+      <label for="simGround" class="sub">バ場状態</label>
+      <select id="simGround">
+        <option value="good" selected>良</option><option value="yielding">稍重</option>
+        <option value="soft">重</option><option value="heavy">不良</option>
+      </select>
+      <label for="simBudget" class="sub">残スキルPt</label><input type="number" id="simBudget" min="0" max="20000" value="700">
+    </div>
+  </section>
+
+  <section>
+    <label>③ 候補スキル</label>
+    <p class="sub" id="simCandidateNote">「評価点で選ぶ」タブでスクリーンショットを読み取ると、未取得スキルが候補として引き継がれます。</p>
+  </section>
+
+  <button id="simRunButton" style="width:100%">最速の組み合わせを計算する</button>
+  <div id="simStatus" class="sub" style="margin-top:8px"></div>
+  <div id="simResults"></div>
+</div><!-- /panelSim -->
 
 <section class="about">
   <h2>評価点とは何か</h2>
@@ -1428,6 +1546,158 @@ async function run() {
     runButton.disabled = false;
   }
 }
+
+// ===== 走行シミュレータ（準備中）=====
+// 計算はサーバ側で行う。理由は2つ:
+//   ・レースソルバがGPLで、ブラウザへ配ると自サイトのソース公開義務が生じる
+//   ・1回の計算で30回以上のシミュレーションを回すため重い
+// 送るのは数値とスキルIDだけ。画像は送らない。
+const SIM_API = "https://umax-sim.umamusume-maximize.workers.dev/api/optimize";
+const APTITUDE_LETTERS = ["S", "A", "B", "C", "D", "E", "F", "G"];
+
+let simCoursesLoaded = false;
+
+async function loadSimCourses() {
+  if (simCoursesLoaded) return;
+  const select = document.getElementById("simCourse");
+  const courses = await (await fetch("sim_courses.json")).json();
+  for (const c of courses) {
+    const option = document.createElement("option");
+    option.value = String(c.id);
+    option.textContent = `${c.track} ${c.surface}${c.distance}m（${c.turn}）`;
+    select.appendChild(option);
+  }
+  // 適性の選択肢は3か所で同じ。既定はA。
+  for (const id of ["simAptDist", "simAptSurface", "simAptStrategy"]) {
+    const sel = document.getElementById(id);
+    APTITUDE_LETTERS.forEach(letter => {
+      const o = document.createElement("option");
+      o.value = letter; o.textContent = letter;
+      if (letter === "A") o.selected = true;
+      sel.appendChild(o);
+    });
+  }
+  simCoursesLoaded = true;
+}
+
+// 評価点タブで読み取った結果があれば、ステータスと未取得スキルを引き継ぐ。
+function simCandidatesFromSession() {
+  const note = document.getElementById("simCandidateNote");
+  if (!session.recognizedRows.length) {
+    note.textContent = "「評価点で選ぶ」タブでスクリーンショットを読み取ると、未取得スキルが候補として引き継がれます。"
+      + "読み取り結果が無い場合は、下のステータスだけで計算します（候補スキルなし）。";
+    return [];
+  }
+  if (session.stats) {
+    const map = { simSpeed: "speed", simStamina: "stamina", simPower: "power", simGuts: "guts", simWisdom: "wisdom" };
+    for (const [inputId, key] of Object.entries(map)) {
+      if (Number.isFinite(session.stats[key])) document.getElementById(inputId).value = session.stats[key];
+    }
+  }
+  if (Number.isFinite(session.budget)) document.getElementById("simBudget").value = session.budget;
+
+  // 未取得かつ表示SPが読めている行だけを候補にする。
+  const candidates = [];
+  const seen = new Set();
+  for (const row of session.recognizedRows) {
+    if (row.acquired || row.sp === null || seen.has(row.skillId)) continue;
+    seen.add(row.skillId);
+    candidates.push({ skillId: String(row.skillId), sp: row.sp });
+  }
+  note.textContent = `読み取り結果から候補 ${candidates.length}件を引き継ぎました（未取得でSPが読めたスキル）。`;
+  return candidates;
+}
+
+function renderSimResults(result, candidates) {
+  const el = document.getElementById("simResults");
+  el.textContent = "";
+  if (!result.selected.length) {
+    el.textContent = "この条件では、バ身が伸びるスキルが見つかりませんでした。";
+    return;
+  }
+  const nameOf = id => {
+    const row = session.recognizedRows.find(r => String(r.skillId) === String(id));
+    return row ? row.name : id;
+  };
+  const headline = document.createElement("div");
+  headline.className = "simHeadline";
+  headline.textContent = `+${result.bashinGain.toFixed(2)} バ身（消費 ${result.totalSp} SP）`;
+  el.appendChild(headline);
+
+  const table = document.createElement("table");
+  table.innerHTML = "<tr><th>スキル</th><th class=\"num\">SP</th><th class=\"num\">単体バ身</th></tr>";
+  for (const s of result.selected) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td"); td.textContent = nameOf(s.skillId);
+    const sp = document.createElement("td"); sp.className = "num"; sp.textContent = s.sp;
+    const ba = document.createElement("td"); ba.className = "num"; ba.textContent = s.bashin.toFixed(3);
+    tr.append(td, sp, ba); table.appendChild(tr);
+  }
+  el.appendChild(table);
+
+  const note = document.createElement("p");
+  note.className = "sub";
+  note.textContent = `候補${candidates.length}件から選定。${result.note}`;
+  el.appendChild(note);
+}
+
+async function runSim() {
+  const button = document.getElementById("simRunButton");
+  const status = document.getElementById("simStatus");
+  const num = id => parseInt(document.getElementById(id).value, 10);
+  const candidates = simCandidatesFromSession();
+  if (!candidates.length) {
+    status.textContent = "候補スキルがありません。先に「評価点で選ぶ」タブでスクリーンショットを読み取ってください。";
+    return;
+  }
+  const payload = {
+    courseId: num("simCourse"),
+    horse: {
+      speed: num("simSpeed"), stamina: num("simStamina"), power: num("simPower"),
+      guts: num("simGuts"), wisdom: num("simWisdom"),
+      strategy: document.getElementById("simStrategy").value,
+      distanceAptitude: document.getElementById("simAptDist").value,
+      surfaceAptitude: document.getElementById("simAptSurface").value,
+      strategyAptitude: document.getElementById("simAptStrategy").value,
+    },
+    mood: num("simMood"),
+    ground: document.getElementById("simGround").value,
+    budgetSp: num("simBudget"),
+    candidates,
+  };
+  button.disabled = true;
+  status.textContent = "計算中... 10秒ほどかかります";
+  try {
+    const res = await fetch(SIM_API, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      status.textContent = "エラー: " + (data.error || res.status);
+      return;
+    }
+    status.textContent = `完了（サーバで ${data.evaluations} 回のシミュレーション）`;
+    renderSimResults(data, candidates);
+  } catch (e) {
+    status.textContent = "通信に失敗しました。時間をおいて試してください。";
+    console.error(e);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function selectTab(which) {
+  const isSim = which === "sim";
+  document.getElementById("panelScore").hidden = isSim;
+  document.getElementById("panelSim").hidden = !isSim;
+  document.getElementById("tabScore").setAttribute("aria-selected", String(!isSim));
+  document.getElementById("tabSim").setAttribute("aria-selected", String(isSim));
+  if (isSim) { loadSimCourses().then(simCandidatesFromSession); }
+}
+
+document.getElementById("tabScore").addEventListener("click", () => selectTab("score"));
+document.getElementById("tabSim").addEventListener("click", () => selectTab("sim"));
+document.getElementById("simRunButton").addEventListener("click", runSim);
 
 document.getElementById("runButton").addEventListener("click", run);
 document.getElementById("sampleButton").addEventListener("click", runSample);
