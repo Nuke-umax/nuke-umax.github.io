@@ -186,14 +186,42 @@
   }
   .wipNotice b { color: #b3261e; }
 
-  .simRow { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
-  .simRow label { flex: 0 0 6.5em; font-size: 13px; color: var(--muted); font-weight: 500; }
-  .simRow select, .simRow input { flex: 1 1 120px; min-width: 0; }
+  /* 1行に2組を並べると、スマホ幅で折り返してラベルと入力が離れる
+     （実測: 「脚質」の下に別の入力が来て読み違える）。1行1組に固定する。 */
+  .simRow { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: nowrap; }
+  .simRow label { flex: 0 0 7em; font-size: 13px; color: var(--muted); font-weight: 500; }
+  .simRow select, .simRow input { flex: 1 1 auto; min-width: 0; }
   /* コース名は「サンタアニタパーク ダート1200m（左）」のように長い。
      ラベルを横に置くと選択肢が省略表示になるので、ラベルを上に出して幅を使わせる。 */
   .simRow.wide { flex-direction: column; align-items: stretch; gap: 4px; }
   .simRow.wide label { flex: 0 0 auto; }
   .simRow.wide select { width: 100%; }
+
+  /* コース図。どの位置でスキルが発動するかを目で確かめられるようにする。 */
+  .courseMap { margin: 12px 0 6px; }
+  .courseMap svg { width: 100%; height: auto; display: block; }
+  .courseLegend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .courseLegend span { display: inline-flex; align-items: center; gap: 4px; }
+  .courseLegend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  /* 結果の編集。外す・追加を押して構成を組み替えられるようにする。 */
+  .simTotals { display: flex; gap: 14px; flex-wrap: wrap; align-items: baseline; margin: 10px 0 6px; }
+  .simTotals .big { font-size: 18px; font-weight: 700; }
+  .simTotals .sub2 { font-size: 12px; color: var(--muted); }
+  .simTotals .over { color: #b3261e; font-weight: 700; }
+
+  .pickRow { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .pickRow .nm { flex: 1 1 auto; min-width: 0; font-size: 13px; }
+  .pickRow .nm small { display: block; color: var(--muted); font-size: 11px; }
+  .pickRow .val { flex: 0 0 auto; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+  .pickRow button {
+    flex: 0 0 auto; width: auto; min-height: 36px; padding: 0 12px; font-size: 12px;
+    border-radius: 6px; border: 1px solid var(--border); background: #fff; color: var(--accent-dark);
+  }
+  .pickRow button.remove { color: #b3261e; border-color: #e3b4b4; }
+  .pickRow button:disabled { color: var(--muted); background: #f2f2f2; border-color: var(--border); }
+  .pickHead { font-size: 13px; font-weight: 700; margin: 16px 0 2px; }
+  .pickNote { font-size: 12px; color: var(--muted); margin: 0 0 6px; }
 
   #simResults { margin-top: 14px; }
   #simResults table { border-collapse: collapse; width: 100%; font-size: 13px; }
@@ -415,16 +443,22 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
 
   <section>
     <label>② ウマ娘</label>
-    <div class="simRow">
+        <div class="simRow">
       <label for="simSpeed" class="sub">スピード</label><input type="number" id="simSpeed" min="1" max="2500" value="1200">
+    </div>
+    <div class="simRow">
       <label for="simStamina" class="sub">スタミナ</label><input type="number" id="simStamina" min="1" max="2500" value="1000">
     </div>
-    <div class="simRow">
+        <div class="simRow">
       <label for="simPower" class="sub">パワー</label><input type="number" id="simPower" min="1" max="2500" value="1000">
-      <label for="simGuts" class="sub">根性</label><input type="number" id="simGuts" min="1" max="2500" value="600">
     </div>
     <div class="simRow">
+      <label for="simGuts" class="sub">根性</label><input type="number" id="simGuts" min="1" max="2500" value="600">
+    </div>
+        <div class="simRow">
       <label for="simWisdom" class="sub">賢さ</label><input type="number" id="simWisdom" min="1" max="2500" value="800">
+    </div>
+    <div class="simRow">
       <label for="simStrategy" class="sub">脚質</label>
       <select id="simStrategy">
         <option value="Nige">逃げ</option>
@@ -433,12 +467,16 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
         <option value="Oikomi">追込</option>
       </select>
     </div>
-    <div class="simRow">
+        <div class="simRow">
       <label for="simAptDist" class="sub">距離適性</label><select id="simAptDist"></select>
-      <label for="simAptSurface" class="sub">バ場適性</label><select id="simAptSurface"></select>
     </div>
     <div class="simRow">
+      <label for="simAptSurface" class="sub">バ場適性</label><select id="simAptSurface"></select>
+    </div>
+        <div class="simRow">
       <label for="simAptStrategy" class="sub">脚質適性</label><select id="simAptStrategy"></select>
+    </div>
+    <div class="simRow">
       <label for="simMood" class="sub">やる気</label>
       <select id="simMood">
         <option value="-2">絶不調</option><option value="-1">不調</option>
@@ -446,12 +484,18 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
         <option value="2" selected>絶好調</option>
       </select>
     </div>
+        <div class="simRow">
+      <label for="simScenario" class="sub">育成シナリオ</label>
+      <select id="simScenario"><option value="">指定しない</option></select>
+    </div>
     <div class="simRow">
       <label for="simGround" class="sub">バ場状態</label>
       <select id="simGround">
         <option value="good" selected>良</option><option value="yielding">稍重</option>
         <option value="soft">重</option><option value="heavy">不良</option>
       </select>
+    </div>
+    <div class="simRow">
       <label for="simBudget" class="sub">残スキルPt</label><input type="number" id="simBudget" min="0" max="20000" value="700">
     </div>
   </section>
@@ -1564,13 +1608,26 @@ async function run() {
 // 送るのは数値とスキルIDだけ。画像は送らない。
 const SIM_API = "https://umax-sim.umamusume-maximize.workers.dev/api/optimize";
 const APTITUDE_LETTERS = ["S", "A", "B", "C", "D", "E", "F", "G"];
+// シナリオ進化は育成中に2個までしか進化させられない。
+const SCENARIO_EVOLUTION_LIMIT = 2;
 
 let simCoursesLoaded = false;
+// シナリオ進化スキルID → 育成シナリオ名。どのシナリオで進化させられるかの対応。
+let scenarioEvolutionMap = {};
 
 async function loadSimCourses() {
   if (simCoursesLoaded) return;
   const select = document.getElementById("simCourse");
   const courses = await (await fetch("sim_courses.json")).json();
+  scenarioEvolutionMap = await (await fetch("scenario_evolutions.json")).json();
+  // 選べるシナリオは、対応表に出てくるものだけにする（実在しない選択肢を出さない）。
+  const scenarioSelect = document.getElementById("simScenario");
+  for (const name of [...new Set(Object.values(scenarioEvolutionMap))].sort()) {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    scenarioSelect.appendChild(option);
+  }
   for (const c of courses) {
     const option = document.createElement("option");
     option.value = String(c.id);
@@ -1606,89 +1663,436 @@ function simCandidatesFromSession() {
   }
   if (Number.isFinite(session.budget)) document.getElementById("simBudget").value = session.budget;
 
-  // 候補の作り方は評価点側（buildOptimizerState）と同じ機序に揃える。
-  //   ・未取得スキル … そのスキル自身を、表示SPで候補にする
-  //   ・進化する金スキル … 進化後こそが実際に発動するので、進化後を候補にする
-  //       未取得なら金と同じSP、取得済みならSP 0（進化はPtを消費しないため）
-  //   ・取得済みスキル … 既に効いているので候補ではなく、比較の土台へ回す
-  const candidates = [];
-  const acquired = [];
-  const seen = new Set();
-  const push = (skillId, sp) => {
-    const key = String(skillId);
-    if (seen.has(key)) return;
-    seen.add(key);
-    candidates.push({ skillId: key, sp });
-  };
+  // 候補の作り方は評価点側（buildOptimizerState + plans）と同じ機序に揃える。
+  //
+  // 「右回り○ → ◎ → 鬼」のような段階は、ファミリー内の1つの流れになっている。
+  // 上位を取ると下位は上書きされ、実際に発動するのは最上位だけ。
+  // そのため候補は「スキル単位」ではなく「プラン単位」で出す。
+  //   プランの skillId … 実際に発動する最上位スキル
+  //   プランの sp      … 未取得の member を合計した必要ポイント
+  // 同じファミリーのプランは同時に選べないので、group を付けて排他にする。
+  const acquiredSet = new Set();
+  const displayedCost = new Map();
+  const evolutionOf = new Map();      // 金スキルID → 進化スキルIDの配列
   for (const row of session.recognizedRows) {
-    if (row.acquired) {
-      acquired.push(String(row.skillId));
-      // 取得済みの金でも進化はできる。SPを消費しないので必ず得になる。
-      if (row.evo && row.evolutionSkillIds) {
-        for (const evoId of row.evolutionSkillIds) push(evoId, 0);
-      }
-      continue;
-    }
-    if (row.sp === null) continue;
-    push(row.skillId, row.sp);
+    if (row.acquired) acquiredSet.add(String(row.skillId));
+    else if (row.sp !== null) displayedCost.set(String(row.skillId), row.sp);
     if (row.evo && row.evolutionSkillIds) {
-      for (const evoId of row.evolutionSkillIds) push(evoId, row.sp);
+      evolutionOf.set(String(row.skillId), row.evolutionSkillIds.map(String));
     }
   }
-  const evoCount = candidates.filter(c => c.sp === 0).length;
+  const acquired = [...acquiredSet];
+
+  // 進化には入手条件がある（評価点側 plansForFamily と同じ規則）。
+  //   ・キャラ専用の進化 … characterCardId が育成中のキャラと一致するものだけ
+  //   ・シナリオ進化     … characterCardId が null。誰でも入手できるが上限あり
+  //   ・いずれも「進化元の金スキルが進化済み」であることが前提
+  const myCardId = session.characterCardId;
+  const chosenScenario = document.getElementById("simScenario")?.value || "";
+  const evolvedGolds = new Set();
+  for (const row of session.recognizedRows) {
+    if (row.evo && row.evolutionSkillIds) evolvedGolds.add(String(row.skillId));
+  }
+
+  const candidates = [];
+  const scenarioEvolutions = [];
+  for (const family of cache.master.families) {
+    for (const plan of family.plans || []) {
+      if (plan.usesEvolution) {
+        // 進化元が進化していなければ、その進化は手に入らない。
+        if (!evolvedGolds.has(String(plan.fromGoldSkillId))) continue;
+        const isScenario = plan.characterCardId == null;
+        if (!isScenario && String(plan.characterCardId) !== String(myCardId)) continue;
+        // シナリオ進化は、選んだ育成シナリオのものだけ。未選択なら絞らない。
+        if (isScenario && chosenScenario) {
+          const belongsTo = scenarioEvolutionMap[String(plan.topSkillId)];
+          if (belongsTo && belongsTo !== chosenScenario) continue;
+        }
+      }
+      const members = plan.memberIds.map(String);
+      // 未取得の member にかかるポイントを合計する。取得済みは0。
+      let sp = 0;
+      let buyable = true;
+      for (const id of members) {
+        if (acquiredSet.has(id)) continue;
+        if (plan.usesEvolution && id === String(plan.topSkillId)) continue;  // 進化はPt不要
+        const cost = displayedCost.get(id);
+        if (cost === undefined) { buyable = false; break; }
+        sp += cost;
+      }
+      if (!buyable) continue;
+      // 既に全部取得済みのプランは選ぶ意味がない（進化を除く）。
+      if (sp === 0 && !plan.usesEvolution) continue;
+      const entry = { skillId: String(plan.topSkillId), sp, group: String(family.familyId) };
+      if (plan.usesEvolution && plan.characterCardId == null) {
+        entry.scenario = true;
+        scenarioEvolutions.push(entry);
+      }
+      candidates.push(entry);
+    }
+  }
+
+  const freeCount = candidates.filter(c => c.sp === 0).length;
   note.textContent = `読み取り結果から候補 ${candidates.length}件を引き継ぎました`
-    + `（取得済み ${acquired.length}件は計算の土台にします`
-    + (evoCount ? `／うちSP不要の進化 ${evoCount}件` : "") + "）。";
-  return { candidates, acquired };
+    + `（取得済み ${acquired.length}件も計算に含めます`
+    + (freeCount ? `／SP不要 ${freeCount}件` : "") + "）。"
+    + (chosenScenario
+        ? `シナリオ進化は「${chosenScenario}」のもののみ、${SCENARIO_EVOLUTION_LIMIT}個まで選べます。`
+        : `育成シナリオを選ぶと、シナリオ進化を絞り込めます（${SCENARIO_EVOLUTION_LIMIT}個まで選択可）。`);
+  return { candidates, acquired, scenarioEvolutions };
 }
 
-function renderSimResults(result, candidates) {
+// コース図。スタートからゴールまでを1本の帯で表し、
+// コーナー・坂・直線の区間と、各スキルの発動位置を重ねる。
+//
+// 位置の情報はサーバが返す（形状データはサーバ側に置いてあるため）。
+function renderCourseMap(shape, activations, nameOf) {
+  if (!shape || !shape.distance) return null;
+
+  // viewBox。左右に余白を取らないと、0m と ゴール地点の印が切れる
+  //（実測: 0m 発動の丸が画面外へはみ出していた）。
+  const PAD = 3;
+  const W = 100, H = 34;
+  const TRACK_Y = 13, TRACK_H = 7;
+  const x = m => PAD + (m / shape.distance) * (W - PAD * 2);
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("overflow", "visible");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `コース図。全長${shape.distance}メートル。スキルの発動位置を示しています。`);
+
+  const rect = (rx, rw, ry, rh, fill) => {
+    const e = document.createElementNS(svgNS, "rect");
+    e.setAttribute("x", rx); e.setAttribute("y", ry);
+    e.setAttribute("width", Math.max(rw, 0.3)); e.setAttribute("height", rh);
+    e.setAttribute("fill", fill);
+    svg.appendChild(e);
+    return e;
+  };
+
+  rect(PAD, W - PAD * 2, TRACK_Y, TRACK_H, "#e8ece7");            // 走路全体
+  for (const c of shape.corners) rect(x(c.start), x(c.length), TRACK_Y, TRACK_H, "#c9d6cd");
+  for (const sl of shape.slopes) {
+    // slope が正なら上り、負なら下り。色で向きを分ける。
+    rect(x(sl.start), x(sl.length), TRACK_Y, TRACK_H, sl.slope >= 0 ? "#e4d6b8" : "#cfe0ea");
+  }
+
+  // 終盤（ラストスパート）の開始位置。おおよそ全長の2/3。
+  const spurt = shape.distance * 2 / 3;
+  const line = document.createElementNS(svgNS, "line");
+  line.setAttribute("x1", x(spurt)); line.setAttribute("x2", x(spurt));
+  line.setAttribute("y1", TRACK_Y - 3); line.setAttribute("y2", TRACK_Y + TRACK_H + 3);
+  line.setAttribute("stroke", "#b3261e"); line.setAttribute("stroke-width", "0.4");
+  line.setAttribute("stroke-dasharray", "1 1");
+  svg.appendChild(line);
+
+  // 発動位置。近い印が重なるので、上下2段に振り分ける。
+  const sorted = activations.slice().sort((a, b) => a.pos - b.pos);
+  let lastX = -99, row = 0;
+  for (const act of sorted) {
+    const px = x(act.pos);
+    row = (px - lastX < 12) ? (row + 1) % 2 : 0;
+    lastX = px;
+    const y = row === 0 ? TRACK_Y - 4.5 : TRACK_Y + TRACK_H + 4.5;
+
+    const stem = document.createElementNS(svgNS, "line");
+    stem.setAttribute("x1", px); stem.setAttribute("x2", px);
+    stem.setAttribute("y1", row === 0 ? y + 1 : TRACK_Y + TRACK_H);
+    stem.setAttribute("y2", row === 0 ? TRACK_Y : y - 1);
+    stem.setAttribute("stroke", "#2f6f4f"); stem.setAttribute("stroke-width", "0.3");
+    svg.appendChild(stem);
+
+    const dot = document.createElementNS(svgNS, "circle");
+    dot.setAttribute("cx", px); dot.setAttribute("cy", y);
+    dot.setAttribute("r", "1.4"); dot.setAttribute("fill", "#2f6f4f");
+    svg.appendChild(dot);
+
+    const label = document.createElementNS(svgNS, "text");
+    label.setAttribute("x", px); label.setAttribute("y", y + 0.6);
+    label.setAttribute("font-size", "1.8"); label.setAttribute("fill", "#fff");
+    label.setAttribute("text-anchor", "middle");
+    label.textContent = String(sorted.indexOf(act) + 1);
+    svg.appendChild(label);
+
+    const title = document.createElementNS(svgNS, "title");
+    title.textContent = `${nameOf(act.skillId)}（${act.pos}m）`;
+    dot.appendChild(title);
+  }
+
+  // 距離の目盛り
+  for (const m of [0, shape.distance]) {
+    const t = document.createElementNS(svgNS, "text");
+    t.setAttribute("x", m === 0 ? PAD : W - PAD); t.setAttribute("y", H - 1);
+    t.setAttribute("font-size", "2.2"); t.setAttribute("fill", "#6b7570");
+    t.setAttribute("text-anchor", m === 0 ? "start" : "end");
+    t.textContent = m === 0 ? "スタート" : `ゴール ${shape.distance}m`;
+    svg.appendChild(t);
+  }
+
+  const wrap = document.createElement("div");
+  wrap.className = "courseMap";
+  wrap.appendChild(svg);
+
+  const legend = document.createElement("div");
+  legend.className = "courseLegend";
+  const items = [["#c9d6cd", "コーナー"], ["#e4d6b8", "上り坂"], ["#cfe0ea", "下り坂"],
+                 ["#b3261e", "終盤の開始（目安）"], ["#2f6f4f", "スキルの発動位置"]];
+  for (const [color, text] of items) {
+    const span = document.createElement("span");
+    const icon = document.createElement("i");
+    icon.style.background = color;
+    span.append(icon, document.createTextNode(text));
+    legend.appendChild(span);
+  }
+  wrap.appendChild(legend);
+  return wrap;
+}
+
+// 結果の状態。画面で差し替えられるよう、選択中の集合を保持する。
+const simState = {
+  request: null,        // 直近の計算に使ったリクエスト（再計算に使い回す）
+  chosen: [],           // 選択中のスキルID
+  info: new Map(),      // skillId → { sp, bashin, group }
+  courseShape: null,
+  activations: [],
+  measured: null,       // 実測のバ身。差し替え後は null にして「目安」表示へ落とす
+  busy: false,
+  acquired: [],         // 取得済み（外せないが、計算にも表示にも含める）
+  scenarioIds: new Set(),   // シナリオ進化のID。2個までの制限に使う
+};
+
+function simSkillName(id) {
+  const key = String(id);
+  const row = session.recognizedRows.find(r => String(r.skillId) === key);
+  if (row) return row.name;
+  for (const family of cache.master.families) {
+    for (const s of family.skills) if (String(s.skillId) === key) return s.name;
+    for (const evo of family.evolutions || []) {
+      if (String(evo.skillId) === key) return evo.name;
+    }
+  }
+  return key;
+}
+
+// 選択中のシナリオ進化の数。上限に達したら追加できない。
+function scenarioPicked() {
+  return simState.chosen.filter(id => simState.scenarioIds.has(String(id))).length;
+}
+
+// 選択中の合計。実測が無ければ単体値の合計を「目安」として出す。
+function simTotals() {
+  const sp = simState.chosen.reduce((a, id) => a + (simState.info.get(id)?.sp ?? 0), 0);
+  // 取得済みスキルも効いているので、目安の合計に含める（SPはかからない）。
+  const all = [...simState.acquired, ...simState.chosen];
+  const rough = all.reduce((a, id) => a + (simState.info.get(id)?.bashin ?? 0), 0);
+  return { sp, rough, budget: parseInt(document.getElementById("simBudget").value, 10) || 0 };
+}
+
+function pickRow({ label, sub, sp, bashin, action, cls, disabled, onClick }) {
+  const row = document.createElement("div");
+  row.className = "pickRow";
+  const nm = document.createElement("div");
+  nm.className = "nm";
+  nm.textContent = label;
+  if (sub) { const small = document.createElement("small"); small.textContent = sub; nm.appendChild(small); }
+  const val = document.createElement("div");
+  val.className = "val";
+  val.textContent = (sp === 0 ? "SP不要" : sp + "SP") + " ／ +" + bashin.toFixed(3);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = cls || "";
+  btn.textContent = action;
+  btn.disabled = Boolean(disabled) || simState.busy;
+  btn.addEventListener("click", onClick);
+  row.append(nm, val, btn);
+  return row;
+}
+
+function renderSimResults() {
   const el = document.getElementById("simResults");
   el.textContent = "";
-  if (!result.selected.length) {
-    el.textContent = "この条件では、バ身が伸びるスキルが見つかりませんでした。";
-    return;
-  }
-  // 進化スキルは獲得画面に出ないため、認識行から名前を引けない。
-  // マスタ側の進化定義から引き、どの金スキルの進化かも添える。
-  const nameOf = id => {
-    const key = String(id);
-    const row = session.recognizedRows.find(r => String(r.skillId) === key);
-    if (row) return row.name;
-    for (const family of cache.master.families) {
-      for (const evo of family.evolutions || []) {
-        if (String(evo.skillId) !== key) continue;
-        const gold = family.skills[family.skills.length - 1];
-        return `${evo.name}（${gold ? gold.name : "?"}の進化）`;
-      }
-    }
-    return key;
-  };
-  const headline = document.createElement("div");
-  headline.className = "simHeadline";
-  headline.textContent = `+${result.bashinGain.toFixed(2)} バ身（消費 ${result.totalSp} SP）`;
-  el.appendChild(headline);
+  const { sp, rough, budget } = simTotals();
+  const over = sp > budget;
 
-  const table = document.createElement("table");
-  table.innerHTML = "<tr><th>スキル</th><th class=\"num\">SP</th><th class=\"num\">単体バ身</th></tr>";
-  for (const s of result.selected) {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td"); td.textContent = nameOf(s.skillId);
-    const sp = document.createElement("td"); sp.className = "num";
-    // 進化はスキルPtを消費しない。0を数字で出すと読み違えるので言葉にする。
-    sp.textContent = s.sp === 0 ? "不要" : s.sp;
-    const ba = document.createElement("td"); ba.className = "num"; ba.textContent = s.bashin.toFixed(3);
-    tr.append(td, sp, ba); table.appendChild(tr);
+  const totals = document.createElement("div");
+  totals.className = "simTotals";
+  const big = document.createElement("span");
+  big.className = "big";
+  big.textContent = simState.measured != null
+    ? "+" + simState.measured.toFixed(2) + " バ身"
+    : "およそ +" + rough.toFixed(2) + " バ身";
+  const spans = document.createElement("span");
+  spans.className = over ? "over" : "sub2";
+  spans.textContent = "消費 " + sp + " / " + budget + " SP（残り " + (budget - sp) + "）";
+  totals.append(big, spans);
+  if (simState.measured == null) {
+    const hint = document.createElement("span");
+    hint.className = "sub2";
+    hint.textContent = "※ 単体の合計による目安です";
+    totals.appendChild(hint);
   }
-  el.appendChild(table);
+  el.appendChild(totals);
+
+  const recalc = document.createElement("button");
+  recalc.type = "button";
+  recalc.style.width = "100%";
+  recalc.textContent = simState.measured != null ? "この構成でもう一度計算する" : "この構成の正確なバ身を計算する";
+  recalc.disabled = simState.busy || simState.chosen.length === 0 || over;
+  recalc.addEventListener("click", recalcSim);
+  el.appendChild(recalc);
+
+  const head = document.createElement("p");
+  head.className = "pickHead";
+  head.textContent = "選んだスキル（" + simState.chosen.length + "件）";
+  el.appendChild(head);
+
+  if (!simState.chosen.length) {
+    const empty = document.createElement("p");
+    empty.className = "pickNote";
+    empty.textContent = "スキルが選ばれていません。下の候補から追加してください。";
+    el.appendChild(empty);
+  }
+
+  const order = new Map(simState.activations.slice()
+    .sort((a, b) => a.pos - b.pos).map((a, i) => [String(a.skillId), i + 1]));
+  for (const id of simState.chosen) {
+    const info = simState.info.get(id) || { sp: 0, bashin: 0 };
+    const act = simState.activations.find(a => String(a.skillId) === String(id));
+    const num = order.get(String(id));
+    el.appendChild(pickRow({
+      label: (num ? num + ". " : "") + simSkillName(id),
+      sub: act ? "発動 " + act.pos + "m" : null,
+      sp: info.sp, bashin: info.bashin,
+      action: "外す", cls: "remove",
+      onClick: () => {
+        simState.chosen = simState.chosen.filter(x => x !== id);
+        simState.measured = null;
+        renderSimResults();
+      },
+    }));
+  }
+
+  // 取得済み。外せないが、効果は出ているので一覧に出す。
+  const owned = simState.acquired.filter(id => (simState.info.get(id)?.bashin ?? 0) > 0);
+  if (owned.length) {
+    const head0 = document.createElement("p");
+    head0.className = "pickHead";
+    head0.textContent = "取得済み（" + owned.length + "件・外せません）";
+    el.appendChild(head0);
+    for (const id of owned) {
+      const info = simState.info.get(id) || { sp: 0, bashin: 0 };
+      const act = simState.activations.find(a => String(a.skillId) === String(id));
+      const num = order.get(String(id));
+      el.appendChild(pickRow({
+        label: (num ? num + ". " : "") + simSkillName(id),
+        sub: act ? "発動 " + act.pos + "m" : null,
+        sp: 0, bashin: info.bashin,
+        action: "取得済み", cls: "", disabled: true,
+        onClick: () => {},
+      }));
+    }
+  }
+
+  const map = renderCourseMap(simState.courseShape, simState.activations, simSkillName);
+  if (map) el.appendChild(map);
+
+  const rest = [...simState.info.entries()]
+    .filter(([id]) => !simState.chosen.includes(id))
+    .map(([id, v]) => Object.assign({ id }, v))
+    .filter(v => v.bashin > 0)
+    .sort((a, b) => (b.bashin / Math.max(b.sp, 1)) - (a.bashin / Math.max(a.sp, 1)) || b.bashin - a.bashin);
+
+  const head2 = document.createElement("p");
+  head2.className = "pickHead";
+  head2.textContent = "ほかの候補（" + rest.length + "件）";
+  el.appendChild(head2);
+  const note2 = document.createElement("p");
+  note2.className = "pickNote";
+  note2.textContent = "バ身は単体で入れたときの値です。実際は他のスキルと効果が重なるため、合計より小さくなります。";
+  el.appendChild(note2);
+
+  // 同じ系統は同時に持てないが、選び直しはできる。
+  // 押せないだけにすると上位/下位へ変える手段が無くなるので「入れ替え」にする。
+  const chosenByGroup = new Map();
+  for (const id of simState.chosen) {
+    const g = simState.info.get(id)?.group;
+    if (g) chosenByGroup.set(g, id);
+  }
+  const scenarioCount = scenarioPicked();
+  for (const c of rest.slice(0, 30)) {
+    const rival = c.group ? chosenByGroup.get(c.group) : undefined;
+    // 入れ替えるときは、外す側のSPが浮く。
+    const spAfter = sp - (rival ? (simState.info.get(rival)?.sp ?? 0) : 0) + c.sp;
+    const noRoom = spAfter > budget;
+    const diff = rival ? c.bashin - (simState.info.get(rival)?.bashin ?? 0) : 0;
+    // シナリオ進化の上限。入れ替え相手もシナリオ進化なら枠は増えない。
+    const isScenario = simState.scenarioIds.has(String(c.id));
+    const freesSlot = rival && simState.scenarioIds.has(String(rival));
+    const scenarioFull = isScenario && !freesSlot && scenarioCount >= SCENARIO_EVOLUTION_LIMIT;
+    el.appendChild(pickRow({
+      label: simSkillName(c.id),
+      sub: scenarioFull
+        ? "シナリオ進化は" + SCENARIO_EVOLUTION_LIMIT + "個までです"
+        : rival
+        ? (diff >= 0 ? "+" : "") + diff.toFixed(3) + " バ身　←　" + simSkillName(rival)
+        : noRoom ? "残り " + (budget - sp) + " SP では足りません" : null,
+      sp: c.sp, bashin: c.bashin,
+      action: rival ? "入れ替え" : "追加", cls: "",
+      disabled: noRoom || scenarioFull,
+      onClick: () => {
+        if (rival) simState.chosen = simState.chosen.filter(x => x !== rival);
+        simState.chosen.push(c.id);
+        simState.measured = null;
+        renderSimResults();
+      },
+    }));
+  }
 
   const note = document.createElement("p");
   note.className = "sub";
-  note.textContent = `候補${candidates.length}件から選定。${result.note}`;
+  note.textContent = "貪欲法＋局所探索による近似解。順位・追い抜き等のレース内条件は「満たされる」前提で、"
+    + "発動位置は最もバ身が伸びる地点を採っています。";
   el.appendChild(note);
 }
 
+// 選択中の構成で、実際に走らせた値を取り直す。
+async function recalcSim() {
+  if (!simState.request || simState.busy) return;
+  simState.busy = true;
+  const status = document.getElementById("simStatus");
+  status.textContent = "この構成で計算中...";
+  renderSimResults();
+  try {
+    // 再計算では、取得済みも必ず含めた集合で測る。
+    const payload = Object.assign({}, simState.request,
+      { evaluateOnly: [...simState.acquired, ...simState.chosen] });
+    const res = await fetch(SIM_API, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) { status.textContent = "エラー: " + (data.error || res.status); return; }
+    simState.measured = data.bashinGain;
+    simState.activations = data.activations || [];
+    for (const s of data.selected || []) {
+      const prev = simState.info.get(s.skillId) || {};
+      simState.info.set(s.skillId, { sp: s.sp, bashin: s.bashin, group: prev.group });
+    }
+    status.textContent = "計算しました";
+  } catch (e) {
+    status.textContent = "通信に失敗しました。時間をおいて試してください。";
+    console.error(e);
+  } finally {
+    simState.busy = false;
+    renderSimResults();
+  }
+}
+
+
 // 継承スキル（kind=inheritedUnique）のID一覧。進化も含める。
+// 「継承スキルを3つ以上持っていると効果が増える」等の判定にサーバが使う。
+// どのIDが継承スキルかはスキルマスタ側にしか無いので、こちらから渡す。
 let inheritedIdCache = null;
 function inheritedSkillIdList() {
   if (inheritedIdCache) return inheritedIdCache;
@@ -1702,26 +2106,11 @@ function inheritedSkillIdList() {
   return ids;
 }
 
-// 回復スキルのID一覧。持っていないと発動しない条件があるため送る。
-// 判定はスキル名に「回復」を含むか（マスタに効果種別が無いため）。
-let healIdCache = null;
-function healSkillIdList() {
-  if (healIdCache) return healIdCache;
-  const ids = [];
-  const add = s => { if (/回復|癒|ヒール|息|呼吸/.test(s.name)) ids.push(String(s.skillId)); };
-  for (const family of cache.master.families) {
-    family.skills.forEach(add);
-    (family.evolutions || []).forEach(add);
-  }
-  healIdCache = ids;
-  return ids;
-}
-
 async function runSim() {
   const button = document.getElementById("simRunButton");
   const status = document.getElementById("simStatus");
   const num = id => parseInt(document.getElementById(id).value, 10);
-  const { candidates, acquired } = simCandidatesFromSession();
+  const { candidates, acquired, scenarioEvolutions } = simCandidatesFromSession();
   if (!candidates.length) {
     status.textContent = "候補スキルがありません。先に「評価点で選ぶ」タブでスクリーンショットを読み取ってください。";
     return;
@@ -1739,12 +2128,13 @@ async function runSim() {
     mood: num("simMood"),
     ground: document.getElementById("simGround").value,
     budgetSp: num("simBudget"),
-    acquired,
-    candidates,
+    // 取得済みは比較の土台にしない。候補として渡し、必ず選ばれる形にする
+    // （SP 0 なので予算を圧迫しない）。こうすると単体バ身も測れて画面に出せる。
+    acquired: [],
+    candidates: candidates.concat(acquired.map(id => ({ skillId: id, sp: 0, owned: true }))),
     // 「継承スキルを3つ以上持っていると効果が増える」等の判定に使う。
     // どのIDが継承スキルかはマスタ側にしか無いので、こちらから渡す。
     inheritedSkillIds: inheritedSkillIdList(),
-    healSkillIds: healSkillIdList(),
   };
   button.disabled = true;
   status.textContent = "計算中... 10秒ほどかかります";
@@ -1758,7 +2148,21 @@ async function runSim() {
       return;
     }
     status.textContent = `完了（サーバで ${data.evaluations} 回のシミュレーション）`;
-    renderSimResults(data, candidates);
+    simState.request = payload;
+    simState.acquired = acquired.slice();
+    simState.scenarioIds = new Set((scenarioEvolutions || []).map(e => e.skillId));
+    // 取得済みは常に含まれるので、選択中の一覧からは外して別枠で見せる。
+    simState.chosen = (data.selected || [])
+      .map(s => s.skillId).filter(id => !acquired.includes(id));
+    simState.info = new Map();
+    for (const c of [...(data.selected || []), ...(data.alternatives || [])]) {
+      const known = candidates.find(x => x.skillId === c.skillId);
+      simState.info.set(c.skillId, { sp: c.sp, bashin: c.bashin, group: c.group ?? known?.group });
+    }
+    simState.courseShape = data.courseShape || null;
+    simState.activations = data.activations || [];
+    simState.measured = data.bashinGain;
+    renderSimResults();
   } catch (e) {
     status.textContent = "通信に失敗しました。時間をおいて試してください。";
     console.error(e);
@@ -1779,6 +2183,8 @@ function selectTab(which) {
 document.getElementById("tabScore").addEventListener("click", () => selectTab("score"));
 document.getElementById("tabSim").addEventListener("click", () => selectTab("sim"));
 document.getElementById("simRunButton").addEventListener("click", runSim);
+// シナリオを変えると候補が変わるので、その場で作り直して件数を見せる。
+document.getElementById("simScenario").addEventListener("change", simCandidatesFromSession);
 
 document.getElementById("runButton").addEventListener("click", run);
 document.getElementById("sampleButton").addEventListener("click", runSample);
