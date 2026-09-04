@@ -1663,30 +1663,35 @@ function simCandidatesFromSession() {
   }
   if (Number.isFinite(session.budget)) document.getElementById("simBudget").value = session.budget;
 
-  // 候補の作り方は評価点側（buildOptimizerState + plans）と同じ機序に揃える。
+  // 候補の作り方は評価点側（buildOptimizerState + plansForFamily）と同じ規則に揃える。
   //
-  // 「右回り○ → ◎ → 鬼」のような段階は、ファミリー内の1つの流れになっている。
-  // 上位を取ると下位は上書きされ、実際に発動するのは最上位だけ。
-  // そのため候補は「スキル単位」ではなく「プラン単位」で出す。
-  //   プランの skillId … 実際に発動する最上位スキル
-  //   プランの sp      … 未取得の member を合計した必要ポイント
-  // 同じファミリーのプランは同時に選べないので、group を付けて排他にする。
+  // 「右回り○ → ◎ → 鬼」のような段階はファミリー内の1つの流れで、
+  // 上位を取ると下位は上書きされる。実際に発動するのは最上位だけなので、
+  // 候補は「スキル単位」ではなく「プラン単位」で出し、同じファミリーは排他にする。
   const acquiredSet = new Set();
   const displayedCost = new Map();
-  const evolutionOf = new Map();      // 金スキルID → 進化スキルIDの配列
   for (const row of session.recognizedRows) {
-    if (row.acquired) acquiredSet.add(String(row.skillId));
-    else if (row.sp !== null) displayedCost.set(String(row.skillId), row.sp);
+    if (row.acquired) {
+      acquiredSet.add(String(row.skillId));
+      // 取得済みの金でも進化はできる。進化はPtを消費しないので費用0で登録する。
+      if (row.evo && row.evolutionSkillIds) {
+        for (const evoId of row.evolutionSkillIds) displayedCost.set(String(evoId), 0);
+      }
+      continue;
+    }
+    if (row.sp === null) continue;
+    displayedCost.set(String(row.skillId), row.sp);
+    // 進化のコストは進化元の金と同額＝画面の表示SPをそのまま使う。
     if (row.evo && row.evolutionSkillIds) {
-      evolutionOf.set(String(row.skillId), row.evolutionSkillIds.map(String));
+      for (const evoId of row.evolutionSkillIds) displayedCost.set(String(evoId), row.sp);
     }
   }
   const acquired = [...acquiredSet];
 
-  // 進化には入手条件がある（評価点側 plansForFamily と同じ規則）。
-  //   ・キャラ専用の進化 … characterCardId が育成中のキャラと一致するものだけ
-  //   ・シナリオ進化     … characterCardId が null。誰でも入手できるが上限あり
-  //   ・いずれも「進化元の金スキルが進化済み」であることが前提
+  // 進化には入手条件がある。
+  //   ・キャラ専用 … characterCardId が育成中のキャラと一致するものだけ
+  //   ・シナリオ進化 … characterCardId が null。育成シナリオで絞れる
+  //   ・共通の前提 … 進化元の金スキルが進化済みであること
   const myCardId = session.characterCardId;
   const chosenScenario = document.getElementById("simScenario")?.value || "";
   const evolvedGolds = new Set();
@@ -1697,33 +1702,61 @@ function simCandidatesFromSession() {
   const candidates = [];
   const scenarioEvolutions = [];
   for (const family of cache.master.families) {
+    const byId = new Map();
+    for (const skill of family.skills) byId.set(String(skill.skillId), skill);
+
+    // ヒント割引率。表示されている最下位の白ティアの 表示SP÷baseCost。
+    // 同じスキルのティアはヒントLvを共有するので割引は一律で、画面に出ない
+    // 白上位ティアの必要SPをこの率で見積もれる。
+    let hintDiscount = null;
+    for (const skill of family.skills) {
+      const key = String(skill.skillId);
+      if (skill.rarity === 1 && skill.baseCost > 0 && displayedCost.has(key)) {
+        hintDiscount = displayedCost.get(key) / skill.baseCost;
+        break;   // family.skills はティア昇順。最下位の表示白ティアを採る
+      }
+    }
+
     for (const plan of family.plans || []) {
       if (plan.usesEvolution) {
-        // 進化元が進化していなければ、その進化は手に入らない。
         if (!evolvedGolds.has(String(plan.fromGoldSkillId))) continue;
         const isScenario = plan.characterCardId == null;
         if (!isScenario && String(plan.characterCardId) !== String(myCardId)) continue;
-        // シナリオ進化は、選んだ育成シナリオのものだけ。未選択なら絞らない。
         if (isScenario && chosenScenario) {
           const belongsTo = scenarioEvolutionMap[String(plan.topSkillId)];
           if (belongsTo && belongsTo !== chosenScenario) continue;
         }
       }
       const members = plan.memberIds.map(String);
-      // 未取得の member にかかるポイントを合計する。取得済みは0。
-      let sp = 0;
-      let buyable = true;
-      for (const id of members) {
-        if (acquiredSet.has(id)) continue;
-        if (plan.usesEvolution && id === String(plan.topSkillId)) continue;  // 進化はPt不要
-        const cost = displayedCost.get(id);
-        if (cost === undefined) { buyable = false; break; }
-        sp += cost;
+      if (!members.length) continue;
+      const topKey = String(plan.topSkillId);
+      const top = byId.get(topKey);
+      const topDisplayed = displayedCost.has(topKey);
+      // 白の上位ティア（◎）は、下位の白（○）が表示されていれば画面に無くても取れる。
+      // 金と進化は画面に出ているときだけ取得できる。
+      const whiteInferable = top && top.rarity === 1 && hintDiscount !== null;
+      if (!topDisplayed && !whiteInferable
+          && members.some(m => !displayedCost.has(m) && !acquiredSet.has(m))) {
+        continue;   // スクリーンショットに写っていないスキルは取得できない
       }
-      if (!buyable) continue;
+
+      // 表示SPは下位ティア分を含む累積値。合算すると二重計上になる。
+      let sp;
+      if (topDisplayed) {
+        sp = displayedCost.get(topKey);
+      } else {
+        sp = 0;
+        for (const m of members) {
+          if (acquiredSet.has(m)) continue;
+          if (displayedCost.has(m)) sp += displayedCost.get(m);
+          else if (whiteInferable && byId.has(m)) sp += Math.round(byId.get(m).baseCost * hintDiscount);
+          else if (byId.has(m)) sp += byId.get(m).baseCost;
+        }
+      }
       // 既に全部取得済みのプランは選ぶ意味がない（進化を除く）。
       if (sp === 0 && !plan.usesEvolution) continue;
-      const entry = { skillId: String(plan.topSkillId), sp, group: String(family.familyId) };
+
+      const entry = { skillId: topKey, sp, group: String(family.familyId) };
       if (plan.usesEvolution && plan.characterCardId == null) {
         entry.scenario = true;
         scenarioEvolutions.push(entry);
