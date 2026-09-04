@@ -435,8 +435,16 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
 
   <section>
     <label>① コース</label>
-    <div class="simRow wide">
-      <label for="simCourse" class="sub">レース</label>
+    <div class="simRow">
+      <label for="simTrack" class="sub">場</label>
+      <select id="simTrack"></select>
+    </div>
+    <div class="simRow">
+      <label for="simSurface" class="sub">芝/ダート</label>
+      <select id="simSurface"></select>
+    </div>
+    <div class="simRow">
+      <label for="simCourse" class="sub">距離</label>
       <select id="simCourse"></select>
     </div>
   </section>
@@ -1615,25 +1623,75 @@ let simCoursesLoaded = false;
 // シナリオ進化スキルID → 育成シナリオ名。どのシナリオで進化させられるかの対応。
 let scenarioEvolutionMap = {};
 
+// コース一覧（通し番号順）。3段のプルダウンはここから絞り込んで作る。
+let simCourses = [];
+
+// select の中身を丸ごと入れ替える。value と表示が同じ単純な選択肢用。
+function fillOptions(selectId, values) {
+  const select = document.getElementById(selectId);
+  select.innerHTML = "";
+  for (const value of values) {
+    const option = document.createElement("option");
+    option.value = String(value);
+    option.textContent = String(value);
+    select.appendChild(option);
+  }
+}
+
+function refillSurfaces() {
+  const track = document.getElementById("simTrack").value;
+  fillOptions("simSurface", [...new Set(simCourses.filter(c => c.track === track).map(c => c.surface))]);
+  refillDistances();
+}
+
+function refillDistances() {
+  const track = document.getElementById("simTrack").value;
+  const surface = document.getElementById("simSurface").value;
+  const select = document.getElementById("simCourse");
+  select.innerHTML = "";
+  for (const course of simCourses.filter(c => c.track === track && c.surface === surface)) {
+    const option = document.createElement("option");
+    option.value = String(course.id);
+    // 同じ距離で回りが違うコースがあるため、回りまで出さないと区別できない。
+    option.textContent = `${course.distance}m（${course.turn}）`;
+    select.appendChild(option);
+  }
+}
+
+// 育成シナリオを実装順の降順（新しいものが上）に並べる。
+// シナリオ進化のスキルIDは実装順に採番されている（407=UAF … 414=ラーメン）ので、
+// シナリオごとの最小IDが実装順そのものになる。
+function scenarioNamesNewestFirst(evolutionMap) {
+  const firstId = new Map();
+  for (const [skillId, name] of Object.entries(evolutionMap)) {
+    const id = Number(skillId);
+    if (!firstId.has(name) || id < firstId.get(name)) firstId.set(name, id);
+  }
+  return [...firstId.keys()].sort((a, b) => firstId.get(b) - firstId.get(a));
+}
+
 async function loadSimCourses() {
   if (simCoursesLoaded) return;
-  const select = document.getElementById("simCourse");
+  // await より前に立てる。末尾で立てると、通信中に呼ばれた2回目が素通りして
+  // 選択肢が二重に並ぶ（タブ切り替えと明示呼び出しが重なると実際に起きた）。
+  simCoursesLoaded = true;
   const courses = await (await fetch("sim_courses.json")).json();
+  // 通し番号（コースID）順に並べる。ゲーム内の並びと同じで、探しやすい。
+  simCourses = courses.slice().sort((a, b) => a.id - b.id);
   scenarioEvolutionMap = await (await fetch("scenario_evolutions.json")).json();
   // 選べるシナリオは、対応表に出てくるものだけにする（実在しない選択肢を出さない）。
   const scenarioSelect = document.getElementById("simScenario");
-  for (const name of [...new Set(Object.values(scenarioEvolutionMap))].sort()) {
+  for (const name of scenarioNamesNewestFirst(scenarioEvolutionMap)) {
     const option = document.createElement("option");
     option.value = name;
     option.textContent = name;
     scenarioSelect.appendChild(option);
   }
-  for (const c of courses) {
-    const option = document.createElement("option");
-    option.value = String(c.id);
-    option.textContent = `${c.track} ${c.surface}${c.distance}m（${c.turn}）`;
-    select.appendChild(option);
-  }
+  // 場を選ぶと芝/ダートが、芝/ダートを選ぶと距離が絞られる。
+  document.getElementById("simTrack").addEventListener("change", refillSurfaces);
+  document.getElementById("simSurface").addEventListener("change", refillDistances);
+  fillOptions("simTrack", [...new Set(simCourses.map(c => c.track))]);
+  refillSurfaces();
   // 適性の選択肢は3か所で同じ。既定はA。
   for (const id of ["simAptDist", "simAptSurface", "simAptStrategy"]) {
     const sel = document.getElementById(id);
@@ -1644,7 +1702,6 @@ async function loadSimCourses() {
       sel.appendChild(o);
     });
   }
-  simCoursesLoaded = true;
 }
 
 // 評価点タブで読み取った結果があれば、ステータスと未取得スキルを引き継ぐ。
@@ -1785,13 +1842,12 @@ function renderCourseMap(shape, activations, nameOf) {
   // viewBox。左右に余白を取らないと、0m と ゴール地点の印が切れる
   //（実測: 0m 発動の丸が画面外へはみ出していた）。
   const PAD = 3;
-  const W = 100, H = 34;
+  const W = 100;
   const TRACK_Y = 13, TRACK_H = 7;
   const x = m => PAD + (m / shape.distance) * (W - PAD * 2);
 
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.setAttribute("overflow", "visible");
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", `コース図。全長${shape.distance}メートル。スキルの発動位置を示しています。`);
@@ -1821,43 +1877,84 @@ function renderCourseMap(shape, activations, nameOf) {
   line.setAttribute("stroke-dasharray", "1 1");
   svg.appendChild(line);
 
-  // 発動位置。近い印が重なるので、上下2段に振り分ける。
+  // 発動位置。終盤には発動が集中するため（実測: 2400mで1487mに14個）、
+  // 印を1つずつ描くと完全に重なって読めない。近い地点はひとまとめにし、
+  // 一覧の何番から何番かを帯に書く。一覧は発動位置の順に並んでいるので、
+  // まとまりは必ず連番になる。
   const sorted = activations.slice().sort((a, b) => a.pos - b.pos);
-  let lastX = -99, row = 0;
-  for (const act of sorted) {
+  const CLUSTER_GAP = 2.2;      // これより近い印は1つにまとめる（viewBox単位）
+  const clusters = [];
+  sorted.forEach((act, i) => {
     const px = x(act.pos);
-    row = (px - lastX < 12) ? (row + 1) % 2 : 0;
-    lastX = px;
-    const y = row === 0 ? TRACK_Y - 4.5 : TRACK_Y + TRACK_H + 4.5;
+    const last = clusters[clusters.length - 1];
+    if (last && px - last.px < CLUSTER_GAP) {
+      last.members.push({ act, no: i + 1 });
+    } else {
+      clusters.push({ px, members: [{ act, no: i + 1 }] });
+    }
+  });
+
+  // 段ごとに「そこまでに描いた右端」を覚え、空いている段へ置く。
+  // 交互に振るだけだと3つ目が1つ目と同じ段へ戻り、帯どうしが接触する。
+  //
+  // 段は走路の上下に2本ずつ。終盤は幅の広い帯が3つ並ぶことがあり
+  //（実測: 東京芝2400mで 14-35 / 36-44 / 45-53 が接触）、2段では足りない。
+  const ROW_Y = [TRACK_Y - 4.5, TRACK_Y + TRACK_H + 4.5,
+                 TRACK_Y - 8.4, TRACK_Y + TRACK_H + 8.4];
+  const rowRightEdge = ROW_Y.map(() => -99);
+  let lowestRowY = TRACK_Y + TRACK_H;   // 印が1つも無くても走路の下までは描く
+  for (const cluster of clusters) {
+    const px = cluster.px;
+    const first = cluster.members[0].no;
+    const last = cluster.members[cluster.members.length - 1].no;
+    const text = first === last ? String(first) : `${first}-${last}`;
+    const width = 2.8 + text.length * 0.95;
+    const leftEdge = px - width / 2;
+    // 走路に近い段から順に、ぶつからない段を探す。
+    // どの段も埋まっていれば、いちばん余裕のある段に置く。
+    let row = rowRightEdge.findIndex(edge => leftEdge > edge);
+    if (row < 0) row = rowRightEdge.indexOf(Math.min(...rowRightEdge));
+    rowRightEdge[row] = px + width / 2 + 0.4;   // 0.4 は帯どうしの最小すきま
+    lowestRowY = Math.max(lowestRowY, ROW_Y[row]);
+    const y = ROW_Y[row];
+    const isAbove = y < TRACK_Y;
 
     const stem = document.createElementNS(svgNS, "line");
     stem.setAttribute("x1", px); stem.setAttribute("x2", px);
-    stem.setAttribute("y1", row === 0 ? y + 1 : TRACK_Y + TRACK_H);
-    stem.setAttribute("y2", row === 0 ? TRACK_Y : y - 1);
+    stem.setAttribute("y1", isAbove ? y + 1 : TRACK_Y + TRACK_H);
+    stem.setAttribute("y2", isAbove ? TRACK_Y : y - 1);
     stem.setAttribute("stroke", "#2f6f4f"); stem.setAttribute("stroke-width", "0.3");
     svg.appendChild(stem);
 
-    const dot = document.createElementNS(svgNS, "circle");
-    dot.setAttribute("cx", px); dot.setAttribute("cy", y);
-    dot.setAttribute("r", "1.4"); dot.setAttribute("fill", "#2f6f4f");
-    svg.appendChild(dot);
+    // 文字数ぶんの幅を持つ角丸。1件なら丸に近く、範囲表示なら横に伸びる。
+    const pill = document.createElementNS(svgNS, "rect");
+    pill.setAttribute("x", px - width / 2); pill.setAttribute("y", y - 1.4);
+    pill.setAttribute("width", width); pill.setAttribute("height", "2.8");
+    pill.setAttribute("rx", "1.4"); pill.setAttribute("fill", "#2f6f4f");
+    svg.appendChild(pill);
 
     const label = document.createElementNS(svgNS, "text");
     label.setAttribute("x", px); label.setAttribute("y", y + 0.6);
     label.setAttribute("font-size", "1.8"); label.setAttribute("fill", "#fff");
     label.setAttribute("text-anchor", "middle");
-    label.textContent = String(sorted.indexOf(act) + 1);
+    label.textContent = text;
     svg.appendChild(label);
 
     const title = document.createElementNS(svgNS, "title");
-    title.textContent = `${nameOf(act.skillId)}（${act.pos}m）`;
-    dot.appendChild(title);
+    title.textContent = cluster.members
+      .map(m => `${m.no}. ${nameOf(m.act.skillId)}（${m.act.pos}m）`).join("\n");
+    pill.appendChild(title);
   }
+
+  // 図の高さは、実際に使った段から決める。常に4段ぶん確保すると下が空く。
+  const PILL_HALF = 1.4, SCALE_GAP = 3.2;
+  const H = lowestRowY + PILL_HALF + SCALE_GAP;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
   // 距離の目盛り
   for (const m of [0, shape.distance]) {
     const t = document.createElementNS(svgNS, "text");
-    t.setAttribute("x", m === 0 ? PAD : W - PAD); t.setAttribute("y", H - 1);
+    t.setAttribute("x", m === 0 ? PAD : W - PAD); t.setAttribute("y", H - 0.4);
     t.setAttribute("font-size", "2.2"); t.setAttribute("fill", "#6b7570");
     t.setAttribute("text-anchor", m === 0 ? "start" : "end");
     t.textContent = m === 0 ? "スタート" : `ゴール ${shape.distance}m`;
@@ -1966,6 +2063,15 @@ function renderSimResults() {
     hint.textContent = "※ 単体の合計による目安です";
     totals.appendChild(hint);
   }
+  if (simState.truncated) {
+    // 打ち切られた結果も有効だが、探索しきっていない。黙って出すと
+    // 「これが最良」と読まれてしまうので、そのことを明示する。
+    const warn = document.createElement("p");
+    warn.className = "pickNote";
+    warn.textContent = "※ 候補が多いため計算を途中で打ち切りました。"
+      + "もう少し良い組み合わせが残っている可能性があります。";
+    el.appendChild(warn);
+  }
   el.appendChild(totals);
 
   const recalc = document.createElement("button");
@@ -2032,7 +2138,7 @@ function renderSimResults() {
   if (map) el.appendChild(map);
 
   const rest = [...simState.info.entries()]
-    .filter(([id]) => !simState.chosen.includes(id))
+    .filter(([id]) => !simState.chosen.includes(id) && !simState.acquired.includes(id))
     .map(([id, v]) => Object.assign({ id }, v))
     .filter(v => v.bashin > 0)
     .sort((a, b) => (b.bashin / Math.max(b.sp, 1)) - (a.bashin / Math.max(a.sp, 1)) || b.bashin - a.bashin);
@@ -2054,7 +2160,7 @@ function renderSimResults() {
     if (g) chosenByGroup.set(g, id);
   }
   const scenarioCount = scenarioPicked();
-  for (const c of rest.slice(0, 30)) {
+  for (const c of rest.slice(0, 100)) {   // 一次選抜を通った候補は実測91件。全部見せる
     const rival = c.group ? chosenByGroup.get(c.group) : undefined;
     // 入れ替えるときは、外す側のSPが浮く。
     const spAfter = sp - (rival ? (simState.info.get(rival)?.sp ?? 0) : 0) + c.sp;
@@ -2193,6 +2299,7 @@ async function runSim() {
       simState.info.set(c.skillId, { sp: c.sp, bashin: c.bashin, group: c.group ?? known?.group });
     }
     simState.courseShape = data.courseShape || null;
+    simState.truncated = data.truncated === true;
     simState.activations = data.activations || [];
     simState.measured = data.bashinGain;
     renderSimResults();
