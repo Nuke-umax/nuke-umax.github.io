@@ -19484,6 +19484,24 @@
      "characterCardId": "107701",
      "characterName": "ナリタトップロード",
      "characterCommonName": "トプロ"
+    },
+    {
+     "skillId": 112702211,
+     "name": "トドメのかつ丼！",
+     "fromGoldSkillId": 202011,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "choKyori",
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "長距離/中距離",
+     "characterCardId": "112702",
+     "characterName": "フェノーメノ",
+     "characterCommonName": "秋メノ"
     }
    ],
    "negativeSkill": null,
@@ -19538,6 +19556,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202011,
      "characterCardId": "107701"
+    },
+    {
+     "name": "トドメのかつ丼！",
+     "topSkillId": 112702211,
+     "memberIds": [
+      202012,
+      112702211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202011,
+     "characterCardId": "112702"
     }
    ]
   },
@@ -20365,6 +20394,23 @@
      "characterCardId": "109601",
      "characterName": "ノーリーズン",
      "characterCommonName": "リーズン"
+    },
+    {
+     "skillId": 106902221,
+     "name": "桜咲くときは今――！",
+     "fromGoldSkillId": 202091,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "mile"
+      ]
+     ],
+     "conditionText": "マイル",
+     "characterCardId": "106902",
+     "characterName": "サクラチヨノオー",
+     "characterCommonName": "ドレスチヨ、ダンスチヨ、ドレスチヨちゃん"
     }
    ],
    "negativeSkill": null,
@@ -20419,6 +20465,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202091,
      "characterCardId": "109601"
+    },
+    {
+     "name": "桜咲くときは今――！",
+     "topSkillId": 106902221,
+     "memberIds": [
+      202092,
+      106902221
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202091,
+     "characterCardId": "106902"
     }
    ]
   },
@@ -21533,6 +21590,28 @@
      "characterCardId": "109101",
      "characterName": "ヴィブロス",
      "characterCommonName": "ヴィブロス"
+    },
+    {
+     "skillId": 114901111,
+     "name": "妙技・坂落とし",
+     "fromGoldSkillId": 202171,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 170,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ],
+      [
+       "sashi",
+       "senko"
+      ]
+     ],
+     "conditionText": "中距離/マイル・差し/先行",
+     "characterCardId": "114901",
+     "characterName": "ファレノプシス",
+     "characterCommonName": "ファレノ"
     }
    ],
    "negativeSkill": null,
@@ -21620,6 +21699,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202171,
      "characterCardId": "109101"
+    },
+    {
+     "name": "妙技・坂落とし",
+     "topSkillId": 114901111,
+     "memberIds": [
+      202172,
+      114901111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202171,
+     "characterCardId": "114901"
     }
    ]
   },
@@ -26870,6 +26960,23 @@
      "characterCardId": "108401",
      "characterName": "タニノギムレット",
      "characterCommonName": "ギムレット、ギム"
+    },
+    {
+     "skillId": 104901311,
+     "name": "All-in!!",
+     "fromGoldSkillId": 202651,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離",
+     "characterCardId": "104901",
+     "characterName": "ナカヤマフェスタ",
+     "characterCommonName": "ナカヤマ、フェスタ"
     }
    ],
    "negativeSkill": null,
@@ -26913,6 +27020,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202651,
      "characterCardId": "108401"
+    },
+    {
+     "name": "All-in!!",
+     "topSkillId": 104901311,
+     "memberIds": [
+      202652,
+      104901311
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202651,
+     "characterCardId": "104901"
     }
    ]
   },
@@ -27588,6 +27706,24 @@
      "characterCardId": "107202",
      "characterName": "ヤエノムテキ",
      "characterCommonName": "黒ヤエノ、刀ヤエノ、緑ヤエノ"
+    },
+    {
+     "skillId": 101401311,
+     "name": "怪鳥は飛んでいく",
+     "fromGoldSkillId": 202711,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "sashi",
+       "senko"
+      ]
+     ],
+     "conditionText": "差し/先行",
+     "characterCardId": "101401",
+     "characterName": "エルコンドルパサー",
+     "characterCommonName": "エル"
     }
    ],
    "negativeSkill": null,
@@ -27618,8 +27754,7 @@
       410051
      ],
      "usesEvolution": true,
-     "fromGoldSkillId": 202711,
-     "characterCardId": null
+     "fromGoldSkillId": 202711
     },
     {
      "name": "光輝なるは白き王",
@@ -27653,6 +27788,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202711,
      "characterCardId": "107202"
+    },
+    {
+     "name": "怪鳥は飛んでいく",
+     "topSkillId": 101401311,
+     "memberIds": [
+      202712,
+      101401311
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202711,
+     "characterCardId": "101401"
     }
    ]
   },
@@ -27971,6 +28117,24 @@
      "characterCardId": "108601",
      "characterName": "メジロラモーヌ",
      "characterCommonName": "ラモーヌ"
+    },
+    {
+     "skillId": 114401111,
+     "name": "Impeccable",
+     "fromGoldSkillId": 202741,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ]
+     ],
+     "conditionText": "中距離/マイル",
+     "characterCardId": "114401",
+     "characterName": "ローズキングダム",
+     "characterCommonName": "ローズ"
     }
    ],
    "negativeSkill": null,
@@ -28003,6 +28167,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202741,
      "characterCardId": "108601"
+    },
+    {
+     "name": "Impeccable",
+     "topSkillId": 114401111,
+     "memberIds": [
+      202742,
+      114401111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202741,
+     "characterCardId": "114401"
     }
    ]
   },
@@ -32418,6 +32593,23 @@
      "characterCardId": "112402",
      "characterName": "バブルガムフェロー",
      "characterCommonName": "正月バブル"
+    },
+    {
+     "skillId": 104302111,
+     "name": "ラスカル・ロンプ！",
+     "fromGoldSkillId": 203231,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "先行",
+     "characterCardId": "104302",
+     "characterName": "シンコウウインディ",
+     "characterCommonName": "秋ウインディ"
     }
    ],
    "negativeSkill": null,
@@ -32450,6 +32642,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 203231,
      "characterCardId": "112402"
+    },
+    {
+     "name": "ラスカル・ロンプ！",
+     "topSkillId": 104302111,
+     "memberIds": [
+      203232,
+      104302111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203231,
+     "characterCardId": "104302"
     }
    ]
   },
@@ -34942,7 +35145,25 @@
      "conditionText": "ダート"
     }
    ],
-   "evolutions": [],
+   "evolutions": [
+    {
+     "skillId": 104302211,
+     "name": "ワルの大脱走",
+     "fromGoldSkillId": 203601,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "dirt"
+      ]
+     ],
+     "conditionText": "ダート",
+     "characterCardId": "104302",
+     "characterName": "シンコウウインディ",
+     "characterCommonName": "秋ウインディ"
+    }
+   ],
    "negativeSkill": null,
    "kind": "normal",
    "plans": [
@@ -34962,6 +35183,17 @@
       203601
      ],
      "usesEvolution": false
+    },
+    {
+     "name": "ワルの大脱走",
+     "topSkillId": 104302211,
+     "memberIds": [
+      203602,
+      104302211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203601,
+     "characterCardId": "104302"
     }
    ]
   },
@@ -37754,7 +37986,25 @@
      "conditionText": "先行・マイル"
     }
    ],
-   "evolutions": [],
+   "evolutions": [
+    {
+     "skillId": 114401211,
+     "name": "Rose of Steel",
+     "fromGoldSkillId": 203961,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 170,
+     "conditionGroups": [
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "先行",
+     "characterCardId": "114401",
+     "characterName": "ローズキングダム",
+     "characterCommonName": "ローズ"
+    }
+   ],
    "negativeSkill": null,
    "kind": "normal",
    "plans": [
@@ -37774,6 +38024,17 @@
       203961
      ],
      "usesEvolution": false
+    },
+    {
+     "name": "Rose of Steel",
+     "topSkillId": 114401211,
+     "memberIds": [
+      203962,
+      114401211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203961,
+     "characterCardId": "114401"
     }
    ]
   },
@@ -40142,6 +40403,23 @@
      "characterCardId": "113202",
      "characterName": "ラヴズオンリーユー",
      "characterCommonName": "ドレスラヴズ"
+    },
+    {
+     "skillId": 112702111,
+     "name": "王道刑事、強面派",
+     "fromGoldSkillId": 204301,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "先行",
+     "characterCardId": "112702",
+     "characterName": "フェノーメノ",
+     "characterCommonName": "秋メノ"
     }
    ],
    "negativeSkill": null,
@@ -40174,6 +40452,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 204301,
      "characterCardId": "113202"
+    },
+    {
+     "name": "王道刑事、強面派",
+     "topSkillId": 112702111,
+     "memberIds": [
+      204302,
+      112702111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204301,
+     "characterCardId": "112702"
     }
    ]
   },
@@ -41691,6 +41980,242 @@
    ]
   },
   {
+   "familyId": 20466,
+   "skills": [
+    {
+     "skillId": 204662,
+     "name": "砂塵を越えて",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 174,
+     "cumulativeScore": 174,
+     "baseCost": 150,
+     "conditionGroups": [
+      [
+       "dirt"
+      ]
+     ],
+     "conditionText": "ダート"
+    },
+    {
+     "skillId": 204661,
+     "name": "開けろ風穴！",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 220,
+     "cumulativeScore": 394,
+     "baseCost": 150,
+     "conditionGroups": [
+      [
+       "dirt"
+      ]
+     ],
+     "conditionText": "ダート"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "砂塵を越えて",
+     "topSkillId": 204662,
+     "memberIds": [
+      204662
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "開けろ風穴！",
+     "topSkillId": 204661,
+     "memberIds": [
+      204662,
+      204661
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20467,
+   "skills": [
+    {
+     "skillId": 204672,
+     "name": "ここが狙い目",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "tanKyori"
+      ]
+     ],
+     "conditionText": "短距離"
+    },
+    {
+     "skillId": 204671,
+     "name": "堅忍果決",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "tanKyori"
+      ]
+     ],
+     "conditionText": "短距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "ここが狙い目",
+     "topSkillId": 204672,
+     "memberIds": [
+      204672
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "堅忍果決",
+     "topSkillId": 204671,
+     "memberIds": [
+      204672,
+      204671
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20468,
+   "skills": [
+    {
+     "skillId": 204682,
+     "name": "元気バクハツ",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "tanKyori"
+      ]
+     ],
+     "conditionText": "短距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "元気バクハツ",
+     "topSkillId": 204682,
+     "memberIds": [
+      204682
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20469,
+   "skills": [
+    {
+     "skillId": 204692,
+     "name": "立ち合い",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ]
+     ],
+     "conditionText": "中距離/マイル"
+    },
+    {
+     "skillId": 204691,
+     "name": "剣抜弩張",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ]
+     ],
+     "conditionText": "中距離/マイル"
+    }
+   ],
+   "evolutions": [
+    {
+     "skillId": 114901211,
+     "name": "寄らば斬る！",
+     "fromGoldSkillId": 204691,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ]
+     ],
+     "conditionText": "中距離/マイル",
+     "characterCardId": "114901",
+     "characterName": "ファレノプシス",
+     "characterCommonName": "ファレノ"
+    }
+   ],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "立ち合い",
+     "topSkillId": 204692,
+     "memberIds": [
+      204692
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "剣抜弩張",
+     "topSkillId": 204691,
+     "memberIds": [
+      204692,
+      204691
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "寄らば斬る！",
+     "topSkillId": 114901211,
+     "memberIds": [
+      204692,
+      114901211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204691,
+     "characterCardId": "114901"
+    }
+   ]
+  },
+  {
    "familyId": 20470,
    "skills": [
     {
@@ -41734,6 +42259,63 @@
      "memberIds": [
       204702,
       204701
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20471,
+   "skills": [
+    {
+     "skillId": 204712,
+     "name": "気勢を上げて",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "差し"
+    },
+    {
+     "skillId": 204711,
+     "name": "励声一番",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "差し"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "気勢を上げて",
+     "topSkillId": 204712,
+     "memberIds": [
+      204712
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "励声一番",
+     "topSkillId": 204711,
+     "memberIds": [
+      204712,
+      204711
      ],
      "usesEvolution": false
     }
@@ -52516,6 +53098,21 @@
    "characterName": "ヴィクトワールピサ"
   },
   {
+   "skillId": 101441,
+   "name": "エパヌイスマンの大号令",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "chuKyori"
+    ]
+   ],
+   "conditionText": "中距離",
+   "characterCardId": "114401",
+   "characterName": "ローズキングダム"
+  },
+  {
    "skillId": 101451,
    "name": "冠絶タクティクス",
    "rarity": 5,
@@ -52530,6 +53127,25 @@
    "conditionText": "先行/追込",
    "characterCardId": "114501",
    "characterName": "ルーラーシップ"
+  },
+  {
+   "skillId": 101491,
+   "name": "烈々と咲く",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "chuKyori"
+    ],
+    [
+     "sashi",
+     "senko"
+    ]
+   ],
+   "conditionText": "中距離・差し/先行",
+   "characterCardId": "114901",
+   "characterName": "ファレノプシス"
   },
   {
    "skillId": 110011,
@@ -52996,6 +53612,24 @@
    "conditionText": null,
    "characterCardId": "104202",
    "characterName": "シーキングザパール"
+  },
+  {
+   "skillId": 110431,
+   "name": "最恐！いたずら計画なのだ♪",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "senko"
+    ],
+    [
+     "dirt"
+    ]
+   ],
+   "conditionText": "先行・ダート",
+   "characterCardId": "104302",
+   "characterName": "シンコウウインディ"
   },
   {
    "skillId": 110441,
@@ -53678,6 +54312,22 @@
    "characterName": "バブルガムフェロー"
   },
   {
+   "skillId": 111271,
+   "name": "剛心鉄壁ガーディアン",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "choKyori",
+     "chuKyori"
+    ]
+   ],
+   "conditionText": "長距離/中距離",
+   "characterCardId": "112702",
+   "characterName": "フェノーメノ"
+  },
+  {
    "skillId": 111321,
    "name": "Watch Us Flourish",
    "rarity": 5,
@@ -54106,8 +54756,29 @@
  ],
  "unpurchasableSkills": [
   {
+   "skillId": 202571,
+   "name": "未来を拓く奇跡",
+   "cumulativeScore": 508,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
+   "skillId": 204581,
+   "name": "抱えた動揺",
+   "cumulativeScore": -174,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
    "skillId": 300011,
    "name": "癒えない渇き",
+   "cumulativeScore": 0,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
+   "skillId": 300021,
+   "name": "変わらぬままで",
    "cumulativeScore": 0,
    "conditionGroups": [],
    "conditionText": null
@@ -54122,6 +54793,20 @@
   {
    "skillId": 300041,
    "name": "拡がる恐れ",
+   "cumulativeScore": 0,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
+   "skillId": 300051,
+   "name": "鮮明になる畏怖",
+   "cumulativeScore": 0,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
+   "skillId": 300061,
+   "name": "夢の走り",
    "cumulativeScore": 0,
    "conditionGroups": [],
    "conditionText": null
@@ -54148,6 +54833,13 @@
    "conditionText": null
   },
   {
+   "skillId": 300101,
+   "name": "憧れのエール",
+   "cumulativeScore": 0,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
    "skillId": 300111,
    "name": "胸を張れダービーウマ娘",
    "cumulativeScore": 0,
@@ -54155,8 +54847,36 @@
    "conditionText": null
   },
   {
+   "skillId": 300121,
+   "name": "チームの一員として",
+   "cumulativeScore": 0,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
+   "skillId": 300131,
+   "name": "日本総大将",
+   "cumulativeScore": 340,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
+   "skillId": 300141,
+   "name": "不撓不屈",
+   "cumulativeScore": 340,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
    "skillId": 300151,
    "name": "匣の抑圧",
+   "cumulativeScore": 0,
+   "conditionGroups": [],
+   "conditionText": null
+  },
+  {
+   "skillId": 300161,
+   "name": "まとわりつく霧",
    "cumulativeScore": 0,
    "conditionGroups": [],
    "conditionText": null
@@ -54248,76 +54968,6 @@
   {
    "skillId": 1300071,
    "name": "スパートヒーロー",
-   "cumulativeScore": 0,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 202571,
-   "name": "未来を拓く奇跡",
-   "cumulativeScore": 508,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 204581,
-   "name": "抱えた動揺",
-   "cumulativeScore": -174,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 300021,
-   "name": "変わらぬままで",
-   "cumulativeScore": 0,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 300051,
-   "name": "鮮明になる畏怖",
-   "cumulativeScore": 0,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 300061,
-   "name": "夢の走り",
-   "cumulativeScore": 0,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 300101,
-   "name": "憧れのエール",
-   "cumulativeScore": 0,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 300121,
-   "name": "チームの一員として",
-   "cumulativeScore": 0,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 300131,
-   "name": "日本総大将",
-   "cumulativeScore": 340,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 300141,
-   "name": "不撓不屈",
-   "cumulativeScore": 340,
-   "conditionGroups": [],
-   "conditionText": null
-  },
-  {
-   "skillId": 300161,
-   "name": "まとわりつく霧",
    "cumulativeScore": 0,
    "conditionGroups": [],
    "conditionText": null

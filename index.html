@@ -35,21 +35,46 @@
     --warn-bg: #fdf3df;
   }
   * { box-sizing: border-box; }
-  body {
-    font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
-    margin: 0; padding: 16px 12px 80px;
-    max-width: 760px; margin-inline: auto;
-    background: var(--bg); color: var(--text);
-    line-height: 1.6;
-    -webkit-text-size-adjust: 100%;
-  }
+  /* 余白と最大幅は .pageBody（site.css）が持つ。
+     ヘッダーを画面幅いっぱいに出すため、body 側では絞らない。 */
+  body { line-height: 1.6; }
+  .pageBody { padding-bottom: 80px; }
   /* スマホ運用が前提。入力欄は16px未満だとiOSが焦点時に拡大するので下げない。
      タップ目標は44px以上を確保する。 */
   input, select, button { font-size: 16px; font-family: inherit; }
   input[type="text"], input[type="number"], select { min-height: 44px; padding: 8px 10px;
     border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--text); }
   input[type="file"] { width: 100%; }
-  h1 { font-size: 20px; margin: 0 0 4px; }
+  /* ヘッダーにもサイト名が出るため、h1 は「何をする画面か」を示す役に回す。
+     同じ大きさで2度出すと、どちらを読めばよいのか分からなくなる。 */
+  h1 { font-size: 19px; margin: 0 0 6px; letter-spacing: .01em; }
+
+  /* スクショの入力。2つの選択と実行ボタンを1枚のカードに収める。 */
+  .inputCard { padding: 4px 16px 14px; }
+  .inputRow { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .inputRow label { margin-bottom: 6px; }
+  .inputCard #runButton { width: 100%; margin-top: 14px; }
+  .inputCard #sharedNote { margin: 8px 0 0; font-size: 12px; }
+
+  /* 一目で伝える短い札。長い注意書きを読ませる代わりに置く。 */
+  .badgeRow { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+  .badge {
+    font-size: 12px; padding: 3px 10px; border-radius: 999px;
+    background: #eef0ed; color: var(--muted); border: 1px solid var(--border);
+  }
+  .badge--ok { background: var(--accent-soft, #eaf1ec); color: var(--accent-dark);
+               border-color: #cfe0d5; }
+
+  /* 端末についての注意は、必要な人だけが開けばよい。 */
+  details.deviceNote {
+    margin: 0 0 18px; padding: 0 14px;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+  }
+  details.deviceNote > summary {
+    cursor: pointer; padding: 10px 0; font-size: 13px; color: var(--accent-dark);
+    font-weight: 600; list-style-position: inside;
+  }
+  details.deviceNote p { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
   .lead { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
   /* 既定の青リンクは緑基調の中で浮くので、アクセント色に寄せる。 */
   .lead a { color: var(--accent-dark); }
@@ -169,7 +194,7 @@
   /* サンプル実行ボタン。スクショを持たない訪問者が最初に触る導線なので、
      入力欄より前・見出しの直下に置く。 */
   /* タブ。評価点で選ぶ（現行）と、走行シミュレータ（準備中）を切り替える。 */
-  .tabBar { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin: 0 0 16px; }
+  .tabBar { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin: 20px 0 16px; }
   .tabBar button {
     flex: 0 1 auto; width: auto; min-height: 44px; padding: 0 14px;
     background: none; border: none; border-bottom: 3px solid transparent;
@@ -194,6 +219,15 @@
   /* コース名は「サンタアニタパーク ダート1200m（左）」のように長い。
      ラベルを横に置くと選択肢が省略表示になるので、ラベルを上に出して幅を使わせる。 */
   .simRow.wide { flex-direction: column; align-items: stretch; gap: 4px; }
+  /* スクショ由来の欄をしまう折りたたみ。読み取り済みなら開かずに済む。 */
+  .simFold { margin: 0 0 12px; border: 1px solid var(--border); border-radius: 8px; background: #fafbf9; }
+  .simFold > summary { cursor: pointer; padding: 9px 12px; font-size: 13px; font-weight: 600;
+    color: var(--accent-dark); display: flex; align-items: center; gap: 8px; }
+  .simFoldHint { font-size: 11px; font-weight: 500; color: var(--muted);
+    padding: 1px 8px; border-radius: 999px; background: #eef0ed; }
+  .simFoldHint.filled { background: var(--accent-soft, #eaf1ec); color: var(--accent-dark); }
+  .simFoldBody { padding: 4px 12px 8px; border-top: 1px solid var(--border); }
+  .simFoldCaption { font-size: 12px; color: var(--muted); margin: 10px 0 6px; }
   .simRow.wide label { flex: 0 0 auto; }
   .simRow.wide select { width: 100%; }
 
@@ -323,46 +357,69 @@
   }
   .siteFooter a { color: var(--muted); }
 </style>
+<link rel="stylesheet" href="site.css?v=1">
 </head>
 <body>
+<!-- site-header:start -->
+<header class="siteHeader">
+  <div class="siteHeader__inner">
+    <a class="siteHeader__brand" href="index.html">
+      <span class="siteHeader__mark" aria-hidden="true">評</span>
+      <span class="siteHeader__name">評価点 最大化くん</span>
+    </a>
+    <a class="siteHeader__updates" href="updates.html">
+      <span class="siteHeader__dot" aria-hidden="true"></span>更新 9/23
+    </a>
+  </div>
+</header>
+<!-- site-header:end -->
+<div class="pageBody">
 <h1>ウマ娘 評価点 最大化くん</h1>
 
-<p class="lead">スキル獲得画面のスクショをもとに、評価点が最大になる取得スキルを一覧にします。<br>
-画像は端末外に送信しません。画像の処理はすべてこのブラウザ内で完結します。</p>
+<p class="lead">スキル獲得画面のスクショから、残りスキルPtで<b>評価点が最大になる組み合わせ</b>と、
+<b>最も速く走れる組み合わせ</b>を計算します。</p>
 
 <!-- スクショが手元に無い人（PC利用者・初めて訪れた人）が、何が出るツールなのかを
      操作せずに確かめられるようにする。サンプルはマスタから組み立てるので、
      ゲーム画像を一切置かずに実際の計算結果を見せられる。 -->
 <div class="sampleBar">
   <button type="button" id="sampleButton">サンプルで試す</button>
-  <span class="sampleNote">スクリーンショットが無くても、計算結果の例をその場で表示します。</span>
+  <span class="sampleNote">スクショが無くても、計算結果の例をその場で表示します。</span>
 </div>
 
-<p class="lead deviceNote">スクリーンショットの<b>読み取りはスマートフォン専用</b>です。
-PC・タブレットでは画面比が異なるため読み取れません。サンプル表示と解説記事はどの端末でも見られます。<br>
-うまく読み取れないときは、<a href="contact.html">お問い合わせ</a>から端末の情報をお寄せいただけると助かります。</p>
+<p class="badgeRow">
+  <span class="badge badge--ok">画像は端末外に送信しません</span>
+  <span class="badge">読み取りはスマホ専用</span>
+</p>
 
-<section>
-  <label>① ウマ娘詳細画面 <button type="button" class="info" data-info="detail" aria-label="説明">i</button></label>
-  <input type="file" id="detailFile" accept="image/*">
-  <template data-info-body="detail">
-    ウマ娘詳細（ステータスと適性が<b>すべて写っている</b>画面）を撮ってください。
-  </template>
+<details class="deviceNote">
+  <summary>読み取れないときは</summary>
+  <p>スクリーンショットの読み取りは<b>スマートフォン専用</b>です。PC・タブレットでは画面比が異なるため
+  読み取れません。サンプル表示と解説記事はどの端末でも見られます。</p>
+  <p>うまく読み取れないときは、<a href="contact.html">お問い合わせ</a>から端末の情報をお寄せいただけると助かります。</p>
+</details>
+
+<section class="inputCard">
+  <div class="inputRow">
+    <label for="detailFile">① ウマ娘詳細画面 <button type="button" class="info" data-info="detail" aria-label="説明">i</button></label>
+    <input type="file" id="detailFile" accept="image/*">
+    <template data-info-body="detail">
+      ウマ娘詳細（ステータスと適性が<b>すべて写っている</b>画面）を撮ってください。
+    </template>
+  </div>
+  <div class="inputRow">
+    <label for="acqFiles">② スキル獲得画面（複数枚） <button type="button" class="info" data-info="acq" aria-label="説明">i</button></label>
+    <input type="file" id="acqFiles" accept="image/*" multiple>
+    <template data-info-body="acq">
+      「説明省略」をONにして、上から下へスクロールしながら撮ってください。
+      下の画像と<b>スキル2〜3行重ねて</b>ください。
+    </template>
+  </div>
+  <button id="runButton">スクリーンショットを読み取る</button>
+  <div id="status"></div>
+  <div id="progressBar"><div class="fill"></div></div>
+  <p class="sub" id="sharedNote">読み取り結果は下の2つのタブで共通して使われます。</p>
 </section>
-
-<section>
-  <label>② スキル獲得画面（複数枚） <button type="button" class="info" data-info="acq" aria-label="説明">i</button></label>
-  <input type="file" id="acqFiles" accept="image/*" multiple>
-  <template data-info-body="acq">
-    「説明省略」をONにして、上から下へスクロールしながら撮ってください。
-    下の画像と<b>スキル2〜3行重ねて</b>ください。
-  </template>
-</section>
-
-<button id="runButton" style="width:100%">スクリーンショットを読み取る</button>
-<div id="status"></div>
-<div id="progressBar"><div class="fill"></div></div>
-<p class="sub" id="sharedNote">読み取り結果は「評価点で選ぶ」と「走行シミュレータ」の両方で使われます。</p>
 
 <div class="tabBar" role="tablist">
   <button type="button" id="tabScore" role="tab" aria-selected="true" aria-controls="panelScore">評価点で選ぶ</button>
@@ -447,24 +504,77 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
       <label for="simCourse" class="sub">距離</label>
       <select id="simCourse"></select>
     </div>
+    <div class="simRow">
+      <label for="simGround" class="sub">バ場状態</label>
+      <select id="simGround">
+        <option value="good" selected>良</option><option value="yielding">稍重</option>
+        <option value="soft">重</option><option value="heavy">不良</option>
+      </select>
+    </div>
   </section>
 
   <section>
     <label>② ウマ娘</label>
+    <!-- スクショから取れるものは折りたたみ、取れないものは常に出す。
+         読み取り済みなら開く必要が無く、未読み取りなら開いて手で入れる。 -->
+    <details class="simFold" id="simFoldStats">
+      <summary>ステータス・適性 <span class="simFoldHint" id="simFoldHint">スクショから取得</span></summary>
+      <div class="simFoldBody">
         <div class="simRow">
-      <label for="simSpeed" class="sub">スピード</label><input type="number" id="simSpeed" min="1" max="2500" value="1200">
-    </div>
+          <label for="simSpeed" class="sub">スピード</label><input type="number" id="simSpeed" min="1" max="2500" value="1200">
+        </div>
+        <div class="simRow">
+          <label for="simStamina" class="sub">スタミナ</label><input type="number" id="simStamina" min="1" max="2500" value="1000">
+        </div>
+        <div class="simRow">
+          <label for="simPower" class="sub">パワー</label><input type="number" id="simPower" min="1" max="2500" value="1000">
+        </div>
+        <div class="simRow">
+          <label for="simGuts" class="sub">根性</label><input type="number" id="simGuts" min="1" max="2500" value="600">
+        </div>
+        <div class="simRow">
+          <label for="simWisdom" class="sub">賢さ</label><input type="number" id="simWisdom" min="1" max="2500" value="800">
+        </div>
+        <div class="simRow">
+          <label for="simBudget" class="sub">残スキルPt</label><input type="number" id="simBudget" min="0" max="20000" value="700">
+        </div>
+        <p class="simFoldCaption">適性。計算にはコースと脚質に当てはまるものが使われます。</p>
+        <div class="simRow">
+          <label for="simApt_shiba" class="sub">芝</label><select id="simApt_shiba" data-aptitude="shiba"></select>
+        </div>
+        <div class="simRow">
+          <label for="simApt_dirt" class="sub">ダート</label><select id="simApt_dirt" data-aptitude="dirt"></select>
+        </div>
+        <div class="simRow">
+          <label for="simApt_tanKyori" class="sub">短距離</label><select id="simApt_tanKyori" data-aptitude="tanKyori"></select>
+        </div>
+        <div class="simRow">
+          <label for="simApt_mile" class="sub">マイル</label><select id="simApt_mile" data-aptitude="mile"></select>
+        </div>
+        <div class="simRow">
+          <label for="simApt_chuKyori" class="sub">中距離</label><select id="simApt_chuKyori" data-aptitude="chuKyori"></select>
+        </div>
+        <div class="simRow">
+          <label for="simApt_choKyori" class="sub">長距離</label><select id="simApt_choKyori" data-aptitude="choKyori"></select>
+        </div>
+        <div class="simRow">
+          <label for="simApt_nige" class="sub">逃げ</label><select id="simApt_nige" data-aptitude="nige"></select>
+        </div>
+        <div class="simRow">
+          <label for="simApt_senko" class="sub">先行</label><select id="simApt_senko" data-aptitude="senko"></select>
+        </div>
+        <div class="simRow">
+          <label for="simApt_sashi" class="sub">差し</label><select id="simApt_sashi" data-aptitude="sashi"></select>
+        </div>
+        <div class="simRow">
+          <label for="simApt_oikomi" class="sub">追込</label><select id="simApt_oikomi" data-aptitude="oikomi"></select>
+        </div>
+        <p class="simFoldCaption">芝・ダートの適性は詳細画面から読み取っていないため、既定はAです。</p>
+      </div>
+    </details>
     <div class="simRow">
-      <label for="simStamina" class="sub">スタミナ</label><input type="number" id="simStamina" min="1" max="2500" value="1000">
-    </div>
-        <div class="simRow">
-      <label for="simPower" class="sub">パワー</label><input type="number" id="simPower" min="1" max="2500" value="1000">
-    </div>
-    <div class="simRow">
-      <label for="simGuts" class="sub">根性</label><input type="number" id="simGuts" min="1" max="2500" value="600">
-    </div>
-        <div class="simRow">
-      <label for="simWisdom" class="sub">賢さ</label><input type="number" id="simWisdom" min="1" max="2500" value="800">
+      <label for="simScenario" class="sub">育成シナリオ</label>
+      <select id="simScenario"><option value="">指定しない</option></select>
     </div>
     <div class="simRow">
       <label for="simStrategy" class="sub">脚質</label>
@@ -475,15 +585,6 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
         <option value="Oikomi">追込</option>
       </select>
     </div>
-        <div class="simRow">
-      <label for="simAptDist" class="sub">距離適性</label><select id="simAptDist"></select>
-    </div>
-    <div class="simRow">
-      <label for="simAptSurface" class="sub">バ場適性</label><select id="simAptSurface"></select>
-    </div>
-        <div class="simRow">
-      <label for="simAptStrategy" class="sub">脚質適性</label><select id="simAptStrategy"></select>
-    </div>
     <div class="simRow">
       <label for="simMood" class="sub">やる気</label>
       <select id="simMood">
@@ -492,24 +593,6 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
         <option value="2" selected>絶好調</option>
       </select>
     </div>
-        <div class="simRow">
-      <label for="simScenario" class="sub">育成シナリオ</label>
-      <select id="simScenario"><option value="">指定しない</option></select>
-    </div>
-    <div class="simRow">
-      <label for="simGround" class="sub">バ場状態</label>
-      <select id="simGround">
-        <option value="good" selected>良</option><option value="yielding">稍重</option>
-        <option value="soft">重</option><option value="heavy">不良</option>
-      </select>
-    </div>
-    <div class="simRow">
-      <label for="simBudget" class="sub">残スキルPt</label><input type="number" id="simBudget" min="0" max="20000" value="700">
-    </div>
-  </section>
-
-  <section>
-    <label>③ 候補スキル</label>
     <p class="sub" id="simCandidateNote">「評価点で選ぶ」タブでスクリーンショットを読み取ると、未取得スキルが候補として引き継がれます。</p>
   </section>
 
@@ -580,16 +663,24 @@ PC・タブレットでは画面比が異なるため読み取れません。サ
   <p class="note">ゲームの開発・運営元とは関係のない非公式ツールです。ゲーム内の仕様は更新で変わることがあります。</p>
 </section>
 
+</div><!-- /pageBody -->
+<!-- site-footer:start -->
 <footer class="siteFooter">
-  <a href="usage.html">使い方</a>
-  <a href="scoring.html">評価点の計算の仕組み</a>
-  <a href="strategy.html">スキル取得の考え方</a>
-  <a href="evolutions.html">進化スキル一覧</a>
-  <a href="privacy.html">プライバシーポリシー</a>
-  <a href="terms.html">利用規約</a>
-  <a href="contact.html">お問い合わせ</a>
-  <span>制作: ぬけ　ゲームの開発・運営元とは関係のない非公式ツールです</span>
+  <div class="siteFooter__links">
+    <span>ツール</span>
+    <a href="usage.html">使い方</a>
+    <a href="scoring.html">評価点の計算の仕組み</a>
+    <a href="strategy.html">スキル取得の考え方</a>
+    <a href="evolutions.html">進化スキル一覧</a>
+    <a href="updates.html">更新履歴</a>
+    <a href="privacy.html">プライバシーポリシー</a>
+    <a href="terms.html">利用規約</a>
+    <a href="contact.html">お問い合わせ</a>
+  </div>
+  <p class="siteFooter__note">制作: ぬけ　ゲームの開発・運営元とは関係のない非公式ツールです。
+  ゲーム内の仕様は更新で変わることがあります。</p>
 </footer>
+<!-- site-footer:end -->
 
 <script src="ocr_core.js?v=102"></script>
 <script src="fields.js?v=102"></script>
@@ -1692,9 +1783,8 @@ async function loadSimCourses() {
   document.getElementById("simSurface").addEventListener("change", refillDistances);
   fillOptions("simTrack", [...new Set(simCourses.map(c => c.track))]);
   refillSurfaces();
-  // 適性の選択肢は3か所で同じ。既定はA。
-  for (const id of ["simAptDist", "simAptSurface", "simAptStrategy"]) {
-    const sel = document.getElementById(id);
+  // 適性の選択肢は10項目とも同じ。既定はA。
+  for (const sel of document.querySelectorAll("select[data-aptitude]")) {
     APTITUDE_LETTERS.forEach(letter => {
       const o = document.createElement("option");
       o.value = letter; o.textContent = letter;
@@ -1704,6 +1794,61 @@ async function loadSimCourses() {
   }
 }
 
+// レースの条件（芝ダ・距離区分・脚質）に照らして、そのスキルが発動しうるか。
+//
+// conditionGroups はグループ内がOR、グループ間がAND（評価点側 aptitudeMultiplier と同じ）。
+// グループは「芝ダ」「距離」「脚質」のいずれか1種類のキーで揃っているので、
+// そのグループが指す種類のレース側の値が含まれていなければ、絶対に発動しない。
+//
+// 判定できないキーを含むグループは通す。落とすと誤って消しかねない。
+const RACE_CONDITION_CATEGORY = {
+  shiba: "surface", dirt: "surface",
+  tanKyori: "distance", mile: "distance", chuKyori: "distance", choKyori: "distance",
+  nige: "style", senko: "style", sashi: "style", oikomi: "style",
+};
+
+function canActivateInRace(conditionGroups, race) {
+  for (const group of conditionGroups || []) {
+    const categories = new Set(group.map(key => RACE_CONDITION_CATEGORY[key]).filter(Boolean));
+    if (categories.size !== 1) continue;      // 判定できない／混在するグループは通す
+    const category = [...categories][0];
+    if (!group.includes(race[category])) return false;
+  }
+  return true;
+}
+
+// いま選ばれているレースの条件を、conditionGroups と同じキーで表す。
+function currentRaceConditions() {
+  const courseId = parseInt(document.getElementById("simCourse").value, 10);
+  const course = simCourses.find(c => c.id === courseId);
+  const strategy = document.getElementById("simStrategy").value;
+  return {
+    surface: course && course.surface === "ダート" ? "dirt" : "shiba",
+    distance: DISTANCE_APTITUDE_KEYS[course && course.distanceType] || "chuKyori",
+    style: STRATEGY_APTITUDE_KEY[strategy] || "senko",
+  };
+}
+
+// 距離の区分はコースデータが持つ distanceType をそのまま使う。
+// 閾値をここで書き直すと、サーバー側（prefilter.ts）の区分とずれうる。
+const DISTANCE_APTITUDE_KEYS = { 1: "tanKyori", 2: "mile", 3: "chuKyori", 4: "choKyori" };
+const STRATEGY_APTITUDE_KEY = { Nige: "nige", Senkou: "senko", Sasi: "sashi", Oikomi: "oikomi" };
+
+// 選んだコースと脚質に当てはまる適性を、10項目の中から引く。
+// 「マイルの適性」を長距離戦で使ってしまわないよう、参照先はコースから決める。
+function aptitudesForRace(courseId, strategy) {
+  const course = simCourses.find(c => c.id === courseId);
+  const rank = key => document.getElementById("simApt_" + key)?.value || "A";
+  return {
+    distanceAptitude: rank(DISTANCE_APTITUDE_KEYS[course && course.distanceType] || "chuKyori"),
+    surfaceAptitude: rank(course && course.surface === "ダート" ? "dirt" : "shiba"),
+    strategyAptitude: rank(STRATEGY_APTITUDE_KEY[strategy] || "senko"),
+  };
+}
+
+// どの読み取り結果からステータス・適性を引き継いだか。同じ結果なら再び上書きしない。
+let simPrefilledFrom = null;
+
 // 評価点タブで読み取った結果があれば、ステータスと未取得スキルを引き継ぐ。
 function simCandidatesFromSession() {
   const note = document.getElementById("simCandidateNote");
@@ -1712,123 +1857,96 @@ function simCandidatesFromSession() {
       + "読み取り結果が無い場合は、下のステータスだけで計算します（候補スキルなし）。";
     return [];
   }
-  if (session.stats) {
+  // 引き継ぎは読み取り結果が変わったときだけ。計算のたびに上書きすると、
+  // 折りたたみ内で手直しした値が計算の直前に元へ戻ってしまう。
+  const prefillSource = session.recognizedRows;
+  if (session.stats && simPrefilledFrom !== prefillSource) {
     const map = { simSpeed: "speed", simStamina: "stamina", simPower: "power", simGuts: "guts", simWisdom: "wisdom" };
     for (const [inputId, key] of Object.entries(map)) {
       if (Number.isFinite(session.stats[key])) document.getElementById(inputId).value = session.stats[key];
     }
   }
-  if (Number.isFinite(session.budget)) document.getElementById("simBudget").value = session.budget;
+  if (Number.isFinite(session.budget) && simPrefilledFrom !== prefillSource) {
+    document.getElementById("simBudget").value = session.budget;
+  }
+  // 詳細画面から読んだ適性（距離4・脚質4）を入れる。芝・ダートは読んでいないので触らない。
+  if (session.aptitudes && simPrefilledFrom !== prefillSource) {
+    for (const sel of document.querySelectorAll("select[data-aptitude]")) {
+      const rank = session.aptitudes[sel.dataset.aptitude];
+      if (rank && APTITUDE_LETTERS.includes(rank)) sel.value = rank;
+    }
+  }
+  // 適性の select は loadSimCourses が選択肢を入れるまで空で、値を入れても効かない。
+  // 読み取り完了直後（タブ未表示）に呼ばれた場合は「済み」にせず、次の呼び出しで入れる。
+  const aptitudeSelectsReady = !!document.querySelector("select[data-aptitude] option");
+  if (aptitudeSelectsReady) simPrefilledFrom = prefillSource;
+  const hint = document.getElementById("simFoldHint");
+  if (hint && (session.stats || session.aptitudes)) {
+    hint.textContent = "読み取り済み";
+    hint.classList.add("filled");
+  }
 
-  // 候補の作り方は評価点側（buildOptimizerState + plansForFamily）と同じ規則に揃える。
+  // 候補の列挙は評価点側と同じ関数を使う（buildOptimizerState + enumerateFamilyOptions）。
   //
-  // 「右回り○ → ◎ → 鬼」のような段階はファミリー内の1つの流れで、
-  // 上位を取ると下位は上書きされる。実際に発動するのは最上位だけなので、
-  // 候補は「スキル単位」ではなく「プラン単位」で出し、同じファミリーは排他にする。
-  const acquiredSet = new Set();
-  const displayedCost = new Map();
-  for (const row of session.recognizedRows) {
-    if (row.acquired) {
-      acquiredSet.add(String(row.skillId));
-      // 取得済みの金でも進化はできる。進化はPtを消費しないので費用0で登録する。
-      if (row.evo && row.evolutionSkillIds) {
-        for (const evoId of row.evolutionSkillIds) displayedCost.set(String(evoId), 0);
-      }
-      continue;
-    }
-    if (row.sp === null) continue;
-    displayedCost.set(String(row.skillId), row.sp);
-    // 進化のコストは進化元の金と同額＝画面の表示SPをそのまま使う。
-    if (row.evo && row.evolutionSkillIds) {
-      for (const evoId of row.evolutionSkillIds) displayedCost.set(String(evoId), row.sp);
-    }
-  }
-  const acquired = [...acquiredSet];
+  // 以前はここに同じ処理を写していたが、評価点側だけが直ると黙ってずれた。
+  // 実際に「進化の選択を無視する」「一覧に無い下位白ティアを取得済みと見なさない」
+  // といった食い違いが出ていた。写さずに呼ぶ。
+  //
+  // シミュレータだけの事情は2つで、どちらも state で渡す。
+  //   includeZeroScorePlans … 評価点が増えなくても速くなるスキルは候補に残す
+  //   trainingScenario      … シナリオ進化を、選んだ育成シナリオのものに絞る
+  const state = buildOptimizerState(
+    session.recognizedRows, session.aptitudes || {}, session.budget || 0,
+    session.characterCardId, session.evolutionChoices);
+  state.includeZeroScorePlans = true;
+  state.trainingScenario = document.getElementById("simScenario")?.value || "";
+  state.scenarioEvolutionOf = scenarioEvolutionMap;
 
-  // 進化には入手条件がある。
-  //   ・キャラ専用 … characterCardId が育成中のキャラと一致するものだけ
-  //   ・シナリオ進化 … characterCardId が null。育成シナリオで絞れる
-  //   ・共通の前提 … 進化元の金スキルが進化済みであること
-  const myCardId = session.characterCardId;
-  const chosenScenario = document.getElementById("simScenario")?.value || "";
-  const evolvedGolds = new Set();
-  for (const row of session.recognizedRows) {
-    if (row.evo && row.evolutionSkillIds) evolvedGolds.add(String(row.skillId));
+  // 選んだレースで発動しえないスキルは、候補にも取得済みにも入れない。
+  const race = currentRaceConditions();
+  const skillById = new Map();
+  for (const family of cache.master.families) {
+    for (const skill of family.skills) skillById.set(String(skill.skillId), skill);
+    for (const evolution of family.evolutions || []) skillById.set(String(evolution.skillId), evolution);
   }
+  for (const unique of cache.master.uniqueSkills || []) skillById.set(String(unique.skillId), unique);
+  const activatesHere = id => {
+    const skill = skillById.get(String(id));
+    return !skill || canActivateInRace(skill.conditionGroups, race);
+  };
 
   const candidates = [];
   const scenarioEvolutions = [];
+  let filteredOut = 0;
   for (const family of cache.master.families) {
-    const byId = new Map();
-    for (const skill of family.skills) byId.set(String(skill.skillId), skill);
-
-    // ヒント割引率。表示されている最下位の白ティアの 表示SP÷baseCost。
-    // 同じスキルのティアはヒントLvを共有するので割引は一律で、画面に出ない
-    // 白上位ティアの必要SPをこの率で見積もれる。
-    let hintDiscount = null;
-    for (const skill of family.skills) {
-      const key = String(skill.skillId);
-      if (skill.rarity === 1 && skill.baseCost > 0 && displayedCost.has(key)) {
-        hintDiscount = displayedCost.get(key) / skill.baseCost;
-        break;   // family.skills はティア昇順。最下位の表示白ティアを採る
-      }
-    }
-
-    for (const plan of family.plans || []) {
-      if (plan.usesEvolution) {
-        if (!evolvedGolds.has(String(plan.fromGoldSkillId))) continue;
-        const isScenario = plan.characterCardId == null;
-        if (!isScenario && String(plan.characterCardId) !== String(myCardId)) continue;
-        if (isScenario && chosenScenario) {
-          const belongsTo = scenarioEvolutionMap[String(plan.topSkillId)];
-          if (belongsTo && belongsTo !== chosenScenario) continue;
-        }
-      }
-      const members = plan.memberIds.map(String);
-      if (!members.length) continue;
-      const topKey = String(plan.topSkillId);
-      const top = byId.get(topKey);
-      const topDisplayed = displayedCost.has(topKey);
-      // 白の上位ティア（◎）は、下位の白（○）が表示されていれば画面に無くても取れる。
-      // 金と進化は画面に出ているときだけ取得できる。
-      const whiteInferable = top && top.rarity === 1 && hintDiscount !== null;
-      if (!topDisplayed && !whiteInferable
-          && members.some(m => !displayedCost.has(m) && !acquiredSet.has(m))) {
-        continue;   // スクリーンショットに写っていないスキルは取得できない
-      }
-
-      // 表示SPは下位ティア分を含む累積値。合算すると二重計上になる。
-      let sp;
-      if (topDisplayed) {
-        sp = displayedCost.get(topKey);
-      } else {
-        sp = 0;
-        for (const m of members) {
-          if (acquiredSet.has(m)) continue;
-          if (displayedCost.has(m)) sp += displayedCost.get(m);
-          else if (whiteInferable && byId.has(m)) sp += Math.round(byId.get(m).baseCost * hintDiscount);
-          else if (byId.has(m)) sp += byId.get(m).baseCost;
-        }
-      }
-      // 既に全部取得済みのプランは選ぶ意味がない（進化を除く）。
-      if (sp === 0 && !plan.usesEvolution) continue;
-
-      const entry = { skillId: topKey, sp, group: String(family.familyId) };
-      if (plan.usesEvolution && plan.characterCardId == null) {
+    for (const option of enumerateFamilyOptions(family, state)) {
+      if (option.plan.removesNegativeSkill) continue;   // 消去はシミュレータでは扱わない
+      if (!activatesHere(option.plan.topSkillId)) { filteredOut++; continue; }
+      const entry = {
+        skillId: String(option.plan.topSkillId),
+        sp: option.cost,
+        group: String(family.familyId),
+      };
+      if (option.plan.usesEvolution && option.plan.characterCardId == null) {
         entry.scenario = true;
         scenarioEvolutions.push(entry);
       }
       candidates.push(entry);
     }
   }
+  // 取得済みも同じ基準で絞る。発動しないものを渡すと、コース図に出て誤解を招く。
+  const acquired = [...state.acquired].map(String).filter(activatesHere);
 
   const freeCount = candidates.filter(c => c.sp === 0).length;
+  const chosenScenario = state.trainingScenario;
   note.textContent = `読み取り結果から候補 ${candidates.length}件を引き継ぎました`
     + `（取得済み ${acquired.length}件も計算に含めます`
     + (freeCount ? `／SP不要 ${freeCount}件` : "") + "）。"
+    + (filteredOut ? `コースと脚質で発動しない ${filteredOut}件は除いています。` : "")
     + (chosenScenario
         ? `シナリオ進化は「${chosenScenario}」のもののみ、${SCENARIO_EVOLUTION_LIMIT}個まで選べます。`
         : `育成シナリオを選ぶと、シナリオ進化を絞り込めます（${SCENARIO_EVOLUTION_LIMIT}個まで選択可）。`);
+
   return { candidates, acquired, scenarioEvolutions };
 }
 
@@ -2094,9 +2212,18 @@ function renderSimResults() {
     el.appendChild(empty);
   }
 
-  const order = new Map(simState.activations.slice()
-    .sort((a, b) => a.pos - b.pos).map((a, i) => [String(a.skillId), i + 1]));
-  for (const id of simState.chosen) {
+  // 印と番号は「いま選んでいる集合」だけで作る。
+  // サーバーから受け取ったままにすると、外したスキルがコース図に残る。
+  const shownIds = new Set([...simState.acquired, ...simState.chosen].map(String));
+  const shownActivations = simState.activations
+    .filter(a => shownIds.has(String(a.skillId)))
+    .sort((a, b) => a.pos - b.pos);
+  const order = new Map(shownActivations.map((a, i) => [String(a.skillId), i + 1]));
+  // 番号順（＝発動位置順）に並べる。番号の無いもの（追加直後で未計算）は末尾。
+  const byActivationOrder = ids => ids.slice().sort((a, b) =>
+    (order.get(String(a)) ?? Infinity) - (order.get(String(b)) ?? Infinity));
+
+  for (const id of byActivationOrder(simState.chosen)) {
     const info = simState.info.get(id) || { sp: 0, bashin: 0 };
     const act = simState.activations.find(a => String(a.skillId) === String(id));
     const num = order.get(String(id));
@@ -2120,7 +2247,7 @@ function renderSimResults() {
     head0.className = "pickHead";
     head0.textContent = "取得済み（" + owned.length + "件・外せません）";
     el.appendChild(head0);
-    for (const id of owned) {
+    for (const id of byActivationOrder(owned)) {
       const info = simState.info.get(id) || { sp: 0, bashin: 0 };
       const act = simState.activations.find(a => String(a.skillId) === String(id));
       const num = order.get(String(id));
@@ -2134,8 +2261,19 @@ function renderSimResults() {
     }
   }
 
-  const map = renderCourseMap(simState.courseShape, simState.activations, simSkillName);
-  if (map) el.appendChild(map);
+  const map = renderCourseMap(simState.courseShape, shownActivations, simSkillName);
+  if (map) {
+    el.appendChild(map);
+    // 追加した直後は発動位置がまだ分からない。印が出ないことを断っておく。
+    const unplaced = simState.chosen.filter(id => !order.has(String(id)));
+    if (unplaced.length) {
+      const pending = document.createElement("p");
+      pending.className = "pickNote";
+      pending.textContent = `${unplaced.map(simSkillName).join("・")} の発動位置は、`
+        + "「この構成でもう一度計算する」を押すと図に出ます。";
+      el.appendChild(pending);
+    }
+  }
 
   const rest = [...simState.info.entries()]
     .filter(([id]) => !simState.chosen.includes(id) && !simState.acquired.includes(id))
@@ -2260,9 +2398,7 @@ async function runSim() {
       speed: num("simSpeed"), stamina: num("simStamina"), power: num("simPower"),
       guts: num("simGuts"), wisdom: num("simWisdom"),
       strategy: document.getElementById("simStrategy").value,
-      distanceAptitude: document.getElementById("simAptDist").value,
-      surfaceAptitude: document.getElementById("simAptSurface").value,
-      strategyAptitude: document.getElementById("simAptStrategy").value,
+      ...aptitudesForRace(num("simCourse"), document.getElementById("simStrategy").value),
     },
     mood: num("simMood"),
     ground: document.getElementById("simGround").value,
@@ -2325,6 +2461,12 @@ document.getElementById("tabSim").addEventListener("click", () => selectTab("sim
 document.getElementById("simRunButton").addEventListener("click", runSim);
 // シナリオを変えると候補が変わるので、その場で作り直して件数を見せる。
 document.getElementById("simScenario").addEventListener("change", simCandidatesFromSession);
+// コース・脚質が変わると発動しうるスキルが変わるので、候補を数え直す。
+for (const id of ["simCourse", "simSurface", "simTrack", "simStrategy"]) {
+  document.getElementById(id).addEventListener("change", () => {
+    if (session.recognizedRows.length) simCandidatesFromSession();
+  });
+}
 
 document.getElementById("runButton").addEventListener("click", run);
 document.getElementById("sampleButton").addEventListener("click", runSample);

@@ -99,6 +99,18 @@ function baselineScore(master, state) {
 // state.evolutionChoices は { [金スキルID]: 進化後skillId | "none" } の形式。
 // "none" はユーザーが明示的に「進化しない」を選んだことを示し、元の金
 // プランをそのまま維持する（進化プランへの置換をスキップする）。
+// シナリオ進化（characterCardId が null の進化）は、育成シナリオごとに可否が違う。
+// trainingScenario と scenarioEvolutionOf を渡したときだけ絞り込む。
+// 渡さなければ全て通るので、評価点側の既定の挙動は変わらない。
+function scenarioAllowsPlan(plan, state) {
+  const scenario = state.trainingScenario;
+  const scenarioOf = state.scenarioEvolutionOf;
+  if (!scenario || !scenarioOf) return true;
+  if (plan.characterCardId != null) return true;   // キャラ専用進化はシナリオに依存しない
+  const belongsTo = scenarioOf[String(plan.topSkillId)];
+  return !belongsTo || belongsTo === scenario;
+}
+
 function selectablePlans(family, state) {
   const evolved = state.evolvedGoldSkillIds || new Set();
   const choices = state.evolutionChoices || {};
@@ -123,7 +135,9 @@ function selectablePlans(family, state) {
   for (const goldId of evolvedGolds) {
     if (choices[goldId] === "none") continue;   // 進化しない選択
     const candidates = evolutionPlans.filter(p =>
-      p.fromGoldSkillId === goldId && (p.characterCardId === characterCardId || p.characterCardId == null));
+      p.fromGoldSkillId === goldId
+      && (p.characterCardId === characterCardId || p.characterCardId == null)
+      && scenarioAllowsPlan(p, state));
     if (candidates.length === 0) continue;   // このキャラで入手できる進化先が無い
     const chosenId = choices[goldId];
     let chosen = candidates.find(p => p.topSkillId === chosenId);
@@ -167,8 +181,12 @@ function impliedAcquiredWhites(family, state) {
 }
 
 // ファミリーから選べる (コスト, 評価点増分, プラン) を列挙する。
+// includeZeroScorePlans: 評価点が増えないプランも候補に残す。
+// 走行シミュレータは「速さ（バ身）」で選ぶため、評価点が上がらないスキルにも
+// 意味がある。評価点側は既定（false）のままで、これまでどおり切り捨てる。
 function enumerateFamilyOptions(family, state) {
   const aptitudes = state.aptitudes;
+  const includeZeroScorePlans = state.includeZeroScorePlans === true;
   const acquired = state.acquired || new Set();
   const available = state.availableSkillIds || null;   // null なら全スキルが候補
   const surface = state.surfaceMultiplierEnabled === true;
@@ -250,8 +268,12 @@ function enumerateFamilyOptions(family, state) {
       }
     }
     const score = scoreOf(byId.get(plan.topSkillId), aptitudes, surface) - currentScore;
-    if (cost === 0 && score <= 0) continue;
-    if (score <= 0) continue;   // 取得済みより下がるプランは選ばない
+    if (includeZeroScorePlans) {
+      // 費用0で進化でもないプランは既に取得済みで、選び直す意味がない。
+      if (cost === 0 && !plan.usesEvolution) continue;
+    } else if (score <= 0) {
+      continue;   // 取得済みより下がるプランは選ばない
+    }
     options.push({ cost, score, plan });
   }
   return options;

@@ -1,0 +1,140 @@
+/* サイト全ページ共通の土台。色・余白・文字の基準と、ヘッダー／フッターだけを持つ。
+   各ページ固有のUIスタイルはここに置かない（index.html の操作系、docs.css の読み物系）。
+
+   命名は siteHeader__brand のようにブロック名を先頭に付ける。
+   既存ページに後から差し込むため、短い名前だと元のスタイルと衝突する。 */
+
+:root {
+  /* 基調は緑。濃淡3段で、面・線・文字の役割を分ける */
+  --accent:        #2f6f4f;
+  --accent-dark:   #1f4d36;
+  --accent-soft:   #eaf1ec;
+  --bg:            #f6f8f6;
+  --card-bg:       #ffffff;
+  --border:        #dfe4df;
+  --border-strong: #c6cfc7;
+  --text:          #1b201d;
+  --muted:         #6a746e;
+  --warn:          #8a5d0f;
+  --warn-bg:       #fdf4e2;
+  --danger:        #b3261e;
+
+  /* 余白は4pxの倍数だけを使う。中間値を作らないと縦のリズムが揃う */
+  --gap-1: 4px;
+  --gap-2: 8px;
+  --gap-3: 12px;
+  --gap-4: 16px;
+  --gap-5: 24px;
+  --gap-6: 32px;
+
+  --radius:     10px;
+  --radius-sm:   6px;
+  --radius-pill: 999px;
+
+  /* 影は1種類だけ。カードを浮かせすぎると情報の階層が読めなくなる */
+  --shadow: 0 1px 2px rgba(27, 32, 29, .06);
+
+  --page-width: 720px;
+}
+
+* { box-sizing: border-box; }
+
+/* line-height は body に置かない。読み物は広く、操作画面は詰めたいので、
+   ページ側（.pageBody / docs.css）がそれぞれ決める。 */
+body {
+  font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ---- ヘッダー -------------------------------------------------------------
+   スマホ幅で1行に収める。左にサイト名、右に更新のお知らせ。 */
+.siteHeader {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(246, 248, 246, .92);
+  backdrop-filter: saturate(140%) blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.siteHeader__inner {
+  max-width: var(--page-width); margin-inline: auto;
+  padding: var(--gap-2) var(--gap-3);
+  display: flex; align-items: center; gap: var(--gap-3);
+}
+.siteHeader__brand {
+  display: flex; align-items: center; gap: var(--gap-2);
+  text-decoration: none; color: var(--text); min-width: 0;
+}
+.siteHeader__mark {
+  flex: none; width: 26px; height: 26px; border-radius: var(--radius-sm);
+  background: var(--accent); color: #fff;
+  display: grid; place-items: center;
+  font-size: 15px; font-weight: 700; line-height: 1;
+}
+.siteHeader__name {
+  font-size: 14px; font-weight: 700; letter-spacing: .01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* 更新のお知らせ。日付を出すことで「いつのデータか」がひと目で分かる */
+.siteHeader__updates {
+  margin-left: auto; flex: none;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong); background: var(--card-bg);
+  font-size: 12px; color: var(--accent-dark); text-decoration: none;
+  white-space: nowrap;
+}
+.siteHeader__updates:hover { background: var(--accent-soft); }
+.siteHeader__dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+}
+
+/* ---- ページの幅 ---------------------------------------------------------- */
+.pageBody {
+  max-width: var(--page-width); margin-inline: auto;
+  padding: var(--gap-4) var(--gap-3) 72px;
+}
+
+/* ---- パンくず（下層ページ用）--------------------------------------------- */
+.siteCrumb {
+  font-size: 12px; color: var(--muted); margin: 0 0 var(--gap-3);
+}
+.siteCrumb a { color: var(--muted); }
+
+/* ---- フッター ------------------------------------------------------------ */
+.siteFooter {
+  margin-top: var(--gap-6);
+  padding-top: var(--gap-4);
+  border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--muted);
+}
+.siteFooter__links {
+  display: flex; flex-wrap: wrap; gap: var(--gap-2) var(--gap-4);
+  margin-bottom: var(--gap-3);
+}
+.siteFooter a { color: var(--muted); }
+.siteFooter__note { margin: 0; line-height: 1.7; }
+
+/* ---- 更新履歴ページ ------------------------------------------------------ */
+.updateList { list-style: none; margin: 0; padding: 0; }
+.updateItem {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: var(--gap-3) var(--gap-4); margin-bottom: var(--gap-3);
+}
+.updateItem__head {
+  display: flex; align-items: center; gap: var(--gap-2); flex-wrap: wrap;
+  margin-bottom: var(--gap-1);
+}
+.updateItem__date { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* 種別は色で分ける。データ追加が最も多いので、そこを基調色に置く */
+.updateItem__kind {
+  font-size: 11px; padding: 1px 8px; border-radius: var(--radius-pill);
+  background: var(--accent-soft); color: var(--accent-dark);
+}
+.updateItem__kind[data-kind="fix"]     { background: var(--warn-bg); color: var(--warn); }
+.updateItem__kind[data-kind="feature"] { background: #e8eef7; color: #2b4a7d; }
+.updateItem__title { font-size: 15px; font-weight: 700; margin: 0; }
+.updateItem__body { margin: 0; padding-left: 1.2em; }
+.updateItem__body li { font-size: 13px; margin-bottom: 2px; }
