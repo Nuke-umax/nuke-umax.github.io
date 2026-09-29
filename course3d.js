@@ -1,18 +1,22 @@
-// 3Dコース図。コースを立体の帯で描き、その上に「スキルでどこで差がついたか」を壁で立てる。
+// 3Dコース図。コースの帯そのものを「スキルでどれだけ速くなったか」で塗り分ける。
 // v-tグラフと同じ役割を、時間軸ではなくコース上の位置で見せる。ドラッグで回転できる。
 //
 // 形は実測の座標ではなく、コーナー1つ＝90度として直線とコーナーの長さから組み立てる。
 // 中山2500m（コーナー6つ＝1周半）でも形が合う。坂の高さは見やすさのため誇張する。
 (function () {
-  const TRACE_TRACK_WIDTH_M = 34;       // 帯の幅（誇張）
+  const TRACK_WIDTH_M = 46;             // 帯の幅（誇張）
   const SLOPE_EXAGGERATION = 14;        // 坂の高さの誇張倍率
   const SLOPE_UNIT = 1e6;               // course_data の slope は 15000 = 1.5%
-  const WALL_HEIGHT_RATIO = 0.32;       // 壁の最大の高さ（コースの広がりに対する比）
   const PITCH = 0.95;                   // 見下ろす角度[rad]
   const CLUSTER_RATIO = 0.035;          // この距離比より近い発動はまとめて1本のピンにする
-  const BASHIN_METERS = 2.5;
+  const PIN_HEIGHT_RATIO = 0.08;        // ピンの高さ（コースの広がりに対する比）
+  const NO_DIFF_MPS = 0.003;            // これ未満の速度差は「差なし」として塗らない
 
-  // コース上の各地点の (x, y, z, heading)。
+  // 色。差なしは淡い灰緑、速くなった区間は緑、遅くなった区間は赤。
+  const NEUTRAL = [223, 229, 223];
+  const FASTER = [24, 122, 74];
+  const SLOWER = [190, 52, 40];
+
   function buildPath(shape, count) {
     const step = shape.distance / count;
     const turnSign = shape.turn === 2 ? 1 : -1;     // 左回りは反時計回り
@@ -26,24 +30,20 @@
       y += Math.sin(heading) * step;
       const slope = (shape.slopes || []).find(s => middle >= s.start && middle < s.start + s.length);
       if (slope) z += (slope.slope / SLOPE_UNIT) * step * SLOPE_EXAGGERATION;
-      points.push({ x, y, z, heading, inCorner: !!corner });
+      points.push({ x, y, z, heading });
     }
     points[0].heading = points[1] ? points[1].heading : 0;
     return points;
   }
 
-  // 同じ時刻で比べたリード（バ身）。位置ごとの速度から、通過時刻の差を積み上げる。
-  // リード[m] ≒ 時刻差 × その地点の速度。ゴールでの値は計算結果のバ身とおおむね一致する。
-  function cumulativeLead(trace) {
-    const lead = [0];
-    let timeGap = 0;
-    for (let i = 1; i < trace.pos.length; i++) {
-      const dx = trace.pos[i] - trace.pos[i - 1];
-      const withV = Math.max(trace.withSkills[i], 0.1), withoutV = Math.max(trace.withoutSkills[i], 0.1);
-      timeGap += dx / withoutV - dx / withV;
-      lead.push(timeGap * withV / BASHIN_METERS);
-    }
-    return lead;
+  // 速度差を色に。平方根の目盛りにして、小さな差でも色が乗るようにする
+  // （線形だと、最大差の1割程度の区間がほぼ無色に見えた）。
+  function colorOf(diff, maxAbs) {
+    if (Math.abs(diff) < NO_DIFF_MPS) return `rgb(${NEUTRAL.join(",")})`;
+    const t = 0.25 + 0.75 * Math.sqrt(Math.min(Math.abs(diff) / maxAbs, 1));
+    const target = diff > 0 ? FASTER : SLOWER;
+    const mix = NEUTRAL.map((c, i) => Math.round(c + (target[i] - c) * t));
+    return `rgb(${mix.join(",")})`;
   }
 
   function clusterActivations(activations, distance) {
@@ -58,7 +58,7 @@
   }
 
   function render(host, state) {
-    const { shape, trace, activations, nameOf, mode } = state;
+    const { shape, trace, activations } = state;
     const canvas = host.querySelector("canvas");
     const ratio = window.devicePixelRatio || 1;
     const width = host.clientWidth || 340, height = Math.round(width * 0.62);
@@ -73,146 +73,86 @@
     const xs = path.map(p => p.x), ys = path.map(p => p.y);
     const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
     const extent = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 300);
+    const diffs = trace ? trace.withSkills.map((v, i) => v - trace.withoutSkills[i]) : null;
+    const maxAbs = diffs ? Math.max(...diffs.map(Math.abs), NO_DIFF_MPS * 2) : 1;
 
-    // 壁の高さ。差モードはリード（バ身）、速度モードは速度そのもの。
-    let wallWith = null, wallWithout = null, heat = null;
-    if (trace) {
-      const wallMax = extent * WALL_HEIGHT_RATIO;
-      if (mode === "speed") {
-        const all = trace.withSkills.concat(trace.withoutSkills);
-        const floor = Math.min(...all) - 0.5, top = Math.max(...all);
-        const scale = wallMax / Math.max(top - floor, 0.1);
-        wallWith = trace.withSkills.map(v => (v - floor) * scale);
-        wallWithout = trace.withoutSkills.map(v => (v - floor) * scale);
-      } else {
-        const lead = cumulativeLead(trace);
-        const peak = Math.max(...lead.map(Math.abs), 0.05);
-        wallWith = lead.map(v => Math.max(v, 0) / peak * wallMax);
-      }
-      heat = trace.withSkills.map((v, i) => v - trace.withoutSkills[i]);   // 速度差（色に使う）
-    }
-
-    const yaw = state.yaw, cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+    const cosY = Math.cos(state.yaw), sinY = Math.sin(state.yaw);
     const cameraDistance = extent * 2.2;
     const project = (x, y, z) => {
       const X = x - cx, Y = y - cy;
       const xr = X * cosY - Y * sinY, yr = X * sinY + Y * cosY;
-      const sy = yr * Math.sin(PITCH) - z * Math.cos(PITCH);
-      const depth = yr * Math.cos(PITCH) + z * Math.sin(PITCH);
-      const persp = cameraDistance / (cameraDistance + depth);
-      return { x: xr * persp, y: sy * persp, depth };
+      const persp = cameraDistance / (cameraDistance + yr * Math.cos(PITCH) + z * Math.sin(PITCH));
+      return { x: xr * persp, y: (yr * Math.sin(PITCH) - z * Math.cos(PITCH)) * persp,
+               depth: yr * Math.cos(PITCH) + z * Math.sin(PITCH) };
     };
+    const half = TRACK_WIDTH_M / 2;
+    const edge = (p, side) => project(p.x - Math.sin(p.heading) * half * side, p.y + Math.cos(p.heading) * half * side, p.z);
 
-    // 画面に収める。帯と壁の頂点すべてで範囲を取る。
-    const half = TRACE_TRACK_WIDTH_M / 2;
-    const edge = (p, side) => ({ x: p.x - Math.sin(p.heading) * half * side, y: p.y + Math.cos(p.heading) * half * side, z: p.z });
-    const probe = [];
-    path.forEach((p, i) => {
-      const a = edge(p, 1), b = edge(p, -1);
-      probe.push(project(a.x, a.y, a.z), project(b.x, b.y, b.z));
-      if (wallWith) probe.push(project(p.x, p.y, p.z + Math.max(wallWith[i], wallWithout ? wallWithout[i] : 0)));
-    });
+    // 画面に収める
+    const probe = path.flatMap(p => [edge(p, 1), edge(p, -1), project(p.x, p.y, p.z + extent * (PIN_HEIGHT_RATIO + 0.04))]);
     const minX = Math.min(...probe.map(q => q.x)), maxX = Math.max(...probe.map(q => q.x));
     const minY = Math.min(...probe.map(q => q.y)), maxY = Math.max(...probe.map(q => q.y));
-    const margin = 18;
-    const fit = Math.min((width - margin * 2) / (maxX - minX || 1), (height - margin * 2 - 10) / (maxY - minY || 1));
-    const toScreen = q => ({ x: margin + (q.x - minX) * fit + ((width - margin * 2) - (maxX - minX) * fit) / 2,
-                             y: margin + 10 + (q.y - minY) * fit, depth: q.depth });
-    const screen = (x, y, z) => toScreen(project(x, y, z));
+    const margin = 16;
+    const fit = Math.min((width - margin * 2) / (maxX - minX || 1), (height - margin * 2) / (maxY - minY || 1));
+    const offsetX = margin + ((width - margin * 2) - (maxX - minX) * fit) / 2;
+    const toScreen = q => ({ x: offsetX + (q.x - minX) * fit, y: margin + (q.y - minY) * fit, depth: q.depth });
 
-    // 奥から順に描く（画家のアルゴリズム）。帯と壁を区間ごとの四角形として集める。
-    const quads = [];
+    // 帯を区間ごとに、奥から順に塗る。
+    const segments = [];
     for (let i = 0; i < path.length - 1; i++) {
-      const p0 = path[i], p1 = path[i + 1];
-      const a0 = edge(p0, 1), b0 = edge(p0, -1), a1 = edge(p1, 1), b1 = edge(p1, -1);
-      const pts = [screen(a0.x, a0.y, a0.z), screen(a1.x, a1.y, a1.z), screen(b1.x, b1.y, b1.z), screen(b0.x, b0.y, b0.z)];
-      quads.push({ depth: pts.reduce((s, q) => s + q.depth, 0) / 4 + 1, kind: "track", pts, corner: p1.inCorner });
-      if (wallWithout) quads.push(wallQuad(p0, p1, wallWithout[i], wallWithout[i + 1], "without", 0));
-      if (wallWith) quads.push(wallQuad(p0, p1, wallWith[i], wallWith[i + 1], "with", heat ? heat[i + 1] : 0));
+      const pts = [edge(path[i], 1), edge(path[i + 1], 1), edge(path[i + 1], -1), edge(path[i], -1)].map(toScreen);
+      segments.push({ pts, depth: pts.reduce((s, q) => s + q.depth, 0) / 4,
+                      color: diffs ? colorOf(diffs[i + 1], maxAbs) : `rgb(${NEUTRAL.join(",")})` });
     }
-    function wallQuad(p0, p1, h0, h1, kind, diff) {
-      const pts = [screen(p0.x, p0.y, p0.z), screen(p1.x, p1.y, p1.z),
-                   screen(p1.x, p1.y, p1.z + h1), screen(p0.x, p0.y, p0.z + h0)];
-      return { depth: (pts[0].depth + pts[1].depth) / 2, kind, pts, diff };
-    }
-    // 帯を先に全部描き、その上に壁を奥から順に重ねる。
-    // 帯と壁を同じ並びで描くと、手前の帯が壁の根元を塗りつぶして三角の欠けが出る。
-    quads.sort((a, b) => (a.kind === "track") !== (b.kind === "track")
-      ? (a.kind === "track" ? -1 : 1) : b.depth - a.depth);
-
-    const maxHeat = heat ? Math.max(...heat.map(Math.abs), 0.05) : 1;
-    for (const quad of quads) {
+    segments.sort((a, b) => b.depth - a.depth);
+    for (const seg of segments) {
       ctx.beginPath();
-      quad.pts.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)));
+      seg.pts.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)));
       ctx.closePath();
-      if (quad.kind === "track") {
-        ctx.fillStyle = quad.corner ? "#cfd9cf" : "#e3e8e2";
-        ctx.fill();
-      } else if (quad.kind === "without") {
-        ctx.fillStyle = "rgba(120,128,124,0.28)"; ctx.fill();
-        ctx.strokeStyle = "rgba(90,98,94,0.7)"; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(quad.pts[3].x, quad.pts[3].y); ctx.lineTo(quad.pts[2].x, quad.pts[2].y); ctx.stroke();
-      } else {
-        // 速度が上がっている区間ほど濃い緑、下がっている区間は赤。差が出ていない区間は淡く。
-        const strength = Math.min(Math.abs(quad.diff) / maxHeat, 1);
-        const alpha = 0.18 + 0.55 * strength;
-        ctx.fillStyle = quad.diff >= 0 ? `rgba(47,111,79,${alpha})` : `rgba(179,38,30,${alpha})`;
-        ctx.fill();
-        ctx.strokeStyle = "#1f4d36"; ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.moveTo(quad.pts[3].x, quad.pts[3].y); ctx.lineTo(quad.pts[2].x, quad.pts[2].y); ctx.stroke();
-      }
+      ctx.fillStyle = seg.color; ctx.fill();
+      ctx.strokeStyle = seg.color; ctx.lineWidth = 0.8; ctx.stroke();   // 区間の継ぎ目の隙間を埋める
     }
 
-    // スタートとゴールの旗、発動位置のピン
     const at = pos => path[Math.min(Math.round(pos / shape.distance * (path.length - 1)), path.length - 1)];
-    const flag = (p, text) => {
-      const q = screen(p.x, p.y, p.z);
-      ctx.fillStyle = "#6a746e"; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(text, q.x, q.y + 14);
+    const label = (p, text) => {
+      const q = toScreen(project(p.x, p.y, p.z));
+      ctx.fillStyle = "#4d5751"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(text, q.x, q.y + 4);
     };
-    flag(path[0], "スタート");
-    flag(path[path.length - 1], "ゴール");
+    label(path[0], "S");
+    label(path[path.length - 1], "G");
 
     for (const cluster of clusterActivations(activations || [], shape.distance)) {
       const p = at(cluster.pos);
-      const index = path.indexOf(p);
-      const wall = wallWith ? Math.max(wallWith[index], wallWithout ? wallWithout[index] : 0) : 0;
-      const base = screen(p.x, p.y, p.z), top = screen(p.x, p.y, p.z + wall + extent * 0.07);
-      ctx.strokeStyle = "#2f6f4f"; ctx.lineWidth = 1;
+      const base = toScreen(project(p.x, p.y, p.z));
+      const top = toScreen(project(p.x, p.y, p.z + extent * PIN_HEIGHT_RATIO));
+      ctx.strokeStyle = "#1f4d36"; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(base.x, base.y); ctx.lineTo(top.x, top.y); ctx.stroke();
       const first = cluster.members[0].no, last = cluster.members[cluster.members.length - 1].no;
-      const label = first === last ? String(first) : `${first}-${last}`;
+      const text = first === last ? String(first) : `${first}-${last}`;
       ctx.font = "bold 11px sans-serif";
-      const w = ctx.measureText(label).width + 10;
-      ctx.fillStyle = "#2f6f4f";
+      const w = ctx.measureText(text).width + 10;
+      ctx.fillStyle = "#1f4d36";
       ctx.beginPath(); ctx.roundRect(top.x - w / 2, top.y - 9, w, 18, 9); ctx.fill();
-      ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText(label, top.x, top.y + 4);
+      ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText(text, top.x, top.y + 4);
     }
 
-    const caption = host.querySelector(".c3dCaption");
-    if (!trace) caption.textContent = "再計算すると、差がついた場所を表示します";
-    else if (mode === "speed") caption.textContent = "高さ＝速度（緑：スキルあり／灰：なし）";
-    // ゴールでの差の数値は出さない。図は1回だけ走らせた形で、結果欄の値（複数回の平均）と一致しない。
-    else caption.textContent = "高さ＝差の広がり（濃い緑＝速度が上がっている区間）";
+    const legend = host.querySelector(".c3dLegend");
+    legend.hidden = !diffs;
+    if (diffs) legend.querySelector(".c3dMax").textContent = `+${maxAbs.toFixed(2)} m/s`;
+    host.querySelector(".c3dCaption").textContent = diffs ? "色＝スキルで速くなった量" : "再計算すると色が付きます";
   }
 
-  // 3Dコース図の部品を作る。trace が null なら帯とピンだけを描く。
-  window.renderCourse3D = function (shape, trace, activations, nameOf) {
+  // 3Dコース図の部品を作る。trace が null なら灰色の帯とピンだけを描く。
+  window.renderCourse3D = function (shape, trace, activations) {
     if (!shape || !shape.distance) return null;
     const host = document.createElement("div");
     host.className = "c3d";
     host.innerHTML = `<canvas aria-label="3Dコース図。ドラッグで回転できます。"></canvas>
       <div class="c3dBar"><span class="c3dCaption"></span>
-      <span class="c3dModes"><button type="button" data-mode="lead" class="on">差</button><button type="button" data-mode="speed">速度</button></span></div>`;
-    const state = { shape, trace, activations, nameOf, mode: "lead", yaw: -0.5 };
+      <span class="c3dLegend"><span>0</span><i></i><span class="c3dMax"></span></span></div>`;
+    const state = { shape, trace, activations, yaw: -0.5 };
     const draw = () => render(host, state);
-
-    host.querySelectorAll("[data-mode]").forEach(button => button.addEventListener("click", () => {
-      state.mode = button.dataset.mode;
-      host.querySelectorAll("[data-mode]").forEach(b => b.classList.toggle("on", b === button));
-      draw();
-    }));
-    host.querySelector(".c3dModes").hidden = !trace;
 
     // ドラッグ（指・マウス）で回す。縦方向のスクロールは妨げない。
     const canvas = host.querySelector("canvas");
@@ -225,7 +165,6 @@
     canvas.addEventListener("pointerup", () => { dragX = null; });
     canvas.style.touchAction = "pan-y";
 
-    // 画面に入ってから描く（幅が決まっていないと大きさを測れない）。
     requestAnimationFrame(draw);
     new ResizeObserver(draw).observe(host);
     return host;

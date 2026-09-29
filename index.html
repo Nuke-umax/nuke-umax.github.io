@@ -381,10 +381,13 @@
   .c3d { margin: 12px 0; border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(#f4f7f4, #fff); overflow: hidden; }
   .c3d canvas { display: block; width: 100%; cursor: grab; }
   .c3dBar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px 8px; font-size: 12px; color: var(--muted); }
-  .c3dModes { display: inline-flex; background: #e6ebe6; border-radius: 8px; padding: 2px; }
-  .c3dModes button { min-height: 28px; padding: 0 12px; margin: 0; border: 0; border-radius: 6px; background: transparent;
-    font-size: 12px; color: var(--muted); box-shadow: none; }
-  .c3dModes button.on { background: #fff; color: var(--accent-dark); font-weight: 700; }
+  .staminaLine { margin: 6px 0 0; padding: 6px 10px; border-radius: 8px; font-size: 13px; }
+  .staminaLine.ok { background: var(--accent-soft, #eaf1ec); color: var(--accent-dark); }
+  .staminaLine.warn { background: var(--warn-bg); color: var(--warn); }
+  .staminaLine.bad { background: #fbe9e7; color: #b3261e; font-weight: 700; }
+  .c3dLegend { display: inline-flex; align-items: center; gap: 6px; }
+  .c3dLegend i { width: 64px; height: 8px; border-radius: 4px;
+    background: linear-gradient(90deg, rgb(223,229,223), rgb(160,196,172), rgb(24,122,74)); }
 </style>
 <link rel="stylesheet" href="site.css?v=1">
 </head>
@@ -488,7 +491,7 @@
     <summary aria-label="計算の前提">？</summary>
     <ul>
       <li>残りスキルPtで<b>最も速く走れる組み合わせ</b>を、バ身（どれだけ前に出られるか）で選びます。</li>
-      <li>順位・追い抜き・進路で決まる条件は<b>すべて満たされる前提</b>、発動位置は最も伸びる地点。数値は噛み合ったときの見積りです。</li>
+      <li>順位・追い抜き・進路で決まる条件は<b>すべて満たされる前提</b>です。発動位置は実際のレースと同じく、発動できる区間の中でばらけます（複数回走らせた平均）。</li>
       <li>調整中の機能です。仕様は予告なく変わります。</li>
       <li>計算はサーバーで行います。送るのは数値（ステータス・適性・スキルの番号）だけで、画像は送りません（<a href="privacy.html">プライバシーポリシー</a>）。</li>
       <li>計算には <a href="https://github.com/alpha123/uma-skill-tools" rel="noopener">uma-skill-tools</a>（GPL-3.0・作者 pecan）を用いています。</li>
@@ -699,7 +702,7 @@
 <script src="harvest.js?v=102"></script>
 <script src="dedup.js?v=102"></script>
 <script src="pipeline.js?v=102"></script>
-<script src="course3d.js?v=1"></script>
+<script src="course3d.js?v=2"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
 const infoOverlay = document.getElementById("infoOverlay");
@@ -2071,6 +2074,26 @@ function scenarioPicked() {
   return simState.chosen.filter(id => simState.scenarioIds.has(String(id))).length;
 }
 
+// 選んだ構成で体力が持つか。計算した構成のものなので、手で変えた後（未計算）は出さない。
+function renderStaminaLine() {
+  const st = simState.stamina;
+  if (!st || simState.measured == null) return null;
+  const line = document.createElement("p");
+  line.className = "staminaLine";
+  const percent = rate => Math.round(rate * 100);
+  if (st.hpOutRate > 0) {
+    line.classList.add("bad");
+    line.textContent = `体力が尽きる：ゴール前 約${st.hpOutPos}m（${percent(st.hpOutRate)}%の回）。回復スキルを入れると伸びる可能性があります`;
+  } else if (st.reducedSpurtRate > 0) {
+    line.classList.add("warn");
+    line.textContent = `体力がやや不足：全力でスパートできない回が${percent(st.reducedSpurtRate)}%`;
+  } else {
+    line.classList.add("ok");
+    line.textContent = `体力は足りる：ゴールで残り${percent(st.hpLeftRatio)}%`;
+  }
+  return line;
+}
+
 // 選択中の合計。実測が無ければ単体値の合計を「目安」として出す。
 function simTotals() {
   const sp = simState.chosen.reduce((a, id) => a + (simState.info.get(id)?.sp ?? 0), 0);
@@ -2133,6 +2156,8 @@ function renderSimResults() {
     el.appendChild(warn);
   }
   el.appendChild(totals);
+  const staminaLine = renderStaminaLine();
+  if (staminaLine) el.appendChild(staminaLine);
 
   // SPが余っていて、まだ買える候補があるのに選んでいないときは理由を添える。
   // 最適化は残った候補を今の構成に1つずつ足して試しており、伸びなかったものを
@@ -2316,6 +2341,7 @@ async function recalcSim() {
     simState.measured = data.bashinGain;
     simState.activations = data.activations || [];
     simState.speedTrace = data.speedTrace || null;
+    simState.stamina = data.stamina || null;
     for (const s of data.selected || []) {
       const prev = simState.info.get(s.skillId) || {};
       simState.info.set(s.skillId, { sp: s.sp, bashin: s.bashin, group: prev.group });
@@ -2405,6 +2431,7 @@ async function runSim() {
     simState.truncated = data.truncated === true;
     simState.activations = data.activations || [];
     simState.speedTrace = data.speedTrace || null;
+    simState.stamina = data.stamina || null;
     simState.measured = data.bashinGain;
     simState.edited = false;
     renderSimResults();
