@@ -56,25 +56,6 @@
   .inputCard #runButton { width: 100%; margin-top: 14px; }
   .inputCard #sharedNote { margin: 8px 0 0; font-size: 12px; }
 
-  /* 一目で伝える短い札。長い注意書きを読ませる代わりに置く。 */
-  .badgeRow { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
-  .badge {
-    font-size: 12px; padding: 3px 10px; border-radius: 999px;
-    background: #eef0ed; color: var(--muted); border: 1px solid var(--border);
-  }
-  .badge--ok { background: var(--accent-soft, #eaf1ec); color: var(--accent-dark);
-               border-color: #cfe0d5; }
-
-  /* 端末についての注意は、必要な人だけが開けばよい。 */
-  details.deviceNote {
-    margin: 0 0 18px; padding: 0 14px;
-    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
-  }
-  details.deviceNote > summary {
-    cursor: pointer; padding: 10px 0; font-size: 13px; color: var(--accent-dark);
-    font-weight: 600; list-style-position: inside;
-  }
-  details.deviceNote p { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
   .lead { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
   /* 既定の青リンクは緑基調の中で浮くので、アクセント色に寄せる。 */
   .lead a { color: var(--accent-dark); }
@@ -264,13 +245,6 @@
   #simResults td.num { text-align: right; font-variant-numeric: tabular-nums; }
   .simHeadline { font-size: 15px; font-weight: 700; margin: 10px 0 4px; }
 
-  .sampleBar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0 0 16px; }
-  .sampleBar button {
-    flex: 0 0 auto; width: auto; min-height: 44px; padding: 0 18px;
-    background: var(--accent); color: #fff; border: none; border-radius: 8px;
-    font-size: 14px; font-weight: 700;
-  }
-  .sampleNote { font-size: 12px; color: var(--muted); }
   .deviceNote { font-size: 12px; }
 
   .fixBar { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
@@ -356,6 +330,61 @@
     display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
   }
   .siteFooter a { color: var(--muted); }
+
+  /* ---- 2026-09-30 刷新 ---- */
+  .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .pageBody { padding-top: 12px; }
+  .inputCard { position: relative; padding: 14px; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 12px; }
+  .tile {
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; min-height: 104px; margin: 0; padding: 10px; cursor: pointer; text-align: center;
+    border: 2px dashed var(--border-strong, #c6cfc7); border-radius: 14px; background: #fafbf9;
+    transition: border-color .15s, background .15s;
+  }
+  .tile:hover { border-color: var(--accent); }
+  .tile.filled { border-style: solid; border-color: var(--accent); background: var(--accent-soft, #eaf1ec); }
+  .tile input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .tileNo { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff;
+    display: grid; place-items: center; font-size: 14px; font-weight: 700; }
+  .tileName { font-size: 14px; font-weight: 700; color: var(--text); }
+  .tileState { font-size: 12px; color: var(--muted); }
+  .tile.filled .tileState { color: var(--accent-dark); font-weight: 700; }
+  .inputCard #runButton { width: 100%; margin: 0; }
+
+  /* 説明は「？」を押した人だけが読む。 */
+  details.help { position: absolute; top: 8px; right: 8px; z-index: 5; }
+  details.help > summary { list-style: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+    display: grid; place-items: center; font-size: 14px; font-weight: 700;
+    color: var(--muted); border: 1px solid var(--border); background: #fff; }
+  details.help > summary::-webkit-details-marker { display: none; }
+  details.help[open] > summary { color: #fff; background: var(--accent); border-color: var(--accent); }
+  details.help > ul { position: absolute; right: 0; top: 32px; width: min(320px, 86vw); margin: 0; padding: 10px 12px 10px 26px;
+    background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    font-size: 13px; line-height: 1.6; color: var(--text); }
+  details.help li { margin: 0 0 4px; }
+  #panelSim { position: relative; }
+  #panelSim > details.help { top: -2px; right: 0; }
+
+  /* タブは切り替えボタン型に。 */
+  .tabBar { display: flex; gap: 0; padding: 4px; margin: 18px 0 14px; border: 0; border-radius: 12px; background: #e6ebe6; }
+  .tabBar button { flex: 1; min-height: 40px; margin: 0; border: 0 !important; border-radius: 9px;
+    background: transparent; color: var(--muted); font-weight: 700; box-shadow: none; }
+  .tabBar button[aria-selected="true"] { background: #fff; color: var(--accent-dark); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .tabBar .wip { background: var(--accent); }
+
+  /* 解説は折りたたんで最下部に。 */
+  .aboutFold > summary { cursor: pointer; font-weight: 700; color: var(--accent-dark); padding: 4px 0; }
+  section.about { background: transparent; border: 0; padding: 0; }
+
+  /* 3Dコース図 */
+  .c3d { margin: 12px 0; border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(#f4f7f4, #fff); overflow: hidden; }
+  .c3d canvas { display: block; width: 100%; cursor: grab; }
+  .c3dBar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px 8px; font-size: 12px; color: var(--muted); }
+  .c3dModes { display: inline-flex; background: #e6ebe6; border-radius: 8px; padding: 2px; }
+  .c3dModes button { min-height: 28px; padding: 0 12px; margin: 0; border: 0; border-radius: 6px; background: transparent;
+    font-size: 12px; color: var(--muted); box-shadow: none; }
+  .c3dModes button.on { background: #fff; color: var(--accent-dark); font-weight: 700; }
 </style>
 <link rel="stylesheet" href="site.css?v=1">
 </head>
@@ -368,62 +397,44 @@
       <span class="siteHeader__name">評価点 最大化くん</span>
     </a>
     <a class="siteHeader__updates" href="updates.html">
-      <span class="siteHeader__dot" aria-hidden="true"></span>更新 9/23
+      <span class="siteHeader__dot" aria-hidden="true"></span>更新 9/30
     </a>
   </div>
 </header>
 <!-- site-header:end -->
 <div class="pageBody">
-<h1>ウマ娘 評価点 最大化くん</h1>
-
-<p class="lead">スキル獲得画面のスクショから、残りスキルPtで<b>評価点が最大になる組み合わせ</b>と、
-<b>最も速く走れる組み合わせ</b>を計算します。</p>
-
-<!-- スクショが手元に無い人（PC利用者・初めて訪れた人）が、何が出るツールなのかを
-     操作せずに確かめられるようにする。サンプルはマスタから組み立てるので、
-     ゲーム画像を一切置かずに実際の計算結果を見せられる。 -->
-<div class="sampleBar">
-  <button type="button" id="sampleButton">サンプルで試す</button>
-  <span class="sampleNote">スクショが無くても、計算結果の例をその場で表示します。</span>
-</div>
-
-<p class="badgeRow">
-  <span class="badge badge--ok">画像は端末外に送信しません</span>
-  <span class="badge">読み取りはスマホ専用</span>
-</p>
-
-<details class="deviceNote">
-  <summary>読み取れないときは</summary>
-  <p>スクリーンショットの読み取りは<b>スマートフォン専用</b>です。PC・タブレットでは画面比が異なるため
-  読み取れません。サンプル表示と解説記事はどの端末でも見られます。</p>
-  <p>うまく読み取れないときは、<a href="contact.html">お問い合わせ</a>から端末の情報をお寄せいただけると助かります。</p>
-</details>
+<h1 class="srOnly">ウマ娘 評価点 最大化くん</h1>
 
 <section class="inputCard">
-  <div class="inputRow">
-    <label for="detailFile">① ウマ娘詳細画面 <button type="button" class="info" data-info="detail" aria-label="説明">i</button></label>
-    <input type="file" id="detailFile" accept="image/*">
-    <template data-info-body="detail">
-      ウマ娘詳細（ステータスと適性が<b>すべて写っている</b>画面）を撮ってください。
-    </template>
+  <details class="help">
+    <summary aria-label="使い方と注意">？</summary>
+    <ul>
+      <li>①はステータスと適性が<b>すべて写った</b>ウマ娘詳細画面。</li>
+      <li>②は「説明省略」をONにして上から下へ。前後の画像で<b>2〜3行重ねて</b>撮る。</li>
+      <li>読み取りはスマートフォンの画面専用。画像は端末の外へ送りません。</li>
+      <li>読み取れないときは<a href="contact.html">お問い合わせ</a>へ端末の情報を。</li>
+    </ul>
+  </details>
+  <div class="tiles">
+    <label class="tile" for="detailFile">
+      <span class="tileNo">1</span><span class="tileName">詳細画面</span>
+      <span class="tileState" data-for="detailFile">未選択</span>
+      <input type="file" id="detailFile" accept="image/*">
+    </label>
+    <label class="tile" for="acqFiles">
+      <span class="tileNo">2</span><span class="tileName">スキル獲得画面</span>
+      <span class="tileState" data-for="acqFiles">複数枚</span>
+      <input type="file" id="acqFiles" accept="image/*" multiple>
+    </label>
   </div>
-  <div class="inputRow">
-    <label for="acqFiles">② スキル獲得画面（複数枚） <button type="button" class="info" data-info="acq" aria-label="説明">i</button></label>
-    <input type="file" id="acqFiles" accept="image/*" multiple>
-    <template data-info-body="acq">
-      「説明省略」をONにして、上から下へスクロールしながら撮ってください。
-      下の画像と<b>スキル2〜3行重ねて</b>ください。
-    </template>
-  </div>
-  <button id="runButton">スクリーンショットを読み取る</button>
+  <button id="runButton">読み取る</button>
   <div id="status"></div>
   <div id="progressBar"><div class="fill"></div></div>
-  <p class="sub" id="sharedNote">読み取り結果は下の2つのタブで共通して使われます。</p>
 </section>
 
 <div class="tabBar" role="tablist">
-  <button type="button" id="tabScore" role="tab" aria-selected="true" aria-controls="panelScore">評価点で選ぶ</button>
-  <button type="button" id="tabSim" role="tab" aria-selected="false" aria-controls="panelSim">走行シミュレータ<span class="wip">準備中</span></button>
+  <button type="button" id="tabScore" role="tab" aria-selected="true" aria-controls="panelScore">評価点</button>
+  <button type="button" id="tabSim" role="tab" aria-selected="false" aria-controls="panelSim">最速<span class="wip">β</span></button>
 </div>
 
 <div id="panelScore" role="tabpanel">
@@ -473,22 +484,16 @@
 </div><!-- /panelScore -->
 
 <div id="panelSim" role="tabpanel" hidden>
-  <div class="wipNotice">
-    <p><b>この機能は準備中です。</b>計算の内容・数値の妥当性を検証している段階で、結果は目安として扱ってください。
-    仕様は予告なく変わります。うまく動かないことがあります。</p>
-    <p><b>順位・追い抜き・進路といったレース中の状況で決まる条件は、すべて「満たされる」前提で計算しています。</b>
-    発動位置も、条件が許す範囲で<b>最もバ身が伸びる地点</b>を採っています。
-    実際のレースでは条件が揃わなかったり発動位置がずれたりするため、
-    <b>出る数値は噛み合ったときの上振れ側の見積り</b>です。</p>
-  </div>
-
-  <p class="lead">コースと条件を選ぶと、残りスキルポイントの範囲で<b>最も速く走れる</b>スキルの組み合わせを計算します。
-  評価点ではなく<b>バ身</b>（どれだけ前に出られるか）で選びます。</p>
-
-  <p class="lead deviceNote">この機能だけは計算をサーバーで行うため、
-  <b>入力した数値（ステータス・適性・スキルの識別番号）が送信されます</b>。
-  <b>スクリーンショットは送信しません。</b>詳しくは<a href="privacy.html">プライバシーポリシー</a>をご覧ください。<br>
-  計算には <a href="https://github.com/alpha123/uma-skill-tools" rel="noopener">uma-skill-tools</a>（GPL-3.0・作者 pecan）を用いています。</p>
+  <details class="help">
+    <summary aria-label="計算の前提">？</summary>
+    <ul>
+      <li>残りスキルPtで<b>最も速く走れる組み合わせ</b>を、バ身（どれだけ前に出られるか）で選びます。</li>
+      <li>順位・追い抜き・進路で決まる条件は<b>すべて満たされる前提</b>、発動位置は最も伸びる地点。数値は噛み合ったときの見積りです。</li>
+      <li>調整中の機能です。仕様は予告なく変わります。</li>
+      <li>計算はサーバーで行います。送るのは数値（ステータス・適性・スキルの番号）だけで、画像は送りません（<a href="privacy.html">プライバシーポリシー</a>）。</li>
+      <li>計算には <a href="https://github.com/alpha123/uma-skill-tools" rel="noopener">uma-skill-tools</a>（GPL-3.0・作者 pecan）を用いています。</li>
+    </ul>
+  </details>
 
   <section>
     <label>① コース</label>
@@ -602,6 +607,8 @@
 </div><!-- /panelSim -->
 
 <section class="about">
+<details class="aboutFold">
+<summary>評価点とスキル選びの仕組み</summary>
   <h2>評価点とは何か</h2>
   <p>育成を終えたウマ娘に付く総合的な数値です。内訳は3つで、この合計がそのまま評価点になります。</p>
   <ul>
@@ -661,6 +668,7 @@
   </ul>
 
   <p class="note">ゲームの開発・運営元とは関係のない非公式ツールです。ゲーム内の仕様は更新で変わることがあります。</p>
+</details>
 </section>
 
 </div><!-- /pageBody -->
@@ -691,6 +699,7 @@
 <script src="harvest.js?v=102"></script>
 <script src="dedup.js?v=102"></script>
 <script src="pipeline.js?v=102"></script>
+<script src="course3d.js?v=1"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
 const infoOverlay = document.getElementById("infoOverlay");
@@ -1542,99 +1551,6 @@ function sortByFileName(fileList) {
               .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 }
 
-// ===== サンプル実行 =====
-// スクリーンショットを持たない訪問者に、実際の計算結果を見せるための経路。
-// OCRを通さず、スキルマスタから認識結果そのものを組み立てて recalcAndRender へ渡す。
-// ゲーム画像を同梱しなくて済むこと、マスタ更新に自動追随することの二点が狙い。
-
-const SAMPLE_CARD_ID = "100703";          // ゴールドシップ[La mode 564]（進化2件を持つ）
-const SAMPLE_BUDGET = 1200;               // 育成終盤に残りがちな保有スキルPt
-const SAMPLE_APTITUDES = {                // 詳細画面から読み取る適性の代わり
-  tanKyori: "C", mile: "B", chuKyori: "A", choKyori: "A",
-  nige: "C", senko: "A", sashi: "B", oikomi: "C",
-};
-const SAMPLE_STATS = { speed: 1150, stamina: 1080, power: 900, guts: 620, wisdom: 840 };
-const SAMPLE_ACQUIRED_COUNT = 6;          // 「取得済み」として見せる件数
-const SAMPLE_OFFERED_COUNT = 22;          // 「未取得（購入候補）」として見せる件数
-
-// マスタから決め打ちの並びでサンプル行を作る。乱数を使わないので毎回同じ結果になる。
-function buildSampleRows(master) {
-  const evolutionsByGold = new Map();
-  for (const family of master.families) {
-    for (const evolution of family.evolutions || []) {
-      if (String(evolution.characterCardId) !== SAMPLE_CARD_ID) continue;
-      const list = evolutionsByGold.get(evolution.fromGoldSkillId) || [];
-      list.push(evolution.skillId);
-      evolutionsByGold.set(evolution.fromGoldSkillId, list);
-    }
-  }
-
-  // 進化を持つファミリーを先頭に寄せる。サンプルで進化の扱いを見せたいため。
-  const families = master.families
-    .filter(family => family.skills.some(skill => skill.baseCost))
-    .sort((a, b) => {
-      const hasEvolution = family =>
-        family.skills.some(skill => evolutionsByGold.has(skill.skillId)) ? 0 : 1;
-      return hasEvolution(a) - hasEvolution(b) || a.familyId - b.familyId;
-    });
-
-  const rows = [];
-  const uniqueSkill = master.uniqueSkills.find(u => String(u.characterCardId) === SAMPLE_CARD_ID);
-  if (uniqueSkill) {
-    // 1行目は固有スキル。実際の獲得画面もこの並びで、キャラ特定にも使われる。
-    rows.push(makeSampleRow(uniqueSkill.skillId, uniqueSkill.name, null, true, false, null));
-  }
-
-  for (const family of families) {
-    for (const skill of family.skills) {
-      if (!skill.baseCost) continue;
-      if (rows.length >= SAMPLE_ACQUIRED_COUNT + SAMPLE_OFFERED_COUNT) break;
-      const isAcquired = rows.length < SAMPLE_ACQUIRED_COUNT;
-      const evolutionSkillIds = evolutionsByGold.get(skill.skillId) || null;
-      rows.push(makeSampleRow(
-        skill.skillId, skill.name,
-        isAcquired ? null : skill.baseCost,   // 取得済みの行に必要SPは表示されない
-        isAcquired, Boolean(evolutionSkillIds), evolutionSkillIds));
-    }
-  }
-  return rows;
-}
-
-function makeSampleRow(skillId, name, sp, acquired, evo, evolutionSkillIds) {
-  // icon / thumbnail は切り抜き画像。サンプルには無いので null（描画側でガード済み）。
-  return { skillId, name, sp, acquired, evo, evolutionSkillIds,
-           ambiguous: false, secondName: null, icon: null, thumbnail: null };
-}
-
-async function runSample() {
-  const sampleButton = document.getElementById("sampleButton");
-  sampleButton.disabled = true;
-  try {
-    setStatus("サンプルを読み込み中...");
-    await loadResources();
-
-    const rows = buildSampleRows(cache.master);
-    session.recognizedRows   = rows;
-    session.missingRangeCount = null;
-    session.autoSkillPoints  = SAMPLE_BUDGET;
-    session.skillPointsGuess = SAMPLE_BUDGET;
-    session.budget           = SAMPLE_BUDGET;
-    session.aptitudes        = { ...SAMPLE_APTITUDES };
-    session.characterCardId  = SAMPLE_CARD_ID;
-    session.stats            = { ...SAMPLE_STATS };
-    session.statCrops        = [];
-    session.aptitudeCrops    = [];
-    session.evolutionChoices = {};
-
-    await recalcAndRender();
-    document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
-  } catch (e) {
-    setStatus("サンプルの表示に失敗しました: " + e.message);
-    console.error(e);
-  } finally {
-    sampleButton.disabled = false;
-  }
-}
 
 async function run() {
   const acqFileList = sortByFileName(document.getElementById("acqFiles").files);
@@ -1935,7 +1851,25 @@ function simCandidatesFromSession() {
     }
   }
   // 取得済みも同じ基準で絞る。発動しないものを渡すと、コース図に出て誤解を招く。
-  const acquired = [...state.acquired].map(String).filter(activatesHere);
+  // 取得済みは系統ごとに最上位だけを効かせる。白◎と金の鬼が両方「獲得済」の
+  // ような場合、ゲームでは鬼が◎を上書きしている。両方走らせると二重に数える。
+  const acquiredAll = [...state.acquired].map(String).filter(activatesHere);
+  const acquiredGroups = new Map();
+  const topAcquiredInGroup = new Map();   // 系統 → 取得済みの最上位 { id, tier }
+  for (const family of cache.master.families) {
+    for (const skill of family.skills) {
+      const id = String(skill.skillId);
+      if (!acquiredAll.includes(id)) continue;
+      const group = String(family.familyId);
+      acquiredGroups.set(id, group);
+      const top = topAcquiredInGroup.get(group);
+      if (!top || skill.tier > top.tier) topAcquiredInGroup.set(group, { id, tier: skill.tier });
+    }
+  }
+  const acquired = acquiredAll.filter(id => {
+    const group = acquiredGroups.get(id);
+    return !group || topAcquiredInGroup.get(group).id === id;
+  });
 
   const freeCount = candidates.filter(c => c.sp === 0).length;
   const chosenScenario = state.trainingScenario;
@@ -1947,7 +1881,7 @@ function simCandidatesFromSession() {
         ? `シナリオ進化は「${chosenScenario}」のもののみ、${SCENARIO_EVOLUTION_LIMIT}個まで選べます。`
         : `育成シナリオを選ぶと、シナリオ進化を絞り込めます（${SCENARIO_EVOLUTION_LIMIT}個まで選択可）。`);
 
-  return { candidates, acquired, scenarioEvolutions };
+  return { candidates, acquired, acquiredGroups, scenarioEvolutions };
 }
 
 // コース図。スタートからゴールまでを1本の帯で表し、
@@ -2099,7 +2033,15 @@ function renderCourseMap(shape, activations, nameOf) {
 }
 
 // 結果の状態。画面で差し替えられるよう、選択中の集合を保持する。
+// 取得済みのうち、いま実際に効いているもの。
+// 同じ系統の上位を選ぶと下位は上書きされる。上位を外せば下位はまた効く。
+function activeAcquired() {
+  const chosenGroups = new Set(simState.chosen.map(id => simState.info.get(id)?.group).filter(Boolean));
+  return simState.acquired.filter(id => !chosenGroups.has(simState.acquiredGroups.get(id)));
+}
+
 const simState = {
+  acquiredGroups: new Map(),   // 取得済みスキルID → 系統
   request: null,        // 直近の計算に使ったリクエスト（再計算に使い回す）
   chosen: [],           // 選択中のスキルID
   info: new Map(),      // skillId → { sp, bashin, group }
@@ -2133,7 +2075,7 @@ function scenarioPicked() {
 function simTotals() {
   const sp = simState.chosen.reduce((a, id) => a + (simState.info.get(id)?.sp ?? 0), 0);
   // 取得済みスキルも効いているので、目安の合計に含める（SPはかからない）。
-  const all = [...simState.acquired, ...simState.chosen];
+  const all = [...activeAcquired(), ...simState.chosen];
   const rough = all.reduce((a, id) => a + (simState.info.get(id)?.bashin ?? 0), 0);
   return { sp, rough, budget: parseInt(document.getElementById("simBudget").value, 10) || 0 };
 }
@@ -2192,6 +2134,27 @@ function renderSimResults() {
   }
   el.appendChild(totals);
 
+  // SPが余っていて、まだ買える候補があるのに選んでいないときは理由を添える。
+  // 最適化は残った候補を今の構成に1つずつ足して試しており、伸びなかったものを
+  // 見送っている。積みすぎると体力が持たず、かえって遅くなる
+  // （実測: 121件の構成にアグレッシブを足すと 71.32→70.48 バ身）。
+  // 断りが無いと「SPがあるのに取らない不具合」と区別がつかない。
+  const isOptimizerResult = simState.measured != null && !simState.truncated && !simState.edited;
+  // 数えるのは「足せる」候補だけ。同じ系統を選んでいる候補は入れ替えになり、
+  // 上位から下位へ下げる入れ替えは遅くなって当然なので理由の説明に含めない。
+  const chosenGroupsNow = new Set(simState.chosen.map(id => simState.info.get(id)?.group).filter(Boolean));
+  const cheapestLeft = [...simState.info.entries()]
+    .filter(([id, v]) => !simState.chosen.includes(id) && !simState.acquired.includes(id)
+      && v.bashin > 0 && !(v.group && chosenGroupsNow.has(v.group)))
+    .reduce((min, [, v]) => Math.min(min, v.sp), Infinity);
+  if (isOptimizerResult && budget - sp >= cheapestLeft) {
+    const why = document.createElement("p");
+    why.className = "pickNote";
+    why.textContent = "※ 残りSPで取れる候補もありますが、今の構成に足すとかえって遅くなる"
+      + "（体力が持たない・効果が重なる）ため選んでいません。下の候補から追加して確かめられます。";
+    el.appendChild(why);
+  }
+
   const recalc = document.createElement("button");
   recalc.type = "button";
   recalc.style.width = "100%";
@@ -2214,7 +2177,7 @@ function renderSimResults() {
 
   // 印と番号は「いま選んでいる集合」だけで作る。
   // サーバーから受け取ったままにすると、外したスキルがコース図に残る。
-  const shownIds = new Set([...simState.acquired, ...simState.chosen].map(String));
+  const shownIds = new Set([...activeAcquired(), ...simState.chosen].map(String));
   const shownActivations = simState.activations
     .filter(a => shownIds.has(String(a.skillId)))
     .sort((a, b) => a.pos - b.pos);
@@ -2235,13 +2198,14 @@ function renderSimResults() {
       onClick: () => {
         simState.chosen = simState.chosen.filter(x => x !== id);
         simState.measured = null;
+        simState.edited = true;   // 最適化の結果から手で変えた
         renderSimResults();
       },
     }));
   }
 
   // 取得済み。外せないが、効果は出ているので一覧に出す。
-  const owned = simState.acquired.filter(id => (simState.info.get(id)?.bashin ?? 0) > 0);
+  const owned = activeAcquired().filter(id => (simState.info.get(id)?.bashin ?? 0) > 0);
   if (owned.length) {
     const head0 = document.createElement("p");
     head0.className = "pickHead";
@@ -2261,7 +2225,9 @@ function renderSimResults() {
     }
   }
 
-  const map = renderCourseMap(simState.courseShape, shownActivations, simSkillName);
+  // 速度の推移は計算した構成のもの。手で変えた後（未計算）は帯とピンだけを出す。
+  const map = renderCourse3D(simState.courseShape, simState.measured != null ? simState.speedTrace : null,
+    shownActivations, simSkillName);
   if (map) {
     el.appendChild(map);
     // 追加した直後は発動位置がまだ分からない。印が出ないことを断っておく。
@@ -2287,7 +2253,7 @@ function renderSimResults() {
   el.appendChild(head2);
   const note2 = document.createElement("p");
   note2.className = "pickNote";
-  note2.textContent = "バ身は単体で入れたときの値です。実際は他のスキルと効果が重なるため、合計より小さくなります。";
+  note2.textContent = "バ身は単体の値（重なると合計より小さくなる）";
   el.appendChild(note2);
 
   // 同じ系統は同時に持てないが、選び直しはできる。
@@ -2322,16 +2288,13 @@ function renderSimResults() {
         if (rival) simState.chosen = simState.chosen.filter(x => x !== rival);
         simState.chosen.push(c.id);
         simState.measured = null;
+        simState.edited = true;   // 最適化の結果から手で変えた
         renderSimResults();
       },
     }));
   }
 
-  const note = document.createElement("p");
-  note.className = "sub";
-  note.textContent = "貪欲法＋局所探索による近似解。順位・追い抜き等のレース内条件は「満たされる」前提で、"
-    + "発動位置は最もバ身が伸びる地点を採っています。";
-  el.appendChild(note);
+  // 計算の前提は冒頭の「？」に書いてある。結果の下では繰り返さない。
 }
 
 // 選択中の構成で、実際に走らせた値を取り直す。
@@ -2344,7 +2307,7 @@ async function recalcSim() {
   try {
     // 再計算では、取得済みも必ず含めた集合で測る。
     const payload = Object.assign({}, simState.request,
-      { evaluateOnly: [...simState.acquired, ...simState.chosen] });
+      { evaluateOnly: [...activeAcquired(), ...simState.chosen] });
     const res = await fetch(SIM_API, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
     });
@@ -2352,6 +2315,7 @@ async function recalcSim() {
     if (!res.ok) { status.textContent = "エラー: " + (data.error || res.status); return; }
     simState.measured = data.bashinGain;
     simState.activations = data.activations || [];
+    simState.speedTrace = data.speedTrace || null;
     for (const s of data.selected || []) {
       const prev = simState.info.get(s.skillId) || {};
       simState.info.set(s.skillId, { sp: s.sp, bashin: s.bashin, group: prev.group });
@@ -2387,7 +2351,7 @@ async function runSim() {
   const button = document.getElementById("simRunButton");
   const status = document.getElementById("simStatus");
   const num = id => parseInt(document.getElementById(id).value, 10);
-  const { candidates, acquired, scenarioEvolutions } = simCandidatesFromSession();
+  const { candidates, acquired, acquiredGroups, scenarioEvolutions } = simCandidatesFromSession();
   if (!candidates.length) {
     status.textContent = "候補スキルがありません。先に「評価点で選ぶ」タブでスクリーンショットを読み取ってください。";
     return;
@@ -2406,7 +2370,9 @@ async function runSim() {
     // 取得済みは比較の土台にしない。候補として渡し、必ず選ばれる形にする
     // （SP 0 なので予算を圧迫しない）。こうすると単体バ身も測れて画面に出せる。
     acquired: [],
-    candidates: candidates.concat(acquired.map(id => ({ skillId: id, sp: 0, owned: true }))),
+    // 取得済みにも系統を付ける。サーバーは同じ系統の上位を選んだとき、下位を走らせない。
+    candidates: candidates.concat(acquired.map(id =>
+      ({ skillId: id, sp: 0, owned: true, group: acquiredGroups.get(id) }))),
     // 「継承スキルを3つ以上持っていると効果が増える」等の判定に使う。
     // どのIDが継承スキルかはマスタ側にしか無いので、こちらから渡す。
     inheritedSkillIds: inheritedSkillIdList(),
@@ -2425,6 +2391,7 @@ async function runSim() {
     status.textContent = `完了（サーバで ${data.evaluations} 回のシミュレーション）`;
     simState.request = payload;
     simState.acquired = acquired.slice();
+    simState.acquiredGroups = acquiredGroups;
     simState.scenarioIds = new Set((scenarioEvolutions || []).map(e => e.skillId));
     // 取得済みは常に含まれるので、選択中の一覧からは外して別枠で見せる。
     simState.chosen = (data.selected || [])
@@ -2437,7 +2404,9 @@ async function runSim() {
     simState.courseShape = data.courseShape || null;
     simState.truncated = data.truncated === true;
     simState.activations = data.activations || [];
+    simState.speedTrace = data.speedTrace || null;
     simState.measured = data.bashinGain;
+    simState.edited = false;
     renderSimResults();
   } catch (e) {
     status.textContent = "通信に失敗しました。時間をおいて試してください。";
@@ -2459,6 +2428,15 @@ function selectTab(which) {
 document.getElementById("tabScore").addEventListener("click", () => selectTab("score"));
 document.getElementById("tabSim").addEventListener("click", () => selectTab("sim"));
 document.getElementById("simRunButton").addEventListener("click", runSim);
+// 選んだ枚数をタイルに出す。見えない input の代わりに、状態をタイルで伝える。
+for (const input of document.querySelectorAll(".tile input[type=file]")) {
+  input.addEventListener("change", () => {
+    const state = document.querySelector(`.tileState[data-for="${input.id}"]`);
+    const count = input.files.length;
+    state.textContent = count ? (count === 1 ? "選択済み" : `${count}枚`) : (input.multiple ? "複数枚" : "未選択");
+    input.closest(".tile").classList.toggle("filled", count > 0);
+  });
+}
 // シナリオを変えると候補が変わるので、その場で作り直して件数を見せる。
 document.getElementById("simScenario").addEventListener("change", simCandidatesFromSession);
 // コース・脚質が変わると発動しうるスキルが変わるので、候補を数え直す。
@@ -2469,7 +2447,6 @@ for (const id of ["simCourse", "simSurface", "simTrack", "simStrategy"]) {
 }
 
 document.getElementById("runButton").addEventListener("click", run);
-document.getElementById("sampleButton").addEventListener("click", runSample);
 </script>
 </body>
 </html>
