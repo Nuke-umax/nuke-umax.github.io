@@ -702,7 +702,7 @@
 <script src="harvest.js?v=102"></script>
 <script src="dedup.js?v=102"></script>
 <script src="pipeline.js?v=102"></script>
-<script src="course3d.js?v=2"></script>
+<script src="course3d.js?v=3"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
 const infoOverlay = document.getElementById("infoOverlay");
@@ -2074,6 +2074,28 @@ function scenarioPicked() {
   return simState.chosen.filter(id => simState.scenarioIds.has(String(id))).length;
 }
 
+// スキル獲得画面での並び順（スクショを上から読んだ順）。
+// 画面に出ない上位（○が出ていて◎を選んだ場合など）や進化スキルは、同じ系統の行の位置に並べる。
+// どの行にも当たらないものは末尾。
+function screenOrderRank(skillId) {
+  const id = String(skillId);
+  const rows = session.recognizedRows;
+  const direct = rows.findIndex(r => String(r.skillId) === id
+    || (r.evolutionSkillIds || []).some(e => String(e) === id));
+  if (direct >= 0) return direct;
+  const family = cache.master.families.find(f =>
+    f.skills.some(s => String(s.skillId) === id) || (f.evolutions || []).some(e => String(e.skillId) === id));
+  if (!family) return Infinity;
+  const members = new Set(family.skills.map(s => String(s.skillId)));
+  const sibling = rows.findIndex(r => members.has(String(r.skillId)));
+  return sibling >= 0 ? sibling : Infinity;
+}
+
+function byScreenOrder(ids) {
+  const rank = new Map(ids.map(id => [id, screenOrderRank(id)]));
+  return ids.slice().sort((a, b) => rank.get(a) - rank.get(b));
+}
+
 // 選んだ構成で体力が持つか。計算した構成のものなので、手で変えた後（未計算）は出さない。
 function renderStaminaLine() {
   const st = simState.stamina;
@@ -2190,7 +2212,7 @@ function renderSimResults() {
 
   const head = document.createElement("p");
   head.className = "pickHead";
-  head.textContent = "選んだスキル（" + simState.chosen.length + "件）";
+  head.textContent = "獲得スキル（" + simState.chosen.length + "件）";
   el.appendChild(head);
 
   if (!simState.chosen.length) {
@@ -2200,23 +2222,11 @@ function renderSimResults() {
     el.appendChild(empty);
   }
 
-  // 印と番号は「いま選んでいる集合」だけで作る。
-  // サーバーから受け取ったままにすると、外したスキルがコース図に残る。
-  const shownIds = new Set([...activeAcquired(), ...simState.chosen].map(String));
-  const shownActivations = simState.activations
-    .filter(a => shownIds.has(String(a.skillId)))
-    .sort((a, b) => a.pos - b.pos);
-  const order = new Map(shownActivations.map((a, i) => [String(a.skillId), i + 1]));
-  // 番号順（＝発動位置順）に並べる。番号の無いもの（追加直後で未計算）は末尾。
-  const byActivationOrder = ids => ids.slice().sort((a, b) =>
-    (order.get(String(a)) ?? Infinity) - (order.get(String(b)) ?? Infinity));
-
-  for (const id of byActivationOrder(simState.chosen)) {
+  for (const id of byScreenOrder(simState.chosen)) {
     const info = simState.info.get(id) || { sp: 0, bashin: 0 };
     const act = simState.activations.find(a => String(a.skillId) === String(id));
-    const num = order.get(String(id));
     el.appendChild(pickRow({
-      label: (num ? num + ". " : "") + simSkillName(id),
+      label: simSkillName(id),
       sub: act ? "発動 " + act.pos + "m" : null,
       sp: info.sp, bashin: info.bashin,
       action: "外す", cls: "remove",
@@ -2236,12 +2246,11 @@ function renderSimResults() {
     head0.className = "pickHead";
     head0.textContent = "取得済み（" + owned.length + "件・外せません）";
     el.appendChild(head0);
-    for (const id of byActivationOrder(owned)) {
+    for (const id of byScreenOrder(owned)) {
       const info = simState.info.get(id) || { sp: 0, bashin: 0 };
       const act = simState.activations.find(a => String(a.skillId) === String(id));
-      const num = order.get(String(id));
       el.appendChild(pickRow({
-        label: (num ? num + ". " : "") + simSkillName(id),
+        label: simSkillName(id),
         sub: act ? "発動 " + act.pos + "m" : null,
         sp: 0, bashin: info.bashin,
         action: "取得済み", cls: "", disabled: true,
@@ -2250,21 +2259,9 @@ function renderSimResults() {
     }
   }
 
-  // 速度の推移は計算した構成のもの。手で変えた後（未計算）は帯とピンだけを出す。
-  const map = renderCourse3D(simState.courseShape, simState.measured != null ? simState.speedTrace : null,
-    shownActivations, simSkillName);
-  if (map) {
-    el.appendChild(map);
-    // 追加した直後は発動位置がまだ分からない。印が出ないことを断っておく。
-    const unplaced = simState.chosen.filter(id => !order.has(String(id)));
-    if (unplaced.length) {
-      const pending = document.createElement("p");
-      pending.className = "pickNote";
-      pending.textContent = `${unplaced.map(simSkillName).join("・")} の発動位置は、`
-        + "「この構成でもう一度計算する」を押すと図に出ます。";
-      el.appendChild(pending);
-    }
-  }
+  // 速度の推移は計算した構成のもの。手で変えた後（未計算）は帯だけを出す。
+  const map = renderCourse3D(simState.courseShape, simState.measured != null ? simState.speedTrace : null);
+  if (map) el.appendChild(map);
 
   const rest = [...simState.info.entries()]
     .filter(([id]) => !simState.chosen.includes(id) && !simState.acquired.includes(id))

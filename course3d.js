@@ -1,4 +1,4 @@
-// 3Dコース図。コースの帯そのものを「スキルでどれだけ速くなったか」で塗り分ける。
+// 3Dコース図。コースの上に「スキルでどれだけ速くなったか」を壁の高さと色で立てる。
 // v-tグラフと同じ役割を、時間軸ではなくコース上の位置で見せる。ドラッグで回転できる。
 //
 // 形は実測の座標ではなく、コーナー1つ＝90度として直線とコーナーの長さから組み立てる。
@@ -8,9 +8,9 @@
   const SLOPE_EXAGGERATION = 14;        // 坂の高さの誇張倍率
   const SLOPE_UNIT = 1e6;               // course_data の slope は 15000 = 1.5%
   const PITCH = 0.95;                   // 見下ろす角度[rad]
-  const CLUSTER_RATIO = 0.035;          // この距離比より近い発動はまとめて1本のピンにする
-  const PIN_HEIGHT_RATIO = 0.08;        // ピンの高さ（コースの広がりに対する比）
-  const NO_DIFF_MPS = 0.003;            // これ未満の速度差は「差なし」として塗らない
+  const WALL_HEIGHT_RATIO = 0.22;       // 壁の最大の高さ（コースの広がりに対する比）
+  const MIN_WALL_SHARE = 0.12;          // 差がある区間の最低の高さ（最大に対する比）。小さな差も見えるように
+  const NO_DIFF_MPS = 0.003;            // これ未満の速度差は「差なし」として壁を立てない
 
   // 色。差なしは淡い灰緑、速くなった区間は緑、遅くなった区間は赤。
   const NEUTRAL = [223, 229, 223];
@@ -36,29 +36,24 @@
     return points;
   }
 
-  // 速度差を色に。平方根の目盛りにして、小さな差でも色が乗るようにする
-  // （線形だと、最大差の1割程度の区間がほぼ無色に見えた）。
+  // 差の大きさを 0〜1 に。差が無ければ 0、あれば最低 MIN_WALL_SHARE。
+  // 平方根の目盛りにして、小さな差でも高さと色が乗るようにする
+  // （線形だと、最大差の1割程度の区間がほぼ平らで無色に見えた）。
+  function strengthOf(diff, maxAbs) {
+    if (Math.abs(diff) < NO_DIFF_MPS) return 0;
+    return MIN_WALL_SHARE + (1 - MIN_WALL_SHARE) * Math.sqrt(Math.min(Math.abs(diff) / maxAbs, 1));
+  }
+
   function colorOf(diff, maxAbs) {
     if (Math.abs(diff) < NO_DIFF_MPS) return `rgb(${NEUTRAL.join(",")})`;
-    const t = 0.25 + 0.75 * Math.sqrt(Math.min(Math.abs(diff) / maxAbs, 1));
+    const t = 0.25 + 0.75 * strengthOf(diff, maxAbs);
     const target = diff > 0 ? FASTER : SLOWER;
     const mix = NEUTRAL.map((c, i) => Math.round(c + (target[i] - c) * t));
     return `rgb(${mix.join(",")})`;
   }
 
-  function clusterActivations(activations, distance) {
-    const sorted = activations.slice().sort((a, b) => a.pos - b.pos);
-    const clusters = [];
-    sorted.forEach((act, i) => {
-      const last = clusters[clusters.length - 1];
-      if (last && act.pos - last.pos < distance * CLUSTER_RATIO) last.members.push({ act, no: i + 1 });
-      else clusters.push({ pos: act.pos, members: [{ act, no: i + 1 }] });
-    });
-    return clusters;
-  }
-
   function render(host, state) {
-    const { shape, trace, activations } = state;
+    const { shape, trace } = state;
     const canvas = host.querySelector("canvas");
     const ratio = window.devicePixelRatio || 1;
     const width = host.clientWidth || 340, height = Math.round(width * 0.62);
@@ -75,6 +70,7 @@
     const extent = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 300);
     const diffs = trace ? trace.withSkills.map((v, i) => v - trace.withoutSkills[i]) : null;
     const maxAbs = diffs ? Math.max(...diffs.map(Math.abs), NO_DIFF_MPS * 2) : 1;
+    const wallMax = extent * WALL_HEIGHT_RATIO;
 
     const cosY = Math.cos(state.yaw), sinY = Math.sin(state.yaw);
     const cameraDistance = extent * 2.2;
@@ -88,8 +84,8 @@
     const half = TRACK_WIDTH_M / 2;
     const edge = (p, side) => project(p.x - Math.sin(p.heading) * half * side, p.y + Math.cos(p.heading) * half * side, p.z);
 
-    // 画面に収める
-    const probe = path.flatMap(p => [edge(p, 1), edge(p, -1), project(p.x, p.y, p.z + extent * (PIN_HEIGHT_RATIO + 0.04))]);
+    // 画面に収める（帯の両端と、壁の最大の高さまで）
+    const probe = path.flatMap(p => [edge(p, 1), edge(p, -1), project(p.x, p.y, p.z + wallMax)]);
     const minX = Math.min(...probe.map(q => q.x)), maxX = Math.max(...probe.map(q => q.x));
     const minY = Math.min(...probe.map(q => q.y)), maxY = Math.max(...probe.map(q => q.y));
     const margin = 16;
@@ -97,23 +93,35 @@
     const offsetX = margin + ((width - margin * 2) - (maxX - minX) * fit) / 2;
     const toScreen = q => ({ x: offsetX + (q.x - minX) * fit, y: margin + (q.y - minY) * fit, depth: q.depth });
 
-    // 帯を区間ごとに、奥から順に塗る。
-    const segments = [];
+    // 帯を先に全部塗り、その上に壁を奥から順に立てる。
+    // 帯と壁を同じ並びで描くと、手前の帯が壁の根元を塗りつぶして欠ける。
+    const neutral = `rgb(${NEUTRAL.join(",")})`;
+    const quads = [];
     for (let i = 0; i < path.length - 1; i++) {
-      const pts = [edge(path[i], 1), edge(path[i + 1], 1), edge(path[i + 1], -1), edge(path[i], -1)].map(toScreen);
-      segments.push({ pts, depth: pts.reduce((s, q) => s + q.depth, 0) / 4,
-                      color: diffs ? colorOf(diffs[i + 1], maxAbs) : `rgb(${NEUTRAL.join(",")})` });
+      const p0 = path[i], p1 = path[i + 1];
+      const band = [edge(p0, 1), edge(p1, 1), edge(p1, -1), edge(p0, -1)].map(toScreen);
+      quads.push({ pts: band, depth: band.reduce((sum, q) => sum + q.depth, 0) / 4, color: neutral, isWall: false });
+      if (!diffs) continue;
+      const h0 = strengthOf(diffs[i], maxAbs) * wallMax, h1 = strengthOf(diffs[i + 1], maxAbs) * wallMax;
+      if (h0 === 0 && h1 === 0) continue;
+      const wall = [project(p0.x, p0.y, p0.z), project(p1.x, p1.y, p1.z),
+                    project(p1.x, p1.y, p1.z + h1), project(p0.x, p0.y, p0.z + h0)].map(toScreen);
+      quads.push({ pts: wall, depth: (wall[0].depth + wall[1].depth) / 2,
+                   color: colorOf(diffs[i + 1], maxAbs), isWall: true });
     }
-    segments.sort((a, b) => b.depth - a.depth);
-    for (const seg of segments) {
+    quads.sort((a, b) => a.isWall !== b.isWall ? (a.isWall ? 1 : -1) : b.depth - a.depth);
+    for (const quad of quads) {
       ctx.beginPath();
-      seg.pts.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)));
+      quad.pts.forEach((q, i) => (i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)));
       ctx.closePath();
-      ctx.fillStyle = seg.color; ctx.fill();
-      ctx.strokeStyle = seg.color; ctx.lineWidth = 0.8; ctx.stroke();   // 区間の継ぎ目の隙間を埋める
+      ctx.fillStyle = quad.color; ctx.fill();
+      ctx.strokeStyle = quad.color; ctx.lineWidth = 0.8; ctx.stroke();   // 区間の継ぎ目の隙間を埋める
+      if (quad.isWall) {                                                 // 壁の上端だけ濃く縁取る
+        ctx.strokeStyle = "#1f4d36"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(quad.pts[3].x, quad.pts[3].y); ctx.lineTo(quad.pts[2].x, quad.pts[2].y); ctx.stroke();
+      }
     }
 
-    const at = pos => path[Math.min(Math.round(pos / shape.distance * (path.length - 1)), path.length - 1)];
     const label = (p, text) => {
       const q = toScreen(project(p.x, p.y, p.z));
       ctx.fillStyle = "#4d5751"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
@@ -122,36 +130,21 @@
     label(path[0], "S");
     label(path[path.length - 1], "G");
 
-    for (const cluster of clusterActivations(activations || [], shape.distance)) {
-      const p = at(cluster.pos);
-      const base = toScreen(project(p.x, p.y, p.z));
-      const top = toScreen(project(p.x, p.y, p.z + extent * PIN_HEIGHT_RATIO));
-      ctx.strokeStyle = "#1f4d36"; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(base.x, base.y); ctx.lineTo(top.x, top.y); ctx.stroke();
-      const first = cluster.members[0].no, last = cluster.members[cluster.members.length - 1].no;
-      const text = first === last ? String(first) : `${first}-${last}`;
-      ctx.font = "bold 11px sans-serif";
-      const w = ctx.measureText(text).width + 10;
-      ctx.fillStyle = "#1f4d36";
-      ctx.beginPath(); ctx.roundRect(top.x - w / 2, top.y - 9, w, 18, 9); ctx.fill();
-      ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText(text, top.x, top.y + 4);
-    }
-
     const legend = host.querySelector(".c3dLegend");
     legend.hidden = !diffs;
     if (diffs) legend.querySelector(".c3dMax").textContent = `+${maxAbs.toFixed(2)} m/s`;
-    host.querySelector(".c3dCaption").textContent = diffs ? "色＝スキルで速くなった量" : "再計算すると色が付きます";
+    host.querySelector(".c3dCaption").textContent = diffs ? "高さ・色＝スキルで速くなった量" : "再計算すると表示します";
   }
 
-  // 3Dコース図の部品を作る。trace が null なら灰色の帯とピンだけを描く。
-  window.renderCourse3D = function (shape, trace, activations) {
+  // 3Dコース図の部品を作る。trace が null なら灰色の帯だけを描く。
+  window.renderCourse3D = function (shape, trace) {
     if (!shape || !shape.distance) return null;
     const host = document.createElement("div");
     host.className = "c3d";
     host.innerHTML = `<canvas aria-label="3Dコース図。ドラッグで回転できます。"></canvas>
       <div class="c3dBar"><span class="c3dCaption"></span>
       <span class="c3dLegend"><span>0</span><i></i><span class="c3dMax"></span></span></div>`;
-    const state = { shape, trace, activations, yaw: -0.5 };
+    const state = { shape, trace, yaw: -0.5 };
     const draw = () => render(host, state);
 
     // ドラッグ（指・マウス）で回す。縦方向のスクロールは妨げない。
