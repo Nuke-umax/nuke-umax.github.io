@@ -381,6 +381,9 @@
   .c3d { margin: 12px 0; border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(#f4f7f4, #fff); overflow: hidden; }
   .c3d canvas { display: block; width: 100%; cursor: grab; }
   .c3dBar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px 8px; font-size: 12px; color: var(--muted); }
+  .pickRow button.exclude { min-height: 32px; padding: 0 8px; margin-left: 4px; font-size: 12px;
+    background: #fff; color: var(--muted); border: 1px solid var(--border); }
+  .rerunButton { width: 100%; margin: 8px 0 0; background: var(--accent); color: #fff; border: 0; font-weight: 700; }
   .staminaLine { margin: 6px 0 0; padding: 6px 10px; border-radius: 8px; font-size: 13px; }
   .staminaLine.ok { background: var(--accent-soft, #eaf1ec); color: var(--accent-dark); }
   .staminaLine.warn { background: var(--warn-bg); color: var(--warn); }
@@ -400,7 +403,7 @@
       <span class="siteHeader__name">評価点 最大化くん</span>
     </a>
     <a class="siteHeader__updates" href="updates.html">
-      <span class="siteHeader__dot" aria-hidden="true"></span>更新 9/30
+      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/1
     </a>
   </div>
 </header>
@@ -702,7 +705,7 @@
 <script src="harvest.js?v=102"></script>
 <script src="dedup.js?v=102"></script>
 <script src="pipeline.js?v=102"></script>
-<script src="course3d.js?v=3"></script>
+<script src="course3d.js?v=4"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
 const infoOverlay = document.getElementById("infoOverlay");
@@ -2045,6 +2048,8 @@ function activeAcquired() {
 
 const simState = {
   acquiredGroups: new Map(),   // 取得済みスキルID → 系統
+  excluded: new Map(),         // 利用者が候補から外したスキルID → 系統（ページを開いている間は保つ）
+  exclusionChanged: false,     // 除外を変えたが、まだ最速を計算し直していない
   request: null,        // 直近の計算に使ったリクエスト（再計算に使い回す）
   chosen: [],           // 選択中のスキルID
   info: new Map(),      // skillId → { sp, bashin, group }
@@ -2125,7 +2130,37 @@ function simTotals() {
   return { sp, rough, budget: parseInt(document.getElementById("simBudget").value, 10) || 0 };
 }
 
-function pickRow({ label, sub, sp, bashin, action, cls, disabled, onClick }) {
+// 候補から外す／戻す。除外したスキルは次に「最速を計算」したとき候補に入れない。
+// 実際には発動しないスキル（おひとり様○・季節スキルなど）や、発動しにくいと判断したものを
+// 利用者が外して計算し直すための仕組み。読み取り直しても、ページを開いている間は保つ。
+//
+// 除外は系統ごとに効かせる。◎だけを外すと同じ系統の○が代わりに選ばれた（実測）。
+// おひとり様・季節スキルなどは○も◎も同じ条件で発動しないので、系統ごとが自然。
+function isExcluded(id, group) {
+  if (simState.excluded.has(String(id))) return true;
+  return group != null && [...simState.excluded.values()].includes(String(group));
+}
+
+function excludeSkill(id) {
+  const group = simState.info.get(id)?.group;
+  simState.excluded.set(String(id), group != null ? String(group) : null);
+  const before = simState.chosen.length;
+  simState.chosen = simState.chosen.filter(x => !isExcluded(x, simState.info.get(x)?.group));
+  if (simState.chosen.length !== before) {
+    simState.measured = null;
+    simState.edited = true;
+  }
+  simState.exclusionChanged = true;
+  renderSimResults();
+}
+
+function restoreSkill(id) {
+  simState.excluded.delete(String(id));
+  simState.exclusionChanged = true;
+  renderSimResults();
+}
+
+function pickRow({ label, sub, sp, bashin, action, cls, disabled, onClick, onExclude }) {
   const row = document.createElement("div");
   row.className = "pickRow";
   const nm = document.createElement("div");
@@ -2142,6 +2177,16 @@ function pickRow({ label, sub, sp, bashin, action, cls, disabled, onClick }) {
   btn.disabled = Boolean(disabled) || simState.busy;
   btn.addEventListener("click", onClick);
   row.append(nm, val, btn);
+  if (onExclude) {
+    const drop = document.createElement("button");
+    drop.type = "button";
+    drop.className = "exclude";
+    drop.textContent = "除外";
+    drop.title = "候補から外す（次の計算で選ばれなくなります）";
+    drop.disabled = simState.busy;
+    drop.addEventListener("click", onExclude);
+    row.appendChild(drop);
+  }
   return row;
 }
 
@@ -2202,6 +2247,18 @@ function renderSimResults() {
     el.appendChild(why);
   }
 
+  // 除外を変えたら、除外を反映して最速の組み合わせを探し直す。
+  // 「この構成でもう一度計算する」は今の構成を測り直すだけで、組み合わせは探し直さない。
+  if (simState.exclusionChanged) {
+    const rerun = document.createElement("button");
+    rerun.type = "button";
+    rerun.className = "rerunButton";
+    rerun.textContent = `除外を反映して最速を計算し直す（除外 ${simState.excluded.size}件）`;
+    rerun.disabled = simState.busy;
+    rerun.addEventListener("click", runSim);
+    el.appendChild(rerun);
+  }
+
   const recalc = document.createElement("button");
   recalc.type = "button";
   recalc.style.width = "100%";
@@ -2230,6 +2287,7 @@ function renderSimResults() {
       sub: act ? "発動 " + act.pos + "m" : null,
       sp: info.sp, bashin: info.bashin,
       action: "外す", cls: "remove",
+      onExclude: () => excludeSkill(id),
       onClick: () => {
         simState.chosen = simState.chosen.filter(x => x !== id);
         simState.measured = null;
@@ -2264,7 +2322,8 @@ function renderSimResults() {
   if (map) el.appendChild(map);
 
   const rest = [...simState.info.entries()]
-    .filter(([id]) => !simState.chosen.includes(id) && !simState.acquired.includes(id))
+    .filter(([id, v]) => !simState.chosen.includes(id) && !simState.acquired.includes(id)
+      && !isExcluded(id, v.group))
     .map(([id, v]) => Object.assign({ id }, v))
     .filter(v => v.bashin > 0)
     .sort((a, b) => (b.bashin / Math.max(b.sp, 1)) - (a.bashin / Math.max(a.sp, 1)) || b.bashin - a.bashin);
@@ -2306,6 +2365,7 @@ function renderSimResults() {
       sp: c.sp, bashin: c.bashin,
       action: rival ? "入れ替え" : "追加", cls: "",
       disabled: noRoom || scenarioFull,
+      onExclude: () => excludeSkill(c.id),
       onClick: () => {
         if (rival) simState.chosen = simState.chosen.filter(x => x !== rival);
         simState.chosen.push(c.id);
@@ -2314,6 +2374,21 @@ function renderSimResults() {
         renderSimResults();
       },
     }));
+  }
+
+  // 除外中のスキル。戻せるように一覧で出す。
+  if (simState.excluded.size) {
+    const head3 = document.createElement("p");
+    head3.className = "pickHead";
+    head3.textContent = "除外中（" + simState.excluded.size + "件）";
+    el.appendChild(head3);
+    for (const id of simState.excluded.keys()) {
+      const info = simState.info.get(id) || { sp: 0, bashin: 0 };
+      el.appendChild(pickRow({
+        label: simSkillName(id), sub: "同じ系統も除外", sp: info.sp, bashin: info.bashin,
+        action: "戻す", cls: "", onClick: () => restoreSkill(id),
+      }));
+    }
   }
 
   // 計算の前提は冒頭の「？」に書いてある。結果の下では繰り返さない。
@@ -2374,7 +2449,10 @@ async function runSim() {
   const button = document.getElementById("simRunButton");
   const status = document.getElementById("simStatus");
   const num = id => parseInt(document.getElementById(id).value, 10);
-  const { candidates, acquired, acquiredGroups, scenarioEvolutions } = simCandidatesFromSession();
+  const found = simCandidatesFromSession();
+  const { acquired, acquiredGroups, scenarioEvolutions } = found;
+  // 利用者が除外したスキルは、最速の組み合わせを探す候補に入れない。
+  const candidates = found.candidates.filter(c => !isExcluded(c.skillId, c.group));
   if (!candidates.length) {
     status.textContent = "候補スキルがありません。先に「評価点で選ぶ」タブでスクリーンショットを読み取ってください。";
     return;
@@ -2419,10 +2497,15 @@ async function runSim() {
     // 取得済みは常に含まれるので、選択中の一覧からは外して別枠で見せる。
     simState.chosen = (data.selected || [])
       .map(s => s.skillId).filter(id => !acquired.includes(id));
+    const previousInfo = simState.info;
     simState.info = new Map();
     for (const c of [...(data.selected || []), ...(data.alternatives || [])]) {
       const known = candidates.find(x => x.skillId === c.skillId);
       simState.info.set(c.skillId, { sp: c.sp, bashin: c.bashin, group: c.group ?? known?.group });
+    }
+    // 除外中のスキルは送っていないので結果に無い。「除外中」の一覧に出す値は前回のものを引き継ぐ。
+    for (const id of simState.excluded.keys()) {
+      if (!simState.info.has(id) && previousInfo.has(id)) simState.info.set(id, previousInfo.get(id));
     }
     simState.courseShape = data.courseShape || null;
     simState.truncated = data.truncated === true;
@@ -2431,6 +2514,7 @@ async function runSim() {
     simState.stamina = data.stamina || null;
     simState.measured = data.bashinGain;
     simState.edited = false;
+    simState.exclusionChanged = false;
     renderSimResults();
   } catch (e) {
     status.textContent = "通信に失敗しました。時間をおいて試してください。";

@@ -11,6 +11,9 @@
   const WALL_HEIGHT_RATIO = 0.22;       // 壁の最大の高さ（コースの広がりに対する比）
   const MIN_WALL_SHARE = 0.12;          // 差がある区間の最低の高さ（最大に対する比）。小さな差も見えるように
   const NO_DIFF_MPS = 0.003;            // これ未満の速度差は「差なし」として壁を立てない
+  // 遅くなった側はこれ以上のときだけ赤く塗る。走りの細かなぶれ（実測 −0.01m/s）を
+  // 赤く出すと「スキルで遅くなった」と誤読される。意味のある赤は体力切れ・スパートの抑制。
+  const MIN_SLOWER_MPS = 0.05;
 
   // 色。差なしは淡い灰緑、速くなった区間は緑、遅くなった区間は赤。
   const NEUTRAL = [223, 229, 223];
@@ -40,12 +43,12 @@
   // 平方根の目盛りにして、小さな差でも高さと色が乗るようにする
   // （線形だと、最大差の1割程度の区間がほぼ平らで無色に見えた）。
   function strengthOf(diff, maxAbs) {
-    if (Math.abs(diff) < NO_DIFF_MPS) return 0;
+    if (Math.abs(diff) < NO_DIFF_MPS || diff > -MIN_SLOWER_MPS && diff < 0) return 0;
     return MIN_WALL_SHARE + (1 - MIN_WALL_SHARE) * Math.sqrt(Math.min(Math.abs(diff) / maxAbs, 1));
   }
 
   function colorOf(diff, maxAbs) {
-    if (Math.abs(diff) < NO_DIFF_MPS) return `rgb(${NEUTRAL.join(",")})`;
+    if (strengthOf(diff, maxAbs) === 0) return `rgb(${NEUTRAL.join(",")})`;
     const t = 0.25 + 0.75 * strengthOf(diff, maxAbs);
     const target = diff > 0 ? FASTER : SLOWER;
     const mix = NEUTRAL.map((c, i) => Math.round(c + (target[i] - c) * t));
@@ -74,12 +77,14 @@
 
     const cosY = Math.cos(state.yaw), sinY = Math.sin(state.yaw);
     const cameraDistance = extent * 2.2;
+    // 奥（y が大きい側）ほど画面の上に描く。以前は奥を下に描いていたため図が鏡写しになり、
+    // 左回りのコースが時計回りに見えていた。高い位置（z が大きい）ほどカメラに近い。
     const project = (x, y, z) => {
       const X = x - cx, Y = y - cy;
       const xr = X * cosY - Y * sinY, yr = X * sinY + Y * cosY;
-      const persp = cameraDistance / (cameraDistance + yr * Math.cos(PITCH) + z * Math.sin(PITCH));
-      return { x: xr * persp, y: (yr * Math.sin(PITCH) - z * Math.cos(PITCH)) * persp,
-               depth: yr * Math.cos(PITCH) + z * Math.sin(PITCH) };
+      const depth = yr * Math.cos(PITCH) - z * Math.sin(PITCH);
+      const persp = cameraDistance / (cameraDistance + depth);
+      return { x: xr * persp, y: (-yr * Math.sin(PITCH) - z * Math.cos(PITCH)) * persp, depth };
     };
     const half = TRACK_WIDTH_M / 2;
     const edge = (p, side) => project(p.x - Math.sin(p.heading) * half * side, p.y + Math.cos(p.heading) * half * side, p.z);
@@ -130,10 +135,27 @@
     label(path[0], "S");
     label(path[path.length - 1], "G");
 
+    // 序盤・中盤・終盤の区切り。帯を横切る線と、区間の名前を描く。
+    // 区切りはゲームと同じく全長の 1/6（中盤の開始）と 2/3（終盤の開始）。
+    const phaseMarks = [[shape.distance / 6, "中盤"], [shape.distance * 2 / 3, "終盤"]];
+    const at = pos => path[Math.min(Math.round(pos / shape.distance * (path.length - 1)), path.length - 1)];
+    for (const [pos, name] of phaseMarks) {
+      const p = at(pos);
+      const a = toScreen(edge(p, 1.5)), b = toScreen(edge(p, -1.5));
+      ctx.strokeStyle = "#b3261e"; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.setLineDash([]);
+      const outer = toScreen(edge(p, 2.4));
+      ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+      ctx.fillStyle = "#fff"; ctx.fillRect(outer.x - 15, outer.y - 9, 30, 15);
+      ctx.fillStyle = "#b3261e"; ctx.fillText(name, outer.x, outer.y + 3);
+    }
+
     const legend = host.querySelector(".c3dLegend");
     legend.hidden = !diffs;
     if (diffs) legend.querySelector(".c3dMax").textContent = `+${maxAbs.toFixed(2)} m/s`;
-    host.querySelector(".c3dCaption").textContent = diffs ? "高さ・色＝スキルで速くなった量" : "再計算すると表示します";
+    host.querySelector(".c3dCaption").textContent = diffs
+      ? "高さ・色＝スキルで速くなった量（赤＝遅くなった区間）" : "再計算すると表示します";
   }
 
   // 3Dコース図の部品を作る。trace が null なら灰色の帯だけを描く。
