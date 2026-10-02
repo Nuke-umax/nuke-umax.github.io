@@ -2110,7 +2110,7 @@ function renderStaminaLine() {
   const percent = rate => Math.round(rate * 100);
   if (st.hpOutRate > 0) {
     line.classList.add("bad");
-    line.textContent = `体力が尽きる：ゴール前 約${st.hpOutPos}m（${percent(st.hpOutRate)}%の回）。回復スキルを入れると伸びる可能性があります`;
+    line.textContent = `体力切れ：約${st.hpOutPos}m地点（${percent(st.hpOutRate)}%の回）。回復スキルで改善の余地`;
   } else if (st.reducedSpurtRate > 0) {
     line.classList.add("warn");
     line.textContent = `体力がやや不足：全力でスパートできない回が${percent(st.reducedSpurtRate)}%`;
@@ -2210,7 +2210,7 @@ function renderSimResults() {
   if (simState.measured == null) {
     const hint = document.createElement("span");
     hint.className = "sub2";
-    hint.textContent = "※ 単体の合計による目安です";
+    hint.textContent = "※ 目安（単体の合計）";
     totals.appendChild(hint);
   }
   if (simState.truncated) {
@@ -2242,7 +2242,7 @@ function renderSimResults() {
   if (isOptimizerResult && budget - sp >= cheapestLeft) {
     const why = document.createElement("p");
     why.className = "pickNote";
-    why.textContent = "※ 残りSPで取れる候補もありますが、今の構成に足すとかえって遅くなる"
+    why.textContent = "※ 残りSPで取れる候補あり。ただし今の構成に足すとかえって遅くなる"
       + "（体力が持たない・効果が重なる）ため選んでいません。下の候補から追加して確かめられます。";
     el.appendChild(why);
   }
@@ -2275,7 +2275,7 @@ function renderSimResults() {
   if (!simState.chosen.length) {
     const empty = document.createElement("p");
     empty.className = "pickNote";
-    empty.textContent = "スキルが選ばれていません。下の候補から追加してください。";
+    empty.textContent = "獲得スキルなし。下の候補から追加";
     el.appendChild(empty);
   }
 
@@ -2420,7 +2420,7 @@ async function recalcSim() {
     }
     status.textContent = "計算しました";
   } catch (e) {
-    status.textContent = "通信に失敗しました。時間をおいて試してください。";
+    status.textContent = "通信失敗。時間をおいて再試行";
     console.error(e);
   } finally {
     simState.busy = false;
@@ -2454,7 +2454,7 @@ async function runSim() {
   // 利用者が除外したスキルは、最速の組み合わせを探す候補に入れない。
   const candidates = found.candidates.filter(c => !isExcluded(c.skillId, c.group));
   if (!candidates.length) {
-    status.textContent = "候補スキルがありません。先に「評価点で選ぶ」タブでスクリーンショットを読み取ってください。";
+    status.textContent = "候補スキルなし。先にスクリーンショットを読み取る";
     return;
   }
   const payload = {
@@ -2479,7 +2479,7 @@ async function runSim() {
     inheritedSkillIds: inheritedSkillIdList(),
   };
   button.disabled = true;
-  status.textContent = "計算中... 10秒ほどかかります";
+  status.textContent = "計算中…（約10秒）";
   try {
     const res = await fetch(SIM_API, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
@@ -2517,7 +2517,7 @@ async function runSim() {
     simState.exclusionChanged = false;
     renderSimResults();
   } catch (e) {
-    status.textContent = "通信に失敗しました。時間をおいて試してください。";
+    status.textContent = "通信失敗。時間をおいて再試行";
     console.error(e);
   } finally {
     button.disabled = false;
