@@ -1,6 +1,6 @@
 {
  "schemaVersion": "1.0",
- "source": "U-tools /skills および /skills/specials",
+ "source": "ゲーム内情報をもとに再構成",
  "builtAt": "2026-07-28",
  "multipliers": {
   "aptitudeScore": {
@@ -13,7 +13,7 @@
   "scoreRounding": "round"
  },
  "notes": [
-  "baseScore は増分。cumulativeScore は U-tools の gradeValue（累積値）。",
+  "baseScore は増分。cumulativeScore はゲーム内の評価値（累積値）。",
   "進化スキルは購入対象ではない。金スキル取得時に自動で進化し金を上書きする。",
   "固有スキル(uniqueSkills)は各キャラが最初から1つ所持する。購入対象外だが評価点に寄与する。",
   "継承固有スキル(kind=inheritedUnique)は親キャラから継承しSPで獲得する。同名だが評価点180・必要SP200。",
@@ -22,7 +22,7 @@
   "negativeSkill はレース結果等で自動獲得されるマイナススキル。消去または上位スキルで上書きできる。",
   "conditionGroups: グループ内は OR（良い方の適性）、グループ間は AND（積）。",
   "芝・ダートは評価点倍率に影響しない（surfaceMultiplierEnabled=false）。",
-  "2026-07-28: U-tools を再取得し新規18件を追記（固有2・進化4・購入不可12）。進化のbaseScoreはtier1基準の増分、baseCostは進化元の金と同額。"
+  "2026-07-28: 新規18件を追記（固有2・進化4・購入不可12）。進化のbaseScoreはtier1基準の増分、baseCostは進化元の金と同額。"
  ],
  "families": [
   {
