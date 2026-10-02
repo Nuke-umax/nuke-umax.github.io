@@ -20,7 +20,7 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3369405192035986"
      crossorigin="anonymous"></script>
 <link rel="stylesheet" href="docs.css">
-<link rel="stylesheet" href="site.css?v=1">
+<link rel="stylesheet" href="site.css?v=2">
 </head>
 <body>
 <!-- site-header:start -->
@@ -31,7 +31,7 @@
       <span class="siteHeader__name">評価点 最大化くん</span>
     </a>
     <a class="siteHeader__updates" href="updates.html">
-      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/1
+      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/2
     </a>
   </div>
 </header>
@@ -41,35 +41,35 @@
 <p class="siteCrumb"><a href="index.html">ツール</a> ／ 使い方</p>
 <!-- site-crumb:end -->
 <h1>使い方</h1>
-<p class="updated">スクリーンショット2種類を選ぶだけで、所持スキルポイントの範囲で評価点が最大になるスキルの組み合わせを出します。</p>
+<ol class="quick"><li>ウマ娘詳細画面を1枚撮る</li><li>スキル獲得画面を上から下へ、2〜3行重ねて撮る</li><li>2つを選んで「読み取る」を押す</li></ol><p class="quickNote">画像は端末の外へ送信されません。</p>
 
-<div class="note">
-  <p>画像は<b>お使いのブラウザの中だけで処理され、外部へ送信されません</b>。運営者が画像を見ることはできません。</p>
-</div>
-
-<h2>用意するもの</h2>
+<details class="foldBlock" open><summary>用意するもの</summary>
 <ul>
   <li><b>ウマ娘詳細画面</b>のスクリーンショット … 1枚</li>
   <li><b>スキル獲得画面</b>のスクリーンショット … リストの先頭から末尾まで、スクロールしながら10枚〜25枚程度</li>
 </ul>
 <p>どちらも育成中の「スキル獲得」に進める状態で撮ります。</p>
 
-<h2>手順1: ウマ娘詳細画面を撮る</h2>
+</details>
+<details class="foldBlock"><summary>手順1: ウマ娘詳細画面を撮る</summary>
 <p>ウマ娘詳細（ステータスと適性が<b>すべて写っている</b>画面）を撮ってください。</p>
 <p>読み取れなかった場合も計算自体は動きますが、「獲得後の総合評価点」は出ません。</p>
 
-<h2>手順2: スキル獲得画面を撮る</h2>
+</details>
+<details class="foldBlock"><summary>手順2: スキル獲得画面を撮る</summary>
 <p><b>「説明省略」をONにして</b>、リストの一番上から一番下までスクロールしながら撮ってください。
 下の画像と<b>スキル2〜3行重ねて</b>ください。</p>
 
-<h2>手順3: 設定（任意）</h2>
+</details>
+<details class="foldBlock"><summary>手順3: 設定（任意）</summary>
 <ul>
   <li><b>固有スキルLv</b> … 手動で選択してください。既定はLv6（最大）です。</li>
   <li><b>目標評価ランク</b> … 選ぶと、そのランクの上限を超えない範囲で評価点が最大になるよう選びます。空欄なら所持スキルポイント内で最大化します。</li>
   <li><b>保有スキルPt</b> … 空欄なら②のヘッダーから自動で読み取ります。読み取りに失敗したときや、値が違っていたときだけ入力してください。入力した値が優先されます。</li>
 </ul>
 
-<h2>手順4: 計算する</h2>
+</details>
+<details class="foldBlock"><summary>手順4: 計算する</summary>
 <p>「計算する」を押すと、次の順に結果が出ます。</p>
 <ul>
   <li><b>評価点 +○○点</b>（消費スキルポイント / 所持スキルポイント）</li>
@@ -79,12 +79,14 @@
   <li><b>認識結果の確認・修正</b>（折りたたまれています）</li>
 </ul>
 
-<h2>進化スキルの選択</h2>
+</details>
+<details class="foldBlock"><summary>進化スキルの選択</summary>
 <p>進化スキルは<b>既定で「進化しない」</b>になっています。進化の条件を満たせるかは育成の内容次第で、
 勝手に進化させた前提の結果はそのまま実行できないためです。</p>
 <p>実際に進化させるものだけを選び、最下段の<b>「反映して再計算」</b>を押してください。選択は押すまで反映されません。</p>
 
-<h2>ステータス・適性の確認</h2>
+</details>
+<details class="foldBlock"><summary>ステータス・適性の確認</summary>
 <p>結果の中ほどにある<b>「ステータス・適性の確認」</b>を開くと、①の詳細画面から読み取った
 ステータス5項目と適性8項目を確認・修正できます。読み取れなかった場合は自動で開きます。</p>
 <ul>
@@ -97,7 +99,8 @@
 <p>お使いの端末によっては読み取りを誤ることがあります。畳んだ見出しにも読み取った値が出ているので、
 そこだけでも確かめてください。</p>
 
-<h2>読み取りが違っていたとき</h2>
+</details>
+<details class="foldBlock"><summary>読み取りが違っていたとき</summary>
 <p>結果の下にある<b>「認識結果の確認・修正」</b>を開くと、読み取った全行を確認・修正できます。
 読み取れなかった行がある場合は自動で開きます。</p>
 <ul>
@@ -111,7 +114,8 @@
   <li>修正後は<b>「反映して再計算」</b>を押してください。</li>
 </ul>
 
-<h2>よくある質問</h2>
+</details>
+<details class="foldBlock"><summary>よくある質問</summary>
 
 <h3 style="font-size:14px;margin:16px 0 4px">画像はどこかに送られますか？</h3>
 <p>送られません。読み取りはすべてブラウザの中で行われ、ページを閉じた時点で破棄されます。
@@ -136,7 +140,8 @@
   <li>進化スキルの選択が実際の育成内容と合っているか</li>
 </ul>
 
-<h2>できないこと・制限</h2>
+</details>
+<details class="foldBlock"><summary>できないこと・制限</summary>
 <ul>
   <li><b>スクリーンショットの撮り漏れは、画面右のスクロールバーから検出して警告します。</b>
       ただしスクロールバーを読み取れない端末では検出できません。その場合、飛ばした範囲のスキルは
@@ -149,6 +154,7 @@
 </ul>
 <p>読み取りに失敗する端末をお使いの場合は、<a href="contact.html">お問い合わせ</a>からご連絡いただけると対応の助けになります。</p>
 
+</details>
 </div><!-- /pageBody -->
 <!-- site-footer:start -->
 <footer class="siteFooter">

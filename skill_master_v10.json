@@ -18010,6 +18010,19 @@
      "characterCardId": "110602",
      "characterName": "ヒシミラクル",
      "characterCommonName": "秋ミラコ、秋ヒシミ"
+    },
+    {
+     "skillId": 110602121,
+     "name": "ミラクル、起きるかも？",
+     "fromGoldSkillId": 201652,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 160,
+     "conditionGroups": [],
+     "conditionText": null,
+     "characterCardId": "110602",
+     "characterName": "ヒシミラクル",
+     "characterCommonName": "秋ミラコ、秋ヒシミ"
     }
    ],
    "negativeSkill": null,
@@ -18040,8 +18053,7 @@
       413011
      ],
      "usesEvolution": true,
-     "fromGoldSkillId": 201652,
-     "characterCardId": null
+     "fromGoldSkillId": 201652
     },
     {
      "name": "いい味、出てるでしょ？",
@@ -18060,6 +18072,17 @@
      "memberIds": [
       201651,
       110602111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 201652,
+     "characterCardId": "110602"
+    },
+    {
+     "name": "ミラクル、起きるかも？",
+     "topSkillId": 110602121,
+     "memberIds": [
+      201651,
+      110602121
      ],
      "usesEvolution": true,
      "fromGoldSkillId": 201652,
@@ -20411,6 +20434,27 @@
      "characterCardId": "106902",
      "characterName": "サクラチヨノオー",
      "characterCommonName": "ドレスチヨ、ダンスチヨ、ドレスチヨちゃん"
+    },
+    {
+     "skillId": 101703111,
+     "name": "大望は煌めきとなりて",
+     "fromGoldSkillId": 202091,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "choKyori",
+       "chuKyori"
+      ],
+      [
+       "shiba"
+      ]
+     ],
+     "conditionText": "長距離/中距離・芝",
+     "characterCardId": "101703",
+     "characterName": "シンボリルドルフ",
+     "characterCommonName": "黒ルドルフ、黒騎士ルドルフ"
     }
    ],
    "negativeSkill": null,
@@ -20476,6 +20520,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202091,
      "characterCardId": "106902"
+    },
+    {
+     "name": "大望は煌めきとなりて",
+     "topSkillId": 101703111,
+     "memberIds": [
+      202092,
+      101703111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202091,
+     "characterCardId": "101703"
     }
    ]
   },
@@ -24979,6 +25034,26 @@
      "characterCardId": "112701",
      "characterName": "フェノーメノ",
      "characterCommonName": "メノ"
+    },
+    {
+     "skillId": 101301311,
+     "name": "名優、昇るは天の果て",
+     "fromGoldSkillId": 202481,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "choKyori"
+      ],
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "長距離・先行",
+     "characterCardId": "101301",
+     "characterName": "メジロマックイーン",
+     "characterCommonName": "マック、黒マック、黒饅頭"
     }
    ],
    "negativeSkill": null,
@@ -25009,8 +25084,7 @@
       409011
      ],
      "usesEvolution": true,
-     "fromGoldSkillId": 202481,
-     "characterCardId": null
+     "fromGoldSkillId": 202481
     },
     {
      "name": "天地を揺らせ君の名で",
@@ -25066,6 +25140,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202481,
      "characterCardId": "112701"
+    },
+    {
+     "name": "名優、昇るは天の果て",
+     "topSkillId": 101301311,
+     "memberIds": [
+      202482,
+      101301311
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202481,
+     "characterCardId": "101301"
     }
    ]
   },
@@ -32912,7 +32997,29 @@
      "conditionText": "長距離"
     }
    ],
-   "evolutions": [],
+   "evolutions": [
+    {
+     "skillId": 101703211,
+     "name": "熱烈峻厳",
+     "fromGoldSkillId": 203301,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 140,
+     "conditionGroups": [
+      [
+       "sashi",
+       "senko"
+      ],
+      [
+       "shiba"
+      ]
+     ],
+     "conditionText": "差し/先行・芝",
+     "characterCardId": "101703",
+     "characterName": "シンボリルドルフ",
+     "characterCommonName": "黒ルドルフ、黒騎士ルドルフ"
+    }
+   ],
    "negativeSkill": null,
    "kind": "normal",
    "plans": [
@@ -32932,6 +33039,17 @@
       203301
      ],
      "usesEvolution": false
+    },
+    {
+     "name": "熱烈峻厳",
+     "topSkillId": 101703211,
+     "memberIds": [
+      203302,
+      101703211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203301,
+     "characterCardId": "101703"
     }
    ]
   },
@@ -38519,7 +38637,28 @@
      "conditionText": "中距離"
     }
    ],
-   "evolutions": [],
+   "evolutions": [
+    {
+     "skillId": 101803111,
+     "name": "“標”に足るために",
+     "fromGoldSkillId": 204031,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "中距離・先行",
+     "characterCardId": "101803",
+     "characterName": "エアグルーヴ",
+     "characterCommonName": "黒グルーヴ"
+    }
+   ],
    "negativeSkill": null,
    "kind": "normal",
    "plans": [
@@ -38539,6 +38678,17 @@
       204031
      ],
      "usesEvolution": false
+    },
+    {
+     "name": "“標”に足るために",
+     "topSkillId": 101803111,
+     "memberIds": [
+      204032,
+      101803111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204031,
+     "characterCardId": "101803"
     }
    ]
   },
@@ -38576,7 +38726,28 @@
      "conditionText": "中距離"
     }
    ],
-   "evolutions": [],
+   "evolutions": [
+    {
+     "skillId": 101803211,
+     "name": "崇高のアマラントス",
+     "fromGoldSkillId": 204041,
+     "baseScore": 177,
+     "cumulativeScore": 394,
+     "baseCost": 120,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "中距離・先行",
+     "characterCardId": "101803",
+     "characterName": "エアグルーヴ",
+     "characterCommonName": "黒グルーヴ"
+    }
+   ],
    "negativeSkill": null,
    "kind": "normal",
    "plans": [
@@ -38596,6 +38767,17 @@
       204041
      ],
      "usesEvolution": false
+    },
+    {
+     "name": "崇高のアマラントス",
+     "topSkillId": 101803211,
+     "memberIds": [
+      204042,
+      101803211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204041,
+     "characterCardId": "101803"
     }
    ]
   },
@@ -42316,6 +42498,97 @@
      "memberIds": [
       204712,
       204711
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20472,
+   "skills": [
+    {
+     "skillId": 204722,
+     "name": "怯むことなく",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離"
+    },
+    {
+     "skillId": 204721,
+     "name": "一往直前",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "怯むことなく",
+     "topSkillId": 204722,
+     "memberIds": [
+      204722
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "一往直前",
+     "topSkillId": 204721,
+     "memberIds": [
+      204722,
+      204721
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20479,
+   "skills": [
+    {
+     "skillId": 204792,
+     "name": "遊び心",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "choKyori",
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "長距離/中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "遊び心",
+     "topSkillId": 204792,
+     "memberIds": [
+      204792
      ],
      "usesEvolution": false
     }
@@ -54445,6 +54718,40 @@
    "conditionText": null,
    "characterCardId": "101303",
    "characterName": "メジロマックイーン"
+  },
+  {
+   "skillId": 120171,
+   "name": "Cascading Might",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "sashi",
+     "senko"
+    ],
+    [
+     "shiba"
+    ]
+   ],
+   "conditionText": "差し/先行・芝",
+   "characterCardId": "101703",
+   "characterName": "シンボリルドルフ"
+  },
+  {
+   "skillId": 120181,
+   "name": "Shadow Ancestress",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "chuKyori"
+    ]
+   ],
+   "conditionText": "中距離",
+   "characterCardId": "101803",
+   "characterName": "エアグルーヴ"
   },
   {
    "skillId": 120201,

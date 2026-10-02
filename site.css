@@ -138,3 +138,11 @@ body {
 .updateItem__title { font-size: 15px; font-weight: 700; margin: 0; }
 .updateItem__body { margin: 0; padding-left: 1.2em; }
 .updateItem__body li { font-size: 13px; margin-bottom: 2px; }
+
+/* ---- 補助ページ：要点だけを常時表示し、詳細は見出しを押した人だけが読む ---- */
+.quick { margin: 8px 0 4px; padding-left: 1.4em; font-size: 15px; font-weight: 600; line-height: 1.9; }
+.quickNote { margin: 6px 0 14px; font-size: 13px; color: var(--muted); }
+details.foldBlock { margin: 0 0 8px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 0 14px; }
+details.foldBlock > summary { cursor: pointer; padding: 11px 0; font-size: 15px; font-weight: 700; color: var(--accent-dark); }
+details.foldBlock[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+details.foldBlock > :not(summary) { margin-top: 0; }
