@@ -147,7 +147,15 @@ function selectablePlans(family, state) {
         scoreOf(family._skillById.get(p.topSkillId), aptitudes, surface) >
         scoreOf(family._skillById.get(best.topSkillId), aptitudes, surface) ? p : best);
     }
-    result.push(chosen);
+    // 評価点は「最も高い進化1つ」で足りるが、走行シミュレータは速さで選ぶため、
+    // どの進化が最も速いかは評価点では決まらない。includeAllEvolutions 指定時は
+    // 入手できる進化を全部プランに残す（同じ系統の排他として最速のものが選ばれる）。
+    // 指定が無ければ従来どおり1つだけ。評価点側の挙動は変わらない。
+    if (state.includeAllEvolutions === true && chosenId === undefined) {
+      for (const candidate of candidates) result.push(candidate);
+    } else {
+      result.push(chosen);
+    }
   }
   return result;
 }

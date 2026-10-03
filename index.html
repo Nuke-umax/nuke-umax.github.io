@@ -403,7 +403,7 @@
       <span class="siteHeader__name">評価点 最大化くん</span>
     </a>
     <a class="siteHeader__updates" href="updates.html">
-      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/2
+      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/4
     </a>
   </div>
 </header>
@@ -1817,10 +1817,14 @@ function simCandidatesFromSession() {
   // シミュレータだけの事情は2つで、どちらも state で渡す。
   //   includeZeroScorePlans … 評価点が増えなくても速くなるスキルは候補に残す
   //   trainingScenario      … シナリオ進化を、選んだ育成シナリオのものに絞る
+  // 進化の選択は評価点側（session.evolutionChoices、既定は「進化しない」）を使わない。
+  // 評価点の最大化では進化の可否を利用者が決めるが、最速では計算が決めるべきもので、
+  // 引き継ぐと既定の「進化しない」で進化が候補から全部消えていた（実測: 進化候補0件）。
   const state = buildOptimizerState(
     session.recognizedRows, session.aptitudes || {}, session.budget || 0,
-    session.characterCardId, session.evolutionChoices);
+    session.characterCardId, {});
   state.includeZeroScorePlans = true;
+  state.includeAllEvolutions = true;   // 進化は評価点でなく速さで選ぶので、選択肢を全部候補にする
   state.trainingScenario = document.getElementById("simScenario")?.value || "";
   state.scenarioEvolutionOf = scenarioEvolutionMap;
 
