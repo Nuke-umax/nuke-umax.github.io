@@ -36063,6 +36063,27 @@
      "characterCardId": "113001",
      "characterName": "ラッキーライラック",
      "characterCommonName": "ララ、ラララ、ライラック"
+    },
+    {
+     "skillId": 110802111,
+     "name": "魔の刻、来たれり",
+     "fromGoldSkillId": 203671,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "oikomi",
+       "sashi"
+      ]
+     ],
+     "conditionText": "中距離・追込/差し",
+     "characterCardId": "110802",
+     "characterName": "ドゥラメンテ",
+     "characterCommonName": "赤ドゥラ"
     }
    ],
    "negativeSkill": null,
@@ -36106,6 +36127,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 203671,
      "characterCardId": "113001"
+    },
+    {
+     "name": "魔の刻、来たれり",
+     "topSkillId": 110802111,
+     "memberIds": [
+      203672,
+      110802111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203671,
+     "characterCardId": "110802"
     }
    ]
   },
@@ -42591,6 +42623,96 @@
       204792
      ],
      "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20480,
+   "skills": [
+    {
+     "skillId": 204802,
+     "name": "規格外",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "oikomi"
+      ]
+     ],
+     "conditionText": "追込"
+    },
+    {
+     "skillId": 204801,
+     "name": "抜山蓋世",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "oikomi"
+      ]
+     ],
+     "conditionText": "追込"
+    }
+   ],
+   "evolutions": [
+    {
+     "skillId": 110802211,
+     "name": "喰らえども、喰らえども",
+     "fromGoldSkillId": 204801,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "oikomi",
+       "sashi"
+      ]
+     ],
+     "conditionText": "中距離・追込/差し",
+     "characterCardId": "110802",
+     "characterName": "ドゥラメンテ",
+     "characterCommonName": "赤ドゥラ"
+    }
+   ],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "規格外",
+     "topSkillId": 204802,
+     "memberIds": [
+      204802
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "抜山蓋世",
+     "topSkillId": 204801,
+     "memberIds": [
+      204802,
+      204801
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "喰らえども、喰らえども",
+     "topSkillId": 110802211,
+     "memberIds": [
+      204802,
+      110802211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204801,
+     "characterCardId": "110802"
     }
    ]
   },
@@ -54501,6 +54623,21 @@
    "conditionText": "中距離",
    "characterCardId": "110702",
    "characterName": "タップダンスシチー"
+  },
+  {
+   "skillId": 111081,
+   "name": "かくて宿りし血は目覚め",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "chuKyori"
+    ]
+   ],
+   "conditionText": "中距離",
+   "characterCardId": "110802",
+   "characterName": "ドゥラメンテ"
   },
   {
    "skillId": 111091,
