@@ -522,6 +522,21 @@
         <option value="soft">重</option><option value="heavy">不良</option>
       </select>
     </div>
+    <div class="simRow">
+      <label for="simWeather" class="sub">天気</label>
+      <select id="simWeather">
+        <option value="sunny" selected>晴</option><option value="cloudy">曇</option>
+        <option value="rainy">雨</option><option value="snowy">雪</option>
+      </select>
+    </div>
+    <div class="simRow">
+      <label for="simSeason" class="sub">季節</label>
+      <select id="simSeason">
+        <option value="spring" selected>春</option><option value="summer">夏</option>
+        <option value="autumn">秋</option><option value="winter">冬</option>
+        <option value="sakura">桜の季節</option>
+      </select>
+    </div>
   </section>
 
   <section>
@@ -2474,6 +2489,8 @@ async function runSim() {
     },
     mood: num("simMood"),
     ground: document.getElementById("simGround").value,
+    weather: document.getElementById("simWeather").value,
+    season: document.getElementById("simSeason").value,
     budgetSp: num("simBudget"),
     // 取得済みは比較の土台にしない。候補として渡し、必ず選ばれる形にする
     // （SP 0 なので予算を圧迫しない）。こうすると単体バ身も測れて画面に出せる。
