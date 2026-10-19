@@ -1853,7 +1853,10 @@ function simCandidatesFromSession() {
         sp: option.cost,
         group: String(family.familyId),
       };
-      if (option.plan.usesEvolution && option.plan.characterCardId == null) {
+      // シナリオ進化は一覧（scenarioEvolutionMap）にあるものだけ。キャラ非依存でも、
+      // 継承固有の進化（黄金を訪ねて等）はシナリオ進化ではなく、2個の枠に数えない。
+      if (option.plan.usesEvolution && option.plan.characterCardId == null
+          && scenarioEvolutionMap[String(option.plan.topSkillId)]) {
         entry.scenario = true;
         scenarioEvolutions.push(entry);
       }
