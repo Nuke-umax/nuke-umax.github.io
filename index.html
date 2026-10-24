@@ -403,7 +403,7 @@
       <span class="siteHeader__name">評価点 最大化くん</span>
     </a>
     <a class="siteHeader__updates" href="updates.html">
-      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/21
+      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/25
     </a>
   </div>
 </header>
@@ -2502,7 +2502,16 @@ async function runSim() {
     inheritedSkillIds: inheritedSkillIdList(),
   };
   button.disabled = true;
-  status.textContent = "計算中…（約10秒）";
+  // 計算時間は候補数と残りSPで大きく変わる（実測: 候補50件で2〜3秒、110件で8〜21秒）。
+  // 固定の秒数を出すと外れるので、候補数に応じた幅と、経過秒の表示にする。
+  const expectedRange = payload.candidates.length < 60 ? "数秒"
+    : payload.candidates.length < 100 ? "10〜20秒" : "10〜25秒";
+  const startedAt = Date.now();
+  const showProgress = () => {
+    status.textContent = `計算中…（目安 ${expectedRange}）　経過 ${Math.floor((Date.now() - startedAt) / 1000)}秒`;
+  };
+  showProgress();
+  const progressTimer = setInterval(showProgress, 1000);
   try {
     const res = await fetch(SIM_API, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
@@ -2512,7 +2521,7 @@ async function runSim() {
       status.textContent = "エラー: " + (data.error || res.status);
       return;
     }
-    status.textContent = `完了（サーバで ${data.evaluations} 回のシミュレーション）`;
+    status.textContent = `完了（${Math.round((Date.now() - startedAt) / 1000)}秒・サーバで ${data.evaluations} 回のシミュレーション）`;
     simState.request = payload;
     simState.acquired = acquired.slice();
     simState.acquiredGroups = acquiredGroups;
@@ -2543,6 +2552,7 @@ async function runSim() {
     status.textContent = "通信失敗。時間をおいて再試行";
     console.error(e);
   } finally {
+    clearInterval(progressTimer);
     button.disabled = false;
   }
 }
