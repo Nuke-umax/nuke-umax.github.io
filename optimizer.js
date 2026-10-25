@@ -127,7 +127,11 @@ function selectablePlans(family, state) {
 
   const result = [];
   for (const plan of plans) {
-    const isEvolvingAway = evolvedGolds.has(plan.topSkillId) && choices[plan.topSkillId] !== "none";
+    // 走行シミュレータ（includeAllEvolutions）では、進化できる金スキルも進化しない形で残す。
+    // シナリオ進化は2個までなので、枠が埋まったあとの系統は金スキルのまま取るしかない。
+    // 金だけの形を消すと、その系統が白ティアしか選べなくなり、進化の組み合わせが偏る。
+    const keepsPlainGold = state.includeAllEvolutions === true;
+    const isEvolvingAway = evolvedGolds.has(plan.topSkillId) && choices[plan.topSkillId] !== "none" && !keepsPlainGold;
     if (isEvolvingAway) continue;   // 進化に置換されるので金プランは除く
     result.push(plan);
   }
