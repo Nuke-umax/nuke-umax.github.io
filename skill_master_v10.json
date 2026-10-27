@@ -4635,6 +4635,19 @@
      "characterCardId": "108901",
      "characterName": "シュヴァルグラン",
      "characterCommonName": "シュヴァル"
+    },
+    {
+     "skillId": 415041,
+     "name": "捧ぐる願い",
+     "fromGoldSkillId": 200511,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 170,
+     "conditionGroups": [],
+     "conditionText": null,
+     "characterCardId": null,
+     "characterName": null,
+     "characterCommonName": null
     }
    ],
    "negativeSkill": null,
@@ -4665,8 +4678,7 @@
       407031
      ],
      "usesEvolution": true,
-     "fromGoldSkillId": 200511,
-     "characterCardId": null
+     "fromGoldSkillId": 200511
     },
     {
      "name": "リミッター解除",
@@ -4676,8 +4688,7 @@
       409041
      ],
      "usesEvolution": true,
-     "fromGoldSkillId": 200511,
-     "characterCardId": null
+     "fromGoldSkillId": 200511
     },
     {
      "name": "大地を揺るがす疾走",
@@ -4687,8 +4698,7 @@
       411041
      ],
      "usesEvolution": true,
-     "fromGoldSkillId": 200511,
-     "characterCardId": null
+     "fromGoldSkillId": 200511
     },
     {
      "name": "世界を魅せる輝き",
@@ -4698,8 +4708,7 @@
       413041
      ],
      "usesEvolution": true,
-     "fromGoldSkillId": 200511,
-     "characterCardId": null
+     "fromGoldSkillId": 200511
     },
     {
      "name": "夢叶える末脚",
@@ -4755,6 +4764,16 @@
      "usesEvolution": true,
      "fromGoldSkillId": 200511,
      "characterCardId": "108901"
+    },
+    {
+     "name": "捧ぐる願い",
+     "topSkillId": 415041,
+     "memberIds": [
+      200512,
+      415041
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 200511
     }
    ]
   },
@@ -23368,6 +23387,26 @@
      "characterCardId": "111201",
      "characterName": "デアリングハート",
      "characterCommonName": "ハート"
+    },
+    {
+     "skillId": 104503121,
+     "name": "淀にて大河となりて",
+     "fromGoldSkillId": 202371,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "choKyori"
+      ],
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "長距離・先行",
+     "characterCardId": "104503",
+     "characterName": "スーパークリーク",
+     "characterCommonName": "忍者クリーク、くノ一、忍クリ"
     }
    ],
    "negativeSkill": null,
@@ -23455,6 +23494,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202371,
      "characterCardId": "111201"
+    },
+    {
+     "name": "淀にて大河となりて",
+     "topSkillId": 104503121,
+     "memberIds": [
+      202372,
+      104503121
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202371,
+     "characterCardId": "104503"
     }
    ]
   },
@@ -26067,6 +26117,19 @@
      "characterCardId": "100503",
      "characterName": "フジキセキ",
      "characterCommonName": "白フジ、白キセキ"
+    },
+    {
+     "skillId": 415011,
+     "name": "急之舞",
+     "fromGoldSkillId": 202551,
+     "baseScore": 495,
+     "cumulativeScore": 758,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null,
+     "characterCardId": null,
+     "characterName": null,
+     "characterCommonName": null
     }
    ],
    "negativeSkill": null,
@@ -26099,6 +26162,16 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202551,
      "characterCardId": "100503"
+    },
+    {
+     "name": "急之舞",
+     "topSkillId": 415011,
+     "memberIds": [
+      202552,
+      415011
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202551
     }
    ]
   },
@@ -27992,6 +28065,19 @@
      "characterCardId": "111701",
      "characterName": "ウインバリアシオン",
      "characterCommonName": "シオン"
+    },
+    {
+     "skillId": 415031,
+     "name": "満願成就",
+     "fromGoldSkillId": 202721,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [],
+     "conditionText": null,
+     "characterCardId": null,
+     "characterName": null,
+     "characterCommonName": null
     }
    ],
    "negativeSkill": null,
@@ -28022,8 +28108,7 @@
       411031
      ],
      "usesEvolution": true,
-     "fromGoldSkillId": 202721,
-     "characterCardId": null
+     "fromGoldSkillId": 202721
     },
     {
      "name": "海の底からキラめいて…☆",
@@ -28068,6 +28153,16 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202721,
      "characterCardId": "111701"
+    },
+    {
+     "name": "満願成就",
+     "topSkillId": 415031,
+     "memberIds": [
+      202722,
+      415031
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202721
     }
    ]
   },
@@ -28335,6 +28430,23 @@
      "characterCardId": "106103",
      "characterName": "キングヘイロー",
      "characterCommonName": "嫁キング、ドレスキング"
+    },
+    {
+     "skillId": 415061,
+     "name": "常磐なる誓い",
+     "fromGoldSkillId": 202751,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 160,
+     "conditionGroups": [
+      [
+       "tanKyori"
+      ]
+     ],
+     "conditionText": "短距離",
+     "characterCardId": null,
+     "characterName": null,
+     "characterCommonName": null
     }
    ],
    "negativeSkill": null,
@@ -28378,6 +28490,16 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202751,
      "characterCardId": "106103"
+    },
+    {
+     "name": "常磐なる誓い",
+     "topSkillId": 415061,
+     "memberIds": [
+      202752,
+      415061
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202751
     }
    ]
   },
@@ -32391,6 +32513,24 @@
      "characterCardId": "108702",
      "characterName": "アストンマーチャン",
      "characterCommonName": "バレマーチャン、チョコマーチャン、白マーチャン"
+    },
+    {
+     "skillId": 100903111,
+     "name": "神代も聞かず、この御業",
+     "fromGoldSkillId": 203201,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "choKyori",
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "長距離/中距離",
+     "characterCardId": "100903",
+     "characterName": "ダイワスカーレット",
+     "characterCommonName": "弓ダスカ、駿大祭ダスカ、和ダスカ"
     }
    ],
    "negativeSkill": null,
@@ -32434,6 +32574,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 203201,
      "characterCardId": "108702"
+    },
+    {
+     "name": "神代も聞かず、この御業",
+     "topSkillId": 100903111,
+     "memberIds": [
+      203202,
+      100903111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203201,
+     "characterCardId": "100903"
     }
    ]
   },
@@ -33691,6 +33842,26 @@
      "characterCardId": "110402",
      "characterName": "カツラギエース",
      "characterCommonName": "正月エース"
+    },
+    {
+     "skillId": 100903211,
+     "name": "御覧じろ、緋色の疾風",
+     "fromGoldSkillId": 203381,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "nige"
+      ],
+      [
+       "shiba"
+      ]
+     ],
+     "conditionText": "逃げ・芝",
+     "characterCardId": "100903",
+     "characterName": "ダイワスカーレット",
+     "characterCommonName": "弓ダスカ、駿大祭ダスカ、和ダスカ"
     }
    ],
    "negativeSkill": null,
@@ -33723,6 +33894,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 203381,
      "characterCardId": "110402"
+    },
+    {
+     "name": "御覧じろ、緋色の疾風",
+     "topSkillId": 100903211,
+     "memberIds": [
+      203382,
+      100903211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203381,
+     "characterCardId": "100903"
     }
    ]
   },
@@ -34682,6 +34864,19 @@
      "characterCardId": null,
      "characterName": null,
      "characterCommonName": null
+    },
+    {
+     "skillId": 415021,
+     "name": "吉兆の駆け手",
+     "fromGoldSkillId": 203501,
+     "baseScore": 495,
+     "cumulativeScore": 758,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null,
+     "characterCardId": null,
+     "characterName": null,
+     "characterCommonName": null
     }
    ],
    "negativeSkill": null,
@@ -34712,8 +34907,17 @@
       410011
      ],
      "usesEvolution": true,
-     "fromGoldSkillId": 203501,
-     "characterCardId": null
+     "fromGoldSkillId": 203501
+    },
+    {
+     "name": "吉兆の駆け手",
+     "topSkillId": 415021,
+     "memberIds": [
+      203502,
+      415021
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203501
     }
    ]
   },
@@ -38867,6 +39071,24 @@
      "characterCardId": "109201",
      "characterName": "ダンツフレーム",
      "characterCommonName": "ダンツ"
+    },
+    {
+     "skillId": 415051,
+     "name": "祈りの篝火",
+     "fromGoldSkillId": 204051,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ]
+     ],
+     "conditionText": "中距離/マイル",
+     "characterCardId": null,
+     "characterName": null,
+     "characterCommonName": null
     }
    ],
    "negativeSkill": null,
@@ -38899,6 +39121,16 @@
      "usesEvolution": true,
      "fromGoldSkillId": 204051,
      "characterCardId": "109201"
+    },
+    {
+     "name": "祈りの篝火",
+     "topSkillId": 415051,
+     "memberIds": [
+      204052,
+      415051
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204051
     }
    ]
   },
@@ -42593,6 +42825,202 @@
    ]
   },
   {
+   "familyId": 20473,
+   "skills": [
+    {
+     "skillId": 204732,
+     "name": "如才なし",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離"
+    },
+    {
+     "skillId": 204731,
+     "name": "機転",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "如才なし",
+     "topSkillId": 204732,
+     "memberIds": [
+      204732
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "機転",
+     "topSkillId": 204731,
+     "memberIds": [
+      204732,
+      204731
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20474,
+   "skills": [
+    {
+     "skillId": 204742,
+     "name": "直感力",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "choKyori"
+      ]
+     ],
+     "conditionText": "長距離"
+    },
+    {
+     "skillId": 204741,
+     "name": "希代の才覚",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "choKyori"
+      ]
+     ],
+     "conditionText": "長距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "直感力",
+     "topSkillId": 204742,
+     "memberIds": [
+      204742
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "希代の才覚",
+     "topSkillId": 204741,
+     "memberIds": [
+      204742,
+      204741
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20475,
+   "skills": [
+    {
+     "skillId": 204752,
+     "name": "主導権",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [],
+     "conditionText": null
+    },
+    {
+     "skillId": 204751,
+     "name": "アドバンテージ",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 180,
+     "conditionGroups": [],
+     "conditionText": null
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "主導権",
+     "topSkillId": 204752,
+     "memberIds": [
+      204752
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "アドバンテージ",
+     "topSkillId": 204751,
+     "memberIds": [
+      204752,
+      204751
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20476,
+   "skills": [
+    {
+     "skillId": 204762,
+     "name": "死力を尽くして",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "choKyori"
+      ]
+     ],
+     "conditionText": "長距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "死力を尽くして",
+     "topSkillId": 204762,
+     "memberIds": [
+      204762
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
    "familyId": 20479,
    "skills": [
     {
@@ -42713,6 +43141,88 @@
      "usesEvolution": true,
      "fromGoldSkillId": 204801,
      "characterCardId": "110802"
+    }
+   ]
+  },
+  {
+   "familyId": 20481,
+   "skills": [
+    {
+     "skillId": 204812,
+     "name": "弧を描いて",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 160,
+     "conditionGroups": [],
+     "conditionText": null
+    },
+    {
+     "skillId": 204811,
+     "name": "螺旋のエキスパート",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 160,
+     "conditionGroups": [],
+     "conditionText": null
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "弧を描いて",
+     "topSkillId": 204812,
+     "memberIds": [
+      204812
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "螺旋のエキスパート",
+     "topSkillId": 204811,
+     "memberIds": [
+      204812,
+      204811
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20489,
+   "skills": [
+    {
+     "skillId": 204892,
+     "name": "直情",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "nige"
+      ]
+     ],
+     "conditionText": "逃げ"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "直情",
+     "topSkillId": 204892,
+     "memberIds": [
+      204892
+     ],
+     "usesEvolution": false
     }
    ]
   },
@@ -43973,6 +44483,55 @@
      "memberIds": [
       210392,
       210391
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 21040,
+   "skills": [
+    {
+     "skillId": 210402,
+     "name": "彼方の呼び声",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 263,
+     "cumulativeScore": 263,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null
+    },
+    {
+     "skillId": 210401,
+     "name": "名にし負う夢",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 370,
+     "cumulativeScore": 633,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "彼方の呼び声",
+     "topSkillId": 210402,
+     "memberIds": [
+      210402
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "名にし負う夢",
+     "topSkillId": 210401,
+     "memberIds": [
+      210402,
+      210401
      ],
      "usesEvolution": false
     }
@@ -54818,6 +55377,27 @@
    "conditionText": "中距離/長距離",
    "characterCardId": "100703",
    "characterName": "ゴールドシップ"
+  },
+  {
+   "skillId": 120091,
+   "name": "究竟の弓勢",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "choKyori"
+    ],
+    [
+     "nige"
+    ],
+    [
+     "shiba"
+    ]
+   ],
+   "conditionText": "長距離・逃げ・芝",
+   "characterCardId": "100903",
+   "characterName": "ダイワスカーレット"
   },
   {
    "skillId": 120101,
