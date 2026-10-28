@@ -192,6 +192,59 @@ function impliedAcquiredWhites(family, state) {
   return firstListed > 0 ? whites.slice(0, firstListed) : [];
 }
 
+// ===== トレーナー技能試験（フリー課程）のスコアボーナス =====
+// スコア = 評価点 + ボーナス。スキルの獲得ボーナスは系統ごとに最上位の1個だけが数えられる
+// （金を取れば白は数えず、進化すれば進化後だけ）。継承固有はノーマル扱い、継承進化は進化扱い。
+// 白の○と◎も同じ系統なので1個として数える（ゲーム文言は金・進化だけに言及しており、
+// 白の扱いは推定。違えば EXAM_SKILL_BONUS の白を ○◎ ごとに足す形へ直す）。
+const EXAM_SKILL_BONUS = { normal: 400, rare: 1200, evolved: 1500 };
+
+// 基礎能力ボーナス。段は累積（1000以上で3000、1201以上でさらに+2000…）。
+// スピードだけ2001以上の段がある。
+const EXAM_STAT_BONUS_TIERS = {
+  speed:   [[1000, 3000], [1201, 2000], [2001, 1000]],
+  stamina: [[1000, 3000], [1201, 2000]],
+  power:   [[1000, 3000], [1201, 2000]],
+  guts:    [[1000, 3000], [1201, 2000]],
+  wisdom:  [[1000, 3000], [1201, 2000]],
+};
+
+// ステータス {speed, stamina, power, guts, wisdom} → 基礎能力ボーナス合計。
+function examStatBonus(stats) {
+  let total = 0;
+  for (const [key, tiers] of Object.entries(EXAM_STAT_BONUS_TIERS)) {
+    const value = stats[key];
+    if (value == null) continue;
+    for (const [threshold, points] of tiers) if (value >= threshold) total += points;
+  }
+  return total;
+}
+
+// スキル1件（系統の最上位として取得した場合）のスキル獲得ボーナス。
+function examBonusOfSkill(family, skill) {
+  if ((family.evolutions || []).some(e => e.skillId === skill.skillId)) return EXAM_SKILL_BONUS.evolved;
+  if (family.kind === "inheritedUnique") return EXAM_SKILL_BONUS.normal;
+  return skill.rarity === 2 ? EXAM_SKILL_BONUS.rare : EXAM_SKILL_BONUS.normal;
+}
+
+// ===== シナリオ進化の枠 =====
+// シナリオ進化は、1回の育成で state.scenarioEvolutionLimit 個までしか進化させられない。
+// 枠を使うのは、キャラ非依存（characterCardId が null）で scenarioEvolutionOf に載っている進化。
+// キャラ専用の進化は枠を使わない。state.scenarioEvolutionLimit が無ければ上限なし（従来の挙動）。
+function isScenarioEvolutionPlan(plan, state) {
+  const scenarioOf = state.scenarioEvolutionOf;
+  if (!plan.usesEvolution || plan.characterCardId != null || !scenarioOf) return false;
+  return scenarioOf[String(plan.topSkillId)] !== undefined;
+}
+
+// 残りの枠の数。上限なしなら null。すでに進化済みのシナリオ進化スキルを持っていれば、その分を引く。
+function scenarioSlotsLeft(state) {
+  if (state.scenarioEvolutionLimit === undefined || !state.scenarioEvolutionOf) return null;
+  const alreadyEvolved = [...(state.acquired || [])]
+    .filter(id => state.scenarioEvolutionOf[String(id)] !== undefined).length;
+  return Math.max(0, state.scenarioEvolutionLimit - alreadyEvolved);
+}
+
 // ファミリーから選べる (コスト, 評価点増分, プラン) を列挙する。
 // includeZeroScorePlans: 評価点が増えないプランも候補に残す。
 // 走行シミュレータは「速さ（バ身）」で選ぶため、評価点が上がらないスキルにも
@@ -209,11 +262,14 @@ function enumerateFamilyOptions(family, state) {
   // 一覧に無い下位の白ティアも取得済みとして数える（impliedAcquiredWhites 参照）。
   const acquiredHere = family.skills.filter(s => acquired.has(s.skillId))
     .concat(impliedAcquiredWhites(family, state));
+  const examBonusEnabled = state.examBonus === true;
   let currentScore = 0;
+  let currentExamBonus = 0;   // 取得済みの最上位スキルがもう得ているボーナス
   if (acquiredHere.length) {
     const topAcquired = acquiredHere.reduce((a, b) =>
       b.cumulativeScore > a.cumulativeScore ? b : a);
     currentScore = scoreOf(topAcquired, aptitudes, surface);
+    if (examBonusEnabled) currentExamBonus = examBonusOfSkill(family, topAcquired);
   }
 
   const negative = family.negativeSkill;
@@ -229,6 +285,8 @@ function enumerateFamilyOptions(family, state) {
     options.push({
       cost: negative.removalCost,
       score: -currentScore,
+      evalScore: -currentScore,
+      bonusScore: 0,
       plan: {
         name: `${negative.name} を消去`, topSkillId: negative.skillId,
         memberIds: [], usesEvolution: false, removesNegativeSkill: true,
@@ -279,21 +337,32 @@ function enumerateFamilyOptions(family, state) {
         else cost += byId.get(m).baseCost;
       }
     }
-    const score = scoreOf(byId.get(plan.topSkillId), aptitudes, surface) - currentScore;
+    const evalScore = scoreOf(byId.get(plan.topSkillId), aptitudes, surface) - currentScore;
+    const bonusScore = examBonusEnabled ? examBonusOfSkill(family, top) - currentExamBonus : 0;
+    const score = evalScore + bonusScore;
     if (includeZeroScorePlans) {
       // 費用0で進化でもないプランは既に取得済みで、選び直す意味がない。
       if (cost === 0 && !plan.usesEvolution) continue;
     } else if (score <= 0) {
       continue;   // 取得済みより下がるプランは選ばない
     }
-    options.push({ cost, score, plan });
+    options.push({ cost, score, evalScore, bonusScore, plan, usesScenarioSlot: isScenarioEvolutionPlan(plan, state) });
   }
   return options;
 }
 
 // 多肢選択ナップザック問題を動的計画法で厳密に解く。
+//
+// シナリオ進化の枠（scenarioSlotsLeft）があるときは「枠をいくつ使ったか」の次元を足す。
+// dp[k][j] = 枠をちょうど k 個使って、コスト j 以内で得られる最大の評価点。未到達は DP_UNREACHED。
+// 枠の上限がなければ層は1つで、従来の dp[j] と同じ計算になる。
+const DP_UNREACHED = -1;
 function solveDp(master, state) {
   const budget = state.skillPoints;
+  const slotsLeft = scenarioSlotsLeft(state);
+  const layerCount = slotsLeft === null ? 1 : slotsLeft + 1;
+  const slotShift = (option) => (slotsLeft !== null && option.usesScenarioSlot ? 1 : 0);
+
   const familyOptions = [];
   const families = [];
   for (const family of master.families) {
@@ -301,32 +370,41 @@ function solveDp(master, state) {
     if (options.length) { familyOptions.push(options); families.push(family); }
   }
 
-  let dp = new Int32Array(budget + 1);
-  const choices = familyOptions.map(() => new Uint8Array(budget + 1));
+  let dp = Array.from({ length: layerCount }, (_, k) => new Int32Array(budget + 1).fill(k === 0 ? 0 : DP_UNREACHED));
+  const choices = familyOptions.map(() => Array.from({ length: layerCount }, () => new Uint8Array(budget + 1)));
 
   for (let index = 0; index < familyOptions.length; index++) {
     const options = familyOptions[index];
-    const newDp = dp.slice();   // 「このファミリーからは選ばない」が初期値
-    const choiceRow = choices[index];
+    const newDp = dp.map(layer => layer.slice());   // 「このファミリーからは選ばない」が初期値
     for (let oi = 0; oi < options.length; oi++) {
       const { cost, score } = options[oi];
       if (cost > budget) continue;
-      for (let j = budget; j >= cost; j--) {
-        const candidate = dp[j - cost] + score;
-        if (candidate > newDp[j]) { newDp[j] = candidate; choiceRow[j] = oi + 1; }
+      const shift = slotShift(options[oi]);
+      for (let k = 0; k + shift < layerCount; k++) {
+        const source = dp[k], target = newDp[k + shift], choiceRow = choices[index][k + shift];
+        for (let j = budget; j >= cost; j--) {
+          const previous = source[j - cost];
+          if (previous === DP_UNREACHED) continue;
+          const candidate = previous + score;
+          if (candidate > target[j]) { target[j] = candidate; choiceRow[j] = oi + 1; }
+        }
       }
     }
     dp = newDp;
   }
 
+  let bestLayer = 0;
+  for (let k = 1; k < layerCount; k++) if (dp[k][budget] > dp[bestLayer][budget]) bestLayer = k;
+
   const selected = [];
-  let j = budget;
+  let j = budget, layer = bestLayer;
   for (let index = familyOptions.length - 1; index >= 0; index--) {
-    const optionIndex = choices[index][j];
+    const optionIndex = choices[index][layer][j];
     if (optionIndex === 0) continue;
     const option = familyOptions[index][optionIndex - 1];
     selected.push({ family: families[index], ...option });
     j -= option.cost;
+    layer -= slotShift(option);
   }
   selected.reverse();
 
@@ -355,6 +433,10 @@ function solveDp(master, state) {
 const SCORE_CAP_INFINITY = 0x7fffffff;
 function solveDpScoreCapped(master, state, scoreCap) {
   const budget = state.skillPoints;
+  const slotsLeft = scenarioSlotsLeft(state);
+  const layerCount = slotsLeft === null ? 1 : slotsLeft + 1;
+  const slotShift = (option) => (slotsLeft !== null && option.usesScenarioSlot ? 1 : 0);
+
   const familyOptions = [];
   const families = [];
   for (const family of master.families) {
@@ -362,47 +444,53 @@ function solveDpScoreCapped(master, state, scoreCap) {
     if (options.length) { familyOptions.push(options); families.push(family); }
   }
 
-  // dp[s] = 追加評価点ちょうど s を達成する最小コスト。未到達は INF。
-  const dp = new Int32Array(scoreCap + 1).fill(SCORE_CAP_INFINITY);
-  dp[0] = 0;
-  const choices = familyOptions.map(() => new Uint8Array(scoreCap + 1));
+  // dp[k][s] = 枠をちょうど k 個使って追加評価点ちょうど s を達成する最小コスト。未到達は INF。
+  const dp = Array.from({ length: layerCount }, () => new Int32Array(scoreCap + 1).fill(SCORE_CAP_INFINITY));
+  dp[0][0] = 0;
+  const choices = familyOptions.map(() => Array.from({ length: layerCount }, () => new Uint8Array(scoreCap + 1)));
 
   for (let index = 0; index < familyOptions.length; index++) {
     const options = familyOptions[index];
-    const choiceRow = choices[index];
-    // 0/1ナップザック（各ファミリーから高々1プラン）。s降順で上書きを防ぐ。
-    for (let s = scoreCap; s >= 0; s--) {
-      let bestCost = dp[s];
-      let bestOption = choiceRow[s];   // 既定（このファミリーを使わない）を保持
-      for (let oi = 0; oi < options.length; oi++) {
-        const { cost, score } = options[oi];
-        if (score > s) continue;
-        const prev = dp[s - score];
-        if (prev === SCORE_CAP_INFINITY) continue;
-        const candidate = prev + cost;
-        if (candidate < bestCost) { bestCost = candidate; bestOption = oi + 1; }
+    // 0/1ナップザック（各ファミリーから高々1プラン）。k と s を降順に回し、更新済みの値を読まない。
+    for (let k = layerCount - 1; k >= 0; k--) {
+      const choiceRow = choices[index][k];
+      for (let s = scoreCap; s >= 0; s--) {
+        let bestCost = dp[k][s];
+        let bestOption = choiceRow[s];   // 既定（このファミリーを使わない）を保持
+        for (let oi = 0; oi < options.length; oi++) {
+          const { cost, score } = options[oi];
+          const shift = slotShift(options[oi]);
+          if (score > s || k - shift < 0) continue;
+          const prev = dp[k - shift][s - score];
+          if (prev === SCORE_CAP_INFINITY) continue;
+          const candidate = prev + cost;
+          if (candidate < bestCost) { bestCost = candidate; bestOption = oi + 1; }
+        }
+        dp[k][s] = bestCost;
+        choiceRow[s] = bestOption;
       }
-      dp[s] = bestCost;
-      choiceRow[s] = bestOption;
     }
   }
 
   // 予算内で到達できる最大の追加評価点を探す。
-  let bestScore = 0;
+  let bestScore = 0, bestLayer = 0;
+  search:
   for (let s = scoreCap; s >= 0; s--) {
-    if (dp[s] <= budget) { bestScore = s; break; }
+    for (let k = 0; k < layerCount; k++) {
+      if (dp[k][s] <= budget) { bestScore = s; bestLayer = k; break search; }
+    }
   }
 
-  // choicesは「そのsに至る各ファミリーの選択」を記録していないため、
-  // ファミリーを逆順にたどりながら残スコアを減らして復元する。
+  // ファミリーを逆順にたどりながら、残りの評価点と枠の数を減らして復元する。
   const selected = [];
-  let s = bestScore;
+  let s = bestScore, layer = bestLayer;
   for (let index = familyOptions.length - 1; index >= 0; index--) {
-    const optionIndex = choices[index][s];
+    const optionIndex = choices[index][layer][s];
     if (optionIndex === 0) continue;
     const option = familyOptions[index][optionIndex - 1];
     selected.push({ family: families[index], ...option });
     s -= option.score;
+    layer -= slotShift(option);
   }
   selected.reverse();
 
@@ -505,11 +593,33 @@ function acquiredSkillEval(master, state) {
   return total;
 }
 
+// 取得済みスキルが得ているスキル獲得ボーナスの合計（表示用）。
+// 系統ごとに最上位1個。そのキャラ自身の固有スキルは対象外（フリー課程の規則）。
+// シナリオ・購入不可の扱いのスキルはレアリティが分からないので数えない。
+function acquiredExamSkillBonus(master, state) {
+  const acquired = state.acquired || new Set();
+  const ownUnique = uniqueSkillOfCharacter(master, state.characterCardId, state.talentAwakened !== false);
+  const ownUniqueName = ownUnique ? ownUnique.name : null;
+
+  let total = 0;
+  for (const family of master.families) {
+    const owned = family.skills.concat(family.evolutions || [])
+      .filter(s => acquired.has(s.skillId))
+      .concat(impliedAcquiredWhites(family, state))
+      .filter(s => !(ownUniqueName && s.name === ownUniqueName));
+    if (owned.length === 0) continue;
+    const top = owned.reduce((a, b) => (b.cumulativeScore > a.cumulativeScore ? b : a));
+    total += examBonusOfSkill(family, top);
+  }
+  return total;
+}
+
 // Node/ブラウザ両対応のエクスポート
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     roundHalfUp, aptitudeMultiplier, scoreOf, loadMaster, uniqueSkillOfCharacter,
-    acquiredSkillEval, solveDpScoreCapped,
+    acquiredSkillEval, solveDpScoreCapped, examBonusOfSkill, examStatBonus, acquiredExamSkillBonus,
+    scenarioSlotsLeft, isScenarioEvolutionPlan,
     baselineScore, selectablePlans, enumerateFamilyOptions, solveDp, solveGreedy,
   };
 }

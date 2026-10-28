@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="favicon.ico?v=2" sizes="any">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
@@ -24,6 +25,7 @@
      crossorigin="anonymous"></script>
 <style>
   :root {
+    color-scheme: light;   /* 暗い配色の端末で背景だけ暗く文字が黒のまま残るのを防ぐ */
     --accent: #2f6f4f;
     --accent-dark: #1f4d36;
     --bg: #f7f8f6;
@@ -37,7 +39,7 @@
   * { box-sizing: border-box; }
   /* 余白と最大幅は .pageBody（site.css）が持つ。
      ヘッダーを画面幅いっぱいに出すため、body 側では絞らない。 */
-  body { line-height: 1.6; }
+  body { line-height: 1.6; background: var(--bg); color: var(--text); }
   .pageBody { padding-bottom: 80px; }
   /* スマホ運用が前提。入力欄は16px未満だとiOSが焦点時に拡大するので下げない。
      タップ目標は44px以上を確保する。 */
@@ -95,6 +97,28 @@
 
   .warn { color: var(--warn); background: var(--warn-bg); border-radius: 6px; padding: 8px 10px; margin-top: 8px; font-size: 13px; }
   .summary { font-size: 19px; font-weight: 700; margin: 4px 0 2px; }
+  .scoreBreakdown { border-collapse: collapse; width: 100%; margin: 0; }
+  .scoreBreakdown td { padding: 7px 4px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .scoreBreakdown td:last-child { text-align: right; font-weight: 600; white-space: nowrap; }
+  .scoreBreakdown tr:last-child td { border-bottom: 0; }
+  .scoreBreakdown tr.subRow td { color: var(--muted); font-size: 13px; padding-top: 0; }
+  .scoreCard { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 14px 8px; margin: 4px 0 12px; }
+  .scoreCard .scoreLabel { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .scoreCard .scoreValue { font-size: 32px; font-weight: 800; color: var(--accent-dark); line-height: 1.2; }
+  .scoreCard .scoreSub { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .scoreCard .rankChip { display: inline-block; margin-left: 8px; padding: 1px 10px; border-radius: 999px; vertical-align: middle;
+    background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; }
+  .planList .evoTag { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 4px; vertical-align: 1px;
+    background: #eaf1ec; color: var(--accent-dark); font-size: 11px; font-weight: 700; }
+  .planList { border-collapse: collapse; width: 100%; }
+  .planList th { color: var(--muted); font-weight: 600; font-size: 12px; text-align: left; padding: 6px 4px; }
+  .planList td { padding: 8px 4px; border-top: 1px solid var(--border); vertical-align: top; }
+  .planList .skillName { font-weight: 600; }
+  .planList .skillBreakdown { font-size: 12px; color: var(--muted); }
+  .planList .skillBreakdown b { color: var(--accent-dark); font-weight: 700; }
+  .planList td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .planList td.gain { font-weight: 700; color: var(--accent-dark); }
   .summary .sub { font-size: 13px; font-weight: 500; color: var(--muted); }
 
   .ambigRow {
@@ -330,6 +354,10 @@
     display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
   }
   .siteFooter a { color: var(--muted); }
+  /* フッターは .pageBody の外に置かれるため、本文と同じ幅・左右余白をここで持たせる。
+     持たせないとスマホ幅でリンクと注記が画面の左端に張り付く。 */
+  footer.siteFooter { display: block; max-width: var(--page-width, 720px); margin: 32px auto 0;
+    padding: 16px 12px 40px; }
 
   /* ---- 2026-09-30 刷新 ---- */
   .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -372,6 +400,11 @@
     background: transparent; color: var(--muted); font-weight: 700; box-shadow: none; }
   .tabBar button[aria-selected="true"] { background: #fff; color: var(--accent-dark); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
   .tabBar .wip { background: var(--accent); }
+  .tabNote { margin: -6px 2px 12px; font-size: 12px; color: var(--muted); }
+  .scenarioRow { display: flex; align-items: center; gap: 12px; margin: 12px 0 10px; }
+  .scenarioRow label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .scenarioRow select { flex: 1; min-width: 0; }
+  #examNote { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
 
   /* 解説は折りたたんで最下部に。 */
   .aboutFold > summary { cursor: pointer; font-weight: 700; color: var(--accent-dark); padding: 4px 0; }
@@ -403,7 +436,7 @@
       <span class="siteHeader__name">評価点 最大化くん</span>
     </a>
     <a class="siteHeader__updates" href="updates.html">
-      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/28
+      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/29
     </a>
   </div>
 </header>
@@ -433,6 +466,10 @@
       <input type="file" id="acqFiles" accept="image/*" multiple>
     </label>
   </div>
+  <div class="scenarioRow">
+    <label for="trainingScenario">育成シナリオ</label>
+    <select id="trainingScenario"></select>
+  </div>
   <button id="runButton">読み取る</button>
   <div id="status"></div>
   <div id="progressBar"><div class="fill"></div></div>
@@ -441,7 +478,9 @@
 <div class="tabBar" role="tablist">
   <button type="button" id="tabScore" role="tab" aria-selected="true" aria-controls="panelScore">評価点</button>
   <button type="button" id="tabSim" role="tab" aria-selected="false" aria-controls="panelSim">最速<span class="wip">β</span></button>
+  <button type="button" id="tabExam" role="tab" aria-selected="false" aria-controls="panelExam">技能試験<span class="wip">β</span></button>
 </div>
+<p class="tabNote">①②の読み取り結果は、どのタブでも共通です。</p>
 
 <div id="panelScore" role="tabpanel">
 
@@ -598,10 +637,6 @@
       </div>
     </details>
     <div class="simRow">
-      <label for="simScenario" class="sub">育成シナリオ</label>
-      <select id="simScenario"><option value="">指定しない</option></select>
-    </div>
-    <div class="simRow">
       <label for="simStrategy" class="sub">脚質</label>
       <select id="simStrategy">
         <option value="Nige">逃げ</option>
@@ -625,6 +660,27 @@
   <div id="simStatus" class="sub" style="margin-top:8px"></div>
   <div id="simResults"></div>
 </div><!-- /panelSim -->
+
+<div id="panelExam" role="tabpanel" hidden>
+  <details class="help">
+    <summary aria-label="計算の前提">？</summary>
+    <ul>
+      <li>トレーナー技能試験の<b>フリー課程</b>で、<b>スコアが最大</b>になるスキルの取り方を選びます。</li>
+      <li>スコア = 評価点 + スコアボーナス。フリー課程に適性補正はありません。</li>
+      <li>スキル獲得ボーナスは ノーマル+400／レア+1,200／進化+1,500。系統ごとに最上位の1個だけが数えられます（金を取れば白は数えません）。継承固有はノーマル、継承進化は進化として数えます。</li>
+      <li>固有スキル、マイナス効果のスキルは対象外です。</li>
+      <li>基礎能力ボーナスはステータスから自動で足します（1000以上+3,000、1201以上+2,000、スピードは2001以上+1,000）。スキルの取り方では変わりません。</li>
+      <li>勝利レースのボーナス（G1+100など）は含みません。</li>
+      <li>調整中の機能です。仕様は予告なく変わります。</li>
+    </ul>
+  </details>
+
+  <p class="sub" id="examNote">①②のスクリーンショットを読み取ると、ここで計算できます。育成シナリオは上の選択を使います。</p>
+
+  <button id="examRunButton" style="width:100%">スコア最大のスキルを計算する</button>
+  <div id="examStatus" class="sub" style="margin-top:8px"></div>
+  <div id="examResults"></div>
+</div><!-- /panelExam -->
 
 <section class="about">
 <details class="aboutFold">
@@ -827,7 +883,7 @@ const session = {
   recognizedRows: [], aptitudes: null, skillPointsGuess: null,
   autoSkillPoints: null, // ヘッダーから読み取った保有Pt。手入力を消したときの戻り先。
   missingRangeCount: null, // 撮り漏れと判定した箇所の数（判定できなければ null）
-  budget: null, characterCardId: null, thumbnailUrls: [], evolutionChoices: {},
+  budget: null, characterCardId: null, thumbnailUrls: [],
   stats: null,           // 詳細画面OCRの5ステータス現在値 { speed, ... }
   uniqueSkillLv: 6,      // 固有スキルLv（1〜6・OCR不可のため選択入力。既定=最大）
   currentEval: null,     // 現在の総合評価点（ステ＋固有＋獲得スキルから自動算出）
@@ -948,39 +1004,35 @@ function renderResults(optResult, baseline = null, rankNote = null) {
     resultsEl.appendChild(note);
   }
 
-  const summary = document.createElement("div");
-  summary.className = "summary";
-  summary.innerHTML = `評価点 +${optResult.totalScore}点 <span class="sub">（消費 ${optResult.totalCost} / ${session.budget}SP）</span>`;
-  resultsEl.appendChild(summary);
+  const gain = optResult.totalScore;
+  const postEval = baseline === null ? null : baseline + gain;
+  resultsEl.appendChild(renderScoreCard({
+    label: postEval === null ? "追加される評価点" : "獲得後の総合評価点（推定）",
+    value: postEval === null ? `+${gain.toLocaleString()}` : postEval.toLocaleString(),
+    chip: postEval === null ? null : `ランク ${rankOf(postEval)}`,
+    sub: `消費 ${optResult.totalCost} / ${session.budget} SP`,
+    rows: postEval === null ? [] : [
+      ["現在の総合評価点（推定）", baseline.toLocaleString()],
+      ["今回の追加", `+${gain.toLocaleString()}`],
+    ],
+  }));
 
-  // 獲得後の総合評価点と評価ランク（ステータスから現在評価点を推定できた場合のみ）。
-  if (baseline != null) {
-    const postEval = baseline + optResult.totalScore;
-    const postRank = rankOf(postEval);
-    const box = document.createElement("div");
-    box.className = "summary";
-    box.style.fontSize = "16px";
-    box.innerHTML = `獲得後の総合評価点（推定） <b>${postEval.toLocaleString()}</b>`
-      + ` <span class="sub">評価ランク <b>${postRank}</b>（現在 推定${baseline.toLocaleString()} → +${optResult.totalScore}）</span>`;
-    resultsEl.appendChild(box);
-
-    if (rankNote && rankNote.kind === "capped") {
-      const tr = rankNote.targetRank;
-      const remaining = tr.max - postEval;
-      const note = document.createElement("div");
-      note.className = "warn";
-      note.style.background = "#eef5f0"; note.style.color = "var(--accent-dark)";
-      note.textContent = `目標ランク ${tr.rank}（上限 ${tr.max.toLocaleString()}）の範囲内で評価点を最大化しました。`
-        + `上限まで残り ${Math.max(0, remaining).toLocaleString()}点。`;
-      resultsEl.appendChild(note);
-    } else if (rankNote && rankNote.kind === "over") {
-      const note = document.createElement("div");
-      note.className = "warn";
-      note.textContent = `⚠ 現在の総合評価点が目標ランク ${rankNote.targetRank.rank}`
-        + `（上限 ${rankNote.targetRank.max.toLocaleString()}）を既に超えています。所持SP内での最大化結果を表示しています。`;
-      resultsEl.appendChild(note);
-    }
-  } else if (rankNote && rankNote.kind === "needEval") {
+  if (baseline != null && rankNote && rankNote.kind === "capped") {
+    const tr = rankNote.targetRank;
+    const remaining = tr.max - postEval;
+    const note = document.createElement("div");
+    note.className = "warn";
+    note.style.background = "#eef5f0"; note.style.color = "var(--accent-dark)";
+    note.textContent = `目標ランク ${tr.rank}（上限 ${tr.max.toLocaleString()}）の範囲内で評価点を最大化しました。`
+      + `上限まで残り ${Math.max(0, remaining).toLocaleString()}点。`;
+    resultsEl.appendChild(note);
+  } else if (baseline != null && rankNote && rankNote.kind === "over") {
+    const note = document.createElement("div");
+    note.className = "warn";
+    note.textContent = `⚠ 現在の総合評価点が目標ランク ${rankNote.targetRank.rank}`
+      + `（上限 ${rankNote.targetRank.max.toLocaleString()}）を既に超えています。所持SP内での最大化結果を表示しています。`;
+    resultsEl.appendChild(note);
+  } else if (baseline == null && rankNote && rankNote.kind === "needEval") {
     const note = document.createElement("div");
     note.className = "warn";
     note.textContent = "①詳細画面からステータスを読み取れなかったため、現在の総合評価点を推定できません（ステータスと距離・脚質適性がすべて写った詳細画面を使ってください）。所持SP内での最大化結果を表示しています。";
@@ -996,9 +1048,6 @@ function renderResults(optResult, baseline = null, rankNote = null) {
     resultsEl.appendChild(warnBox);
   }
 
-  const evolutionPanel = renderEvolutionChoicePanel();
-  if (evolutionPanel !== null) resultsEl.appendChild(evolutionPanel);
-
   if (optResult.selectedPlans.length === 0) {
     // 見出しだけの空表は故障に見える。買えるものが無いのは正常な結果なので、
     // そのことと理由（所持Ptが最安のスキルにも届かない）を言葉で示す。
@@ -1007,24 +1056,7 @@ function renderResults(optResult, baseline = null, rankNote = null) {
     note.textContent = `所持スキルPt（${skillPointsGuess ?? "?"}）で取得できるスキルはありません。`;
     resultsEl.appendChild(note);
   } else {
-    const table = document.createElement("table");
-    table.id = "resultList";
-    const thead = document.createElement("tr");
-    ["評価点", "消費SP", "プラン名"].forEach(h => {
-      const th = document.createElement("th"); th.textContent = h; thead.appendChild(th);
-    });
-    table.appendChild(thead);
-    for (const o of plansInScreenOrder(optResult.selectedPlans)) {
-      const tr = document.createElement("tr");
-      [`+${o.score}`, `${o.cost}`, o.plan.name].forEach(text => {
-        const td = document.createElement("td"); td.textContent = text; tr.appendChild(td);
-      });
-      table.appendChild(tr);
-    }
-    const tableWrap = document.createElement("div");
-    tableWrap.className = "tableWrap";
-    tableWrap.appendChild(table);
-    resultsEl.appendChild(tableWrap);
+    resultsEl.appendChild(renderPlanTable(plansInScreenOrder(optResult.selectedPlans), "評価点", () => null));
   }
 
   resultsEl.appendChild(renderRowEditor(aptitudes, skillPointsGuess));
@@ -1401,132 +1433,12 @@ function buildFixRow(row, index, edits, removed, markDirty) {
   return wrap;
 }
 
-// 進化フラグ付きの金スキル（非曖昧・未購入の行のみ。曖昧行は最適化から
-// 除外されているため選択肢に出しても意味が無い）を、行の出現順で重複なく
-// 集める。
-function collectEvolvedGoldSkills() {
-  const seen = new Map();
-  for (const row of session.recognizedRows) {
-    // 獲得済みの行も含める。獲得済みでも進化はでき、スキルPtを消費せずに
-    // 評価点だけが上がるため、選ばせないと確実な加点を取りこぼす。
-    if (row.ambiguous || !row.evo || !row.evolutionSkillIds) continue;
-    if (!seen.has(row.skillId)) seen.set(row.skillId, row.name);
-  }
-  return Array.from(seen, ([skillId, name]) => ({ skillId, name }));
-}
-
-// 進化スキルごとに「どの進化先に進化させるか（または進化しないか）」を
-// ユーザーに選ばせるパネル。
-//
-// シナリオ進化スキルは育成シナリオごとに獲得条件が決まっており、かつ
-// 1回の育成でシナリオ進化を獲得できるのは2個までという制約がある。
-// どのスキルがどの育成シナリオに属するかをマスタ上で機械的に判別するのは
-// 煩雑（マスタにシナリオ名の情報が無い）なため、本ツールでは「2個まで」の
-// 制約チェックは行わず、ユーザー自身の判断（実際のプレイ内容）に委ねる
-// 方針とした（ユーザー合意済み・2026-07-12）。
-//
-// 候補は「そのキャラ専用の進化（characterCardId一致）」または「シナリオ
-// 進化等キャラ非依存の進化（characterCardIdがnull）」のみに限定し、他キャラ
-// 専用の進化先（そのキャラでは絶対に入手できない）が紛れ込まないようにする
-// （optimizer.js の selectablePlans 側にも同じ絞り込みを実装済み。ここでの
-// 絞り込みはUI表示用）。
-function renderEvolutionChoicePanel() {
-  // このキャラで実際に選べる進化先を持つものだけを対象にする。他キャラ専用の
-  // 進化しか持たない金スキルは選択肢を出しようがないので、件数にも数えない
-  // （見出しの件数と並ぶ項目数が食い違うと、出ていない分を探させてしまう）。
-  const choosable = collectEvolvedGoldSkills().map(({ skillId, name }) => {
-    const family = cache.master.families.find(f => f._skillById.has(skillId));
-    const candidates = family === undefined ? [] : family.evolutions.filter(e =>
-      e.fromGoldSkillId === skillId
-      && (e.characterCardId === session.characterCardId || e.characterCardId == null));
-    return { skillId, name, candidates };
-  }).filter(entry => entry.candidates.length > 0);
-  if (choosable.length === 0) return null;
-
-  const section = document.createElement("section");
-  const head = document.createElement("div");
-  head.className = "fixHead";
-  const title = document.createElement("span");
-  title.className = "title";
-  title.textContent = `進化スキルの選択（${choosable.length}件）`;
-  head.appendChild(title);
-  section.appendChild(head);
-
-  const hint = document.createElement("div");
-  hint.className = "hint";
-  // 静的な定型文のみ。外部入力を混ぜないこと（混ぜる必要が出たら textContent へ戻す）。
-  hint.innerHTML = "進化スキルは既定で「進化しない」になっています。<br>"
-                 + "実際に進化させるものだけを選び、最下段の「反映して再計算」を押してください。選択は押すまで反映されません。";
-  section.appendChild(hint);
-
-  // 選択は即時反映しない。複数スキルを選ぶ間ずっと再計算が走るのを避け、
-  // 「反映して再計算」を押したときにまとめて適用する。
-  const picked = new Map();
-
-  const applyBtn = document.createElement("button");
-  applyBtn.type = "button";
-  applyBtn.textContent = "反映して再計算";
-  applyBtn.disabled = true;
-
-  for (const { skillId: goldId, name: goldName, candidates } of choosable) {
-    const wrap = document.createElement("div");
-    wrap.className = "evoSkill";
-    const label = document.createElement("div");
-    label.className = "name";
-    label.textContent = goldName;
-    wrap.appendChild(label);
-
-    const options = document.createElement("div");
-    options.className = "evoOptions";
-    const groupName = `evo_${goldId}`;
-    // 既定は「進化しない」。進化の可否はプレイ内容次第で、勝手に進化させた前提の
-    // 計算結果はそのままでは実行できないため、選ばれたものだけを積み上げる。
-    const currentChoice = session.evolutionChoices[goldId] ?? "none";
-
-    for (const opt of [{ value: "none", label: "進化しない" },
-                       ...candidates.map(c => ({ value: String(c.skillId), label: c.name }))]) {
-      const optLabel = document.createElement("label");
-      const radio = document.createElement("input");
-      radio.type = "radio"; radio.name = groupName; radio.value = opt.value;
-      radio.checked = String(currentChoice) === opt.value;
-      radio.addEventListener("change", () => {
-        picked.set(goldId, opt.value === "none" ? "none" : Number(opt.value));
-        applyBtn.disabled = false;
-      });
-      optLabel.appendChild(radio);
-      optLabel.appendChild(document.createTextNode(opt.label));
-      options.appendChild(optLabel);
-    }
-    wrap.appendChild(options);
-    section.appendChild(wrap);
-  }
-
-  applyBtn.addEventListener("click", () => {
-    for (const [goldId, choice] of picked) session.evolutionChoices[goldId] = choice;
-    recalcAndRender();
-  });
-  const bar = document.createElement("div");
-  bar.className = "fixBar";
-  bar.appendChild(applyBtn);
-  section.appendChild(bar);
-
-  return section;
-}
-
-// 進化先が未選択のスキルは「進化しない」を既定とする。最適化に渡す前に埋める
-// （パネルの初期表示より先に計算が走るため、パネル側の既定値だけでは足りない）。
-function applyDefaultEvolutionChoices() {
-  for (const { skillId } of collectEvolvedGoldSkills()) {
-    if (session.evolutionChoices[skillId] === undefined) session.evolutionChoices[skillId] = "none";
-  }
-}
-
 async function recalcAndRender() {
   session.hasRun = true;
-  applyDefaultEvolutionChoices();
+  await scenariosReady;
   const state = buildOptimizerState(
-    session.recognizedRows, session.aptitudes, session.budget, session.characterCardId,
-    session.evolutionChoices);
+    session.recognizedRows, session.aptitudes, session.budget, session.characterCardId, {});
+  applyEvolutionRules(state);
 
   // 現在の総合評価点をステータス・固有Lv・獲得済みスキルから自動算出する。
   session.currentEval = computeCurrentEval(state);
@@ -1584,6 +1496,7 @@ async function run() {
   runButton.disabled = true;
   try {
     await loadResources();
+    await scenariosReady;
 
     setStatus(`スキル獲得画面を認識中... (0/${acqFileList.length})`);
     setProgress(0, acqFileList.length);
@@ -1626,6 +1539,8 @@ async function run() {
     session.statCrops = statCrops || [];
     session.aptitudeCrops = aptitudeCrops || [];
 
+    document.getElementById("examResults").textContent = "";
+    document.getElementById("examStatus").textContent = "";
     setStatus("最適化を計算中...");
     await recalcAndRender();
   } catch (e) {
@@ -1643,13 +1558,8 @@ async function run() {
 // 送るのは数値とスキルIDだけ。画像は送らない。
 const SIM_API = "https://umax-sim.umamusume-maximize.workers.dev/api/optimize";
 const APTITUDE_LETTERS = ["S", "A", "B", "C", "D", "E", "F", "G"];
-// シナリオ進化は育成中に2個までしか進化させられない。
-const SCENARIO_EVOLUTION_LIMIT = 2;
 
 let simCoursesLoaded = false;
-// シナリオ進化スキルID → 育成シナリオ名。どのシナリオで進化させられるかの対応。
-let scenarioEvolutionMap = {};
-
 // コース一覧（通し番号順）。3段のプルダウンはここから絞り込んで作る。
 let simCourses = [];
 
@@ -1685,18 +1595,6 @@ function refillDistances() {
   }
 }
 
-// 育成シナリオを実装順の降順（新しいものが上）に並べる。
-// シナリオ進化のスキルIDは実装順に採番されている（407=UAF … 414=ラーメン、415=駿大祭）ので、
-// シナリオごとの最小IDが実装順そのものになる。
-function scenarioNamesNewestFirst(evolutionMap) {
-  const firstId = new Map();
-  for (const [skillId, name] of Object.entries(evolutionMap)) {
-    const id = Number(skillId);
-    if (!firstId.has(name) || id < firstId.get(name)) firstId.set(name, id);
-  }
-  return [...firstId.keys()].sort((a, b) => firstId.get(b) - firstId.get(a));
-}
-
 async function loadSimCourses() {
   if (simCoursesLoaded) return;
   // await より前に立てる。末尾で立てると、通信中に呼ばれた2回目が素通りして
@@ -1705,15 +1603,7 @@ async function loadSimCourses() {
   const courses = await (await fetch("sim_courses.json")).json();
   // 通し番号（コースID）順に並べる。ゲーム内の並びと同じで、探しやすい。
   simCourses = courses.slice().sort((a, b) => a.id - b.id);
-  scenarioEvolutionMap = await (await fetch("scenario_evolutions.json")).json();
-  // 選べるシナリオは、対応表に出てくるものだけにする（実在しない選択肢を出さない）。
-  const scenarioSelect = document.getElementById("simScenario");
-  for (const name of scenarioNamesNewestFirst(scenarioEvolutionMap)) {
-    const option = document.createElement("option");
-    option.value = name;
-    option.textContent = name;
-    scenarioSelect.appendChild(option);
-  }
+  await scenariosReady;
   // 場を選ぶと芝/ダートが、芝/ダートを選ぶと距離が絞られる。
   document.getElementById("simTrack").addEventListener("change", refillSurfaces);
   document.getElementById("simSurface").addEventListener("change", refillDistances);
@@ -1831,15 +1721,16 @@ function simCandidatesFromSession() {
   // シミュレータだけの事情は2つで、どちらも state で渡す。
   //   includeZeroScorePlans … 評価点が増えなくても速くなるスキルは候補に残す
   //   trainingScenario      … シナリオ進化を、選んだ育成シナリオのものに絞る
-  // 進化の選択は評価点側（session.evolutionChoices、既定は「進化しない」）を使わない。
-  // 評価点の最大化では進化の可否を利用者が決めるが、最速では計算が決めるべきもので、
-  // 引き継ぐと既定の「進化しない」で進化が候補から全部消えていた（実測: 進化候補0件）。
+  // 進化は評価点で決めず、候補を全部残す。最速では速さ（バ身）で選ぶべきもので、
+  // 評価点の最大化が選ぶ進化とは別になるため。
   const state = buildOptimizerState(
     session.recognizedRows, session.aptitudes || {}, session.budget || 0,
     session.characterCardId, {});
   state.includeZeroScorePlans = true;
   state.includeAllEvolutions = true;   // 進化は評価点でなく速さで選ぶので、選択肢を全部候補にする
-  state.trainingScenario = document.getElementById("simScenario")?.value || "";
+  // 最速は進化を速さ（バ身）で選ぶ。評価点でも枠でもなく、ここでは候補を全部残すだけにする
+  // （シナリオ進化の2個までは最速側の選択で守る）。
+  state.trainingScenario = document.getElementById("trainingScenario").value;
   state.scenarioEvolutionOf = scenarioEvolutionMap;
 
   // 選んだレースで発動しえないスキルは、候補にも取得済みにも入れない。
@@ -2557,17 +2448,6 @@ async function runSim() {
   }
 }
 
-function selectTab(which) {
-  const isSim = which === "sim";
-  document.getElementById("panelScore").hidden = isSim;
-  document.getElementById("panelSim").hidden = !isSim;
-  document.getElementById("tabScore").setAttribute("aria-selected", String(!isSim));
-  document.getElementById("tabSim").setAttribute("aria-selected", String(isSim));
-  if (isSim) { loadSimCourses().then(simCandidatesFromSession); }
-}
-
-document.getElementById("tabScore").addEventListener("click", () => selectTab("score"));
-document.getElementById("tabSim").addEventListener("click", () => selectTab("sim"));
 document.getElementById("simRunButton").addEventListener("click", runSim);
 // 選んだ枚数をタイルに出す。見えない input の代わりに、状態をタイルで伝える。
 for (const input of document.querySelectorAll(".tile input[type=file]")) {
@@ -2578,8 +2458,6 @@ for (const input of document.querySelectorAll(".tile input[type=file]")) {
     input.closest(".tile").classList.toggle("filled", count > 0);
   });
 }
-// シナリオを変えると候補が変わるので、その場で作り直して件数を見せる。
-document.getElementById("simScenario").addEventListener("change", simCandidatesFromSession);
 // コース・脚質が変わると発動しうるスキルが変わるので、候補を数え直す。
 for (const id of ["simCourse", "simSurface", "simTrack", "simStrategy"]) {
   document.getElementById(id).addEventListener("change", () => {
@@ -2588,6 +2466,226 @@ for (const id of ["simCourse", "simSurface", "simTrack", "simStrategy"]) {
 }
 
 document.getElementById("runButton").addEventListener("click", run);
+
+// ===== 育成シナリオ（評価点・最速・技能試験で共通）=====
+// LANテストは走行シミュレータの領域を丸ごと落とすので、ここは領域の外に置く。
+// シナリオ進化は育成中に2個までしか進化させられない。
+const SCENARIO_EVOLUTION_LIMIT = 2;
+
+// シナリオ進化スキルID → 育成シナリオ名。どのシナリオで進化させられるかの対応。
+let scenarioEvolutionMap = {};
+
+// 育成シナリオを実装順の降順（新しいものが上）に並べる。
+// シナリオ進化のスキルIDは実装順に採番されている（407=UAF … 414=ラーメン、415=駿大祭）ので、
+// シナリオごとの最小IDが実装順そのものになる。
+function scenarioNamesNewestFirst(evolutionMap) {
+  const firstId = new Map();
+  for (const [skillId, name] of Object.entries(evolutionMap)) {
+    const id = Number(skillId);
+    if (!firstId.has(name) || id < firstId.get(name)) firstId.set(name, id);
+  }
+  return [...firstId.keys()].sort((a, b) => firstId.get(b) - firstId.get(a));
+}
+
+// 選べるシナリオは、対応表に出てくるものだけ（実在しない選択肢を出さない）。
+// 既定は最新のシナリオ。「指定しない」は置かない（シナリオが分からないと、
+// 進化できないスキルを提案してしまうため）。
+async function loadScenarios() {
+  try {
+    scenarioEvolutionMap = await (await fetch("scenario_evolutions.json")).json();
+  } catch (e) {
+    console.error(e);   // 読めなければ、進化の絞り込みと枠の制限なしで動く
+    return;
+  }
+  const select = document.getElementById("trainingScenario");
+  for (const name of scenarioNamesNewestFirst(scenarioEvolutionMap)) {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  }
+}
+const scenariosReady = loadScenarios();
+
+document.getElementById("trainingScenario").addEventListener("change", () => {
+  if (session.hasRun) recalcAndRender();   // 最速の候補も recalcAndRender の末尾で作り直される
+  if (document.getElementById("examResults").childElementCount) runExam();
+});
+
+// 進化は、各機能の指標（評価点など）が最大になる組を計算で選ぶ。
+// 進化できる金スキルは全部候補に残し、シナリオ進化は選んだ育成シナリオのものだけ、2個までにする。
+function applyEvolutionRules(state) {
+  state.includeAllEvolutions = true;
+  state.trainingScenario = document.getElementById("trainingScenario").value;
+  state.scenarioEvolutionOf = scenarioEvolutionMap;
+  state.scenarioEvolutionLimit = SCENARIO_EVOLUTION_LIMIT;
+}
+
+// ===== 結果表示の共通部品（評価点・技能試験）=====
+// 大きな数字の枠。rows は [項目, 値] の配列、chip は数字の横に出す小さなラベル。
+function renderScoreCard({ label, value, chip, sub, rows }) {
+  const card = document.createElement("div");
+  card.className = "scoreCard";
+  const labelEl = document.createElement("div"); labelEl.className = "scoreLabel"; labelEl.textContent = label;
+  const valueEl = document.createElement("div"); valueEl.className = "scoreValue"; valueEl.textContent = value;
+  if (chip) {
+    const chipEl = document.createElement("span"); chipEl.className = "rankChip"; chipEl.textContent = chip;
+    valueEl.appendChild(chipEl);
+  }
+  const subEl = document.createElement("div"); subEl.className = "scoreSub"; subEl.textContent = sub;
+  card.append(labelEl, valueEl, subEl);
+  if (rows.length) {
+    const table = document.createElement("table");
+    table.className = "scoreBreakdown";
+    for (const [name, text, isSub] of rows) {
+      const tr = document.createElement("tr");
+      if (isSub) tr.className = "subRow";
+      const nameCell = document.createElement("td"); nameCell.textContent = name;
+      const textCell = document.createElement("td"); textCell.textContent = text;
+      tr.append(nameCell, textCell);
+      table.appendChild(tr);
+    }
+    card.appendChild(table);
+  }
+  return card;
+}
+
+// 取得するスキルの一覧。scoreLabel は右端の列の見出し（評価点・スコア）。
+// makeSubLine(option) が文字列（HTML）を返せば、スキル名の下に小さく出す。
+function renderPlanTable(options, scoreLabel, makeSubLine) {
+  const table = document.createElement("table");
+  table.className = "planList";
+  const head = document.createElement("tr");
+  for (const [text, isNumber] of [["取得するスキル", false], ["SP", true], [scoreLabel, true]]) {
+    const th = document.createElement("th");
+    th.textContent = text;
+    if (isNumber) th.style.textAlign = "right";
+    head.appendChild(th);
+  }
+  table.appendChild(head);
+  for (const o of options) {
+    const tr = document.createElement("tr");
+    const nameCell = document.createElement("td");
+    const name = document.createElement("div");
+    name.className = "skillName";
+    name.textContent = o.plan.name;
+    if (o.plan.usesEvolution) {
+      const tag = document.createElement("span"); tag.className = "evoTag"; tag.textContent = "進化";
+      name.appendChild(tag);
+    }
+    nameCell.appendChild(name);
+    const subLine = makeSubLine(o);
+    if (subLine) {
+      const sub = document.createElement("div");
+      sub.className = "skillBreakdown";
+      sub.innerHTML = subLine;
+      nameCell.appendChild(sub);
+    }
+    const costCell = document.createElement("td");
+    costCell.className = "num"; costCell.textContent = String(o.cost);
+    const scoreCell = document.createElement("td");
+    scoreCell.className = "num gain"; scoreCell.textContent = `+${o.score}`;
+    tr.append(nameCell, costCell, scoreCell);
+    table.appendChild(tr);
+  }
+  const wrap = document.createElement("div");
+  wrap.className = "tableWrap";
+  wrap.appendChild(table);
+  return wrap;
+}
+
+// ===== トレーナー技能試験（フリー課程）=====
+// 評価点タブと同じ読み取り結果（session）を使い、スキルボーナスを足した点数で最適化する。
+// スコア = 評価点 + スキル獲得ボーナス + 基礎能力ボーナス（勝利レースは含めない）。
+function renderExamResults(optResult, summary) {
+  const el = document.getElementById("examResults");
+  el.textContent = "";
+
+  el.appendChild(renderScoreCard({
+    label: "スコア（推定）",
+    value: summary.total === null ? "?" : summary.total.toLocaleString(),
+    chip: null,
+    sub: `消費 ${optResult.totalCost} / ${session.budget} SP`,
+    rows: [
+      ["評価点（獲得後）", summary.evalAfter === null ? "読み取れず" : summary.evalAfter.toLocaleString()],
+      ["スキル獲得ボーナス", summary.skillBonus.toLocaleString()],
+      [`うち今回の取得で +${summary.skillBonusGain.toLocaleString()}`, "", true],
+      ["基礎能力ボーナス", summary.statBonus === null ? "読み取れず" : summary.statBonus.toLocaleString()],
+    ],
+  }));
+
+  if (summary.total === null) {
+    const note = document.createElement("div");
+    note.className = "warn";
+    note.textContent = "①詳細画面からステータスを読み取れなかったため、スコアの合計は出せません。下の取得スキルは有効です。";
+    el.appendChild(note);
+  }
+  if (session.missingRangeCount) {
+    const note = document.createElement("div");
+    note.className = "warn";
+    note.textContent = `スクリーンショットが${session.missingRangeCount}か所で飛んでいます。間のスキルは計算に入りません。撮り足してやり直してください。`;
+    el.appendChild(note);
+  }
+
+  if (optResult.selectedPlans.length === 0) {
+    const note = document.createElement("div");
+    note.className = "warn";
+    note.textContent = `所持スキルPt（${session.budget ?? "?"}）で取得できるスキルはありません。`;
+    el.appendChild(note);
+    return;
+  }
+  el.appendChild(renderPlanTable(plansInScreenOrder(optResult.selectedPlans), "スコア",
+    o => `評価点 ${o.evalScore} ＋ ボーナス <b>${o.bonusScore}</b>`));
+}
+
+async function runExam() {
+  const status = document.getElementById("examStatus");
+  if (!session.recognizedRows.length || !session.budget || !cache) {
+    status.textContent = "先に、上の①②のスクリーンショットを選んで「読み取る」を押してください。";
+    return;
+  }
+  status.textContent = "計算中...";
+  await scenariosReady;
+
+  const state = buildOptimizerState(
+    session.recognizedRows, session.aptitudes || {}, session.budget, session.characterCardId, {});
+  state.examBonus = true;
+  applyEvolutionRules(state);   // 進化はスコア（ボーナス+1,500を含む）が最大になる組で選ぶ
+
+  const optResult = solveDp(cache.master, state);
+
+  const currentEval = computeCurrentEval(state);
+  const evalGain = optResult.selectedPlans.reduce((sum, o) => sum + o.evalScore, 0);
+  const skillBonusGain = optResult.selectedPlans.reduce((sum, o) => sum + o.bonusScore, 0);
+  const skillBonus = acquiredExamSkillBonus(cache.master, state) + skillBonusGain;
+  const statsAreComplete = session.stats && Object.values(session.stats).every(v => v != null);
+  const statBonus = statsAreComplete ? examStatBonus(session.stats) : null;
+  const evalAfter = currentEval === null ? null : currentEval + evalGain;
+  const total = evalAfter === null || statBonus === null ? null : evalAfter + skillBonus + statBonus;
+
+  status.textContent = `完了（認識行数 ${session.recognizedRows.length}・保有Pt ${session.budget}）`;
+  renderExamResults(optResult, { total, evalAfter, skillBonus, skillBonusGain, statBonus });
+}
+
+
+// ===== タブの切り替え =====
+// 走行シミュレータの部品（loadSimCourses 等）が無いページ（LANテスト）でも動くようにする。
+function selectTab(which) {
+  const panels = { score: "panelScore", sim: "panelSim", exam: "panelExam" };
+  const tabs = { score: "tabScore", sim: "tabSim", exam: "tabExam" };
+  for (const key of Object.keys(panels)) {
+    const panel = document.getElementById(panels[key]);
+    const tab = document.getElementById(tabs[key]);
+    if (panel) panel.hidden = key !== which;
+    if (tab) tab.setAttribute("aria-selected", String(key === which));
+  }
+  if (which === "sim" && typeof loadSimCourses === "function") loadSimCourses().then(simCandidatesFromSession);
+}
+for (const [id, which] of [["tabScore", "score"], ["tabSim", "sim"], ["tabExam", "exam"]]) {
+  const tab = document.getElementById(id);
+  if (tab) tab.addEventListener("click", () => selectTab(which));
+}
+document.getElementById("examRunButton").addEventListener("click", runExam);
 </script>
 </body>
 </html>
