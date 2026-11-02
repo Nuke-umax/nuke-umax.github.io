@@ -295,7 +295,9 @@ function recognizeAcquisitionImage(imageData, width, height, nameAtlas, digitAtl
   // どうかがそのまま当たり判定になるので、外した候補は自然に捨てられる。
   let skillPointsGuess = null;
   for (const rect of skillPointSearchRects(width, height, imageData)) {
-    const raw = recognizeDigits(skillPointDigitInk(imageData, width, rect), digitAtlas);
+    const ink = skillPointDigitInk(imageData, width, rect);
+    if (inkTouchesLeftEdge(ink)) continue;   // 先頭の桁が切れている疑い。読まない
+    const raw = recognizeDigits(ink, digitAtlas);
     if (raw.length >= 2 && !raw.includes("?")) { skillPointsGuess = parseInt(raw, 10); break; }
   }
 

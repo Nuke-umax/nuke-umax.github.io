@@ -45,7 +45,11 @@ function skillPointDigitInk(data, width, rect) {
 // 1080×2412 では 0.301〜0.315H、1206×2622 では 0.332〜0.347H。縦横比が変わると
 // 約0.03ずれる）。縦横比の違う端末では固定比率の窓から数字が外れて読めなくなるため、
 // 縦位置はラベルを見つけて決める。
-const SKILL_POINT_SEARCH_RATIO = { xLeft: 0.73, xRight: 0.97, yTop: 0.29, yBottom: 0.355 };
+//
+// 左端は5桁の保有Pt（例: 10069）の先頭の桁が入る位置まで広げてある。0.73では1080〜1440幅とも
+// 5桁の先頭「1」が半分に切れ、残った幅10px前後の断片が「7」と読まれた（実測: 1440×3200で
+// 10069→70069）。0.66まで広げると左のラベル文字が混ざるので、0.69に置く。
+const SKILL_POINT_SEARCH_RATIO = { xLeft: 0.69, xRight: 0.97, yTop: 0.29, yBottom: 0.355 };
 
 // 「現在のスキルPt」の緑ラベルの色と探索条件。
 // ヘッダーには同じ形の緑ラベルが縦に2本並ぶ（上=スキルフィルター、下=現在のスキルPt）。
@@ -232,6 +236,14 @@ function isolateDigitRowBand(ink) {
 // 明確に低い（実測: 数字は行高の47〜88%を埋めるが、ボタン縁は12〜33%に
 // とどまる）。幅に加えて密度でも足切りする。
 const DIGIT_MIN_DENSITY_RATIO = 0.4;   // 断片内最大列密度 ÷ 行の高さ
+
+// 探索矩形の左端の列にインクが掛かっているか。掛かっていれば、数字が矩形の外へ続いていて
+// 先頭の桁が切れている疑いがある。切れた桁は字形照合が近い別の数字に寄せてしまうので、
+// 読み取らずに捨て（手入力に回す）、誤った値を予算に使わない。
+function inkTouchesLeftEdge(ink) {
+  for (let y = 0; y < ink.h; y++) if (ink.data[y * ink.w] === 1) return true;
+  return false;
+}
 
 function recognizeDigits(rawInk, atlas) {
   const ink = isolateDigitRowBand(rawInk);

@@ -402,8 +402,10 @@
   .tabBar .wip { background: var(--accent); }
   .tabNote { margin: -6px 2px 12px; font-size: 12px; color: var(--muted); }
   .scenarioRow { display: flex; align-items: center; gap: 12px; margin: 12px 0 10px; }
-  .scenarioRow label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .scenarioRow label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; min-width: 7em; }
   .scenarioRow select { flex: 1; min-width: 0; }
+  .scenarioRow + .scenarioRow { margin-top: 0; }
+  .scenarioRow input { flex: 1; min-width: 0; }
   #examNote { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
 
   /* 解説は折りたたんで最下部に。 */
@@ -436,7 +438,7 @@
       <span class="siteHeader__name">評価点 最大化くん</span>
     </a>
     <a class="siteHeader__updates" href="updates.html">
-      <span class="siteHeader__dot" aria-hidden="true"></span>更新 10/29
+      <span class="siteHeader__dot" aria-hidden="true"></span>更新 11/2
     </a>
   </div>
 </header>
@@ -469,6 +471,12 @@
   <div class="scenarioRow">
     <label for="trainingScenario">育成シナリオ</label>
     <select id="trainingScenario"></select>
+  </div>
+  <!-- 保有Ptはヘッダーから自動で読むが、読み取りに失敗したり値が違ったりしたときの逃げ道として手入力を用意する。
+       評価点・最速・技能試験が同じ読み取り結果と予算を使うので、共有部に置く。 -->
+  <div class="scenarioRow">
+    <label for="manualSkillPoints">保有スキルPt</label>
+    <input type="number" id="manualSkillPoints" min="0" placeholder="空欄で自動読み取り">
   </div>
   <button id="runButton">読み取る</button>
   <div id="status"></div>
@@ -507,15 +515,9 @@
   <!-- 保有Ptはヘッダーから自動で読むが、画面比率の違う端末では読めないことがある。
        読めないと予算が決まらず計算そのものが止まるため、逃げ道として手入力を用意する
        （ステータス・適性は確認パネルで直せるのに、ここだけ直せなかった）。 -->
-  <div class="optRow">
-    <label for="manualSkillPoints" class="sub">保有スキルPt</label>
-    <input type="number" id="manualSkillPoints" min="0" placeholder="自動（空欄で自動読み取り）">
-  </div>
   <template data-info-body="opt">
     <b>固有スキルLv</b>は手動で選択してください。<br>
     <b>目標評価ランク</b>を選ぶと、そのランクの上限を超えない範囲で評価点が最大になるよう選びます。<br>
-    <b>保有スキルPt</b>は空欄なら②のヘッダーから自動で読み取ります。読み取りに失敗したときや、
-    値が違っていたときだけ入力してください。入力した値が優先されます。
   </template>
 </section>
 
@@ -766,15 +768,15 @@
 </footer>
 <!-- site-footer:end -->
 
-<script src="ocr_core.js?v=102"></script>
-<script src="fields.js?v=102"></script>
-<script src="optimizer.js?v=102"></script>
-<script src="stat_eval.js?v=102"></script>
-<script src="name_match.js?v=102"></script>
-<script src="recognizer.js?v=102"></script>
-<script src="harvest.js?v=102"></script>
-<script src="dedup.js?v=102"></script>
-<script src="pipeline.js?v=102"></script>
+<script src="ocr_core.js?v=103"></script>
+<script src="fields.js?v=103"></script>
+<script src="optimizer.js?v=103"></script>
+<script src="stat_eval.js?v=103"></script>
+<script src="name_match.js?v=103"></script>
+<script src="recognizer.js?v=103"></script>
+<script src="harvest.js?v=103"></script>
+<script src="dedup.js?v=103"></script>
+<script src="pipeline.js?v=103"></script>
 <script src="course3d.js?v=4"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
@@ -845,7 +847,7 @@ async function loadResources() {
 // ===== Web Worker経由の認識（引き継ぎ資料§10.6項目5: UIを固まらせない） =====
 let worker = null;
 function getWorker() {
-  if (worker === null) worker = new Worker("recognition_worker.js?v=102");
+  if (worker === null) worker = new Worker("recognition_worker.js?v=103");
   return worker;
 }
 
@@ -976,8 +978,15 @@ function plansInScreenOrder(selectedPlans) {
   });
   // 画面に写っていないスキルだけで構成されるプラン（表示白から推定した上位ティア等）は
   // 突き合わせる相手がないので末尾へ寄せる。
+  // 進化プランの構成IDは進化後のスキルID。画面に写っているのは進化前（継承固有・金スキル）の行なので、
+  // 進化後IDだけで探すと見つからず末尾へ回る（実測: 継承進化「黄金を訪ねて」が一覧の最後に出た）。
+  // 進化元のIDでも探して、元スキルの位置に並べる。
   const screenPosition = (option) => {
-    const indices = option.plan.memberIds.map(id => firstRowIndex.get(id)).filter(i => i !== undefined);
+    const evolvedFromIds = (option.family?.evolutions || [])
+      .filter(evolution => option.plan.memberIds.includes(evolution.skillId))
+      .map(evolution => evolution.fromGoldSkillId);
+    const searchIds = option.plan.memberIds.concat(evolvedFromIds);
+    const indices = searchIds.map(id => firstRowIndex.get(id)).filter(i => i !== undefined);
     return indices.length ? Math.min(...indices) : Number.MAX_SAFE_INTEGER;
   };
   return selectedPlans
