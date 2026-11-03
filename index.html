@@ -109,6 +109,7 @@
   .scoreCard .scoreSub { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
   .scoreCard .rankChip { display: inline-block; margin-left: 8px; padding: 1px 10px; border-radius: 999px; vertical-align: middle;
     background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; }
+  .scoreCard .valueNote { margin-left: 6px; font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
   .planList .evoTag { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 4px; vertical-align: 1px;
     background: #eaf1ec; color: var(--accent-dark); font-size: 11px; font-weight: 700; }
   .planList { border-collapse: collapse; width: 100%; }
@@ -768,15 +769,15 @@
 </footer>
 <!-- site-footer:end -->
 
-<script src="ocr_core.js?v=103"></script>
-<script src="fields.js?v=103"></script>
-<script src="optimizer.js?v=103"></script>
-<script src="stat_eval.js?v=103"></script>
-<script src="name_match.js?v=103"></script>
-<script src="recognizer.js?v=103"></script>
-<script src="harvest.js?v=103"></script>
-<script src="dedup.js?v=103"></script>
-<script src="pipeline.js?v=103"></script>
+<script src="ocr_core.js?v=104"></script>
+<script src="fields.js?v=104"></script>
+<script src="optimizer.js?v=104"></script>
+<script src="stat_eval.js?v=104"></script>
+<script src="name_match.js?v=104"></script>
+<script src="recognizer.js?v=104"></script>
+<script src="harvest.js?v=104"></script>
+<script src="dedup.js?v=104"></script>
+<script src="pipeline.js?v=104"></script>
 <script src="course3d.js?v=4"></script>
 <script>
 // ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
@@ -847,7 +848,7 @@ async function loadResources() {
 // ===== Web Worker経由の認識（引き継ぎ資料§10.6項目5: UIを固まらせない） =====
 let worker = null;
 function getWorker() {
-  if (worker === null) worker = new Worker("recognition_worker.js?v=103");
+  if (worker === null) worker = new Worker("recognition_worker.js?v=104");
   return worker;
 }
 
@@ -2532,7 +2533,7 @@ function applyEvolutionRules(state) {
 
 // ===== 結果表示の共通部品（評価点・技能試験）=====
 // 大きな数字の枠。rows は [項目, 値] の配列、chip は数字の横に出す小さなラベル。
-function renderScoreCard({ label, value, chip, sub, rows }) {
+function renderScoreCard({ label, value, chip, valueNote, sub, rows }) {
   const card = document.createElement("div");
   card.className = "scoreCard";
   const labelEl = document.createElement("div"); labelEl.className = "scoreLabel"; labelEl.textContent = label;
@@ -2540,6 +2541,10 @@ function renderScoreCard({ label, value, chip, sub, rows }) {
   if (chip) {
     const chipEl = document.createElement("span"); chipEl.className = "rankChip"; chipEl.textContent = chip;
     valueEl.appendChild(chipEl);
+  }
+  if (valueNote) {
+    const noteEl = document.createElement("span"); noteEl.className = "valueNote"; noteEl.textContent = valueNote;
+    valueEl.appendChild(noteEl);
   }
   const subEl = document.createElement("div"); subEl.className = "scoreSub"; subEl.textContent = sub;
   card.append(labelEl, valueEl, subEl);
@@ -2614,6 +2619,7 @@ function renderExamResults(optResult, summary) {
     label: "スコア（推定）",
     value: summary.total === null ? "?" : summary.total.toLocaleString(),
     chip: null,
+    valueNote: "＋勝利レースボーナス",   // 勝った重賞・OPの数で決まる固定加算。合計には含めない
     sub: `消費 ${optResult.totalCost} / ${session.budget} SP`,
     rows: [
       ["評価点（獲得後）", summary.evalAfter === null ? "読み取れず" : summary.evalAfter.toLocaleString()],
