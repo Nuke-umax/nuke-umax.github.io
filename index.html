@@ -6,15 +6,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="favicon.ico?v=2" sizes="any">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
-<title>ウマ娘 評価点 最大化くん</title>
-<meta name="description" content="スクリーンショットを選ぶだけで、所持スキルポイントの範囲で評価点が最大になるスキルの組み合わせを計算します。画像は端末外に送信しません。">
+<title>ウマ娘 評価点 最大化くん｜最速シミュレーター・技能試験</title>
+<meta name="description" content="ウマ娘のスクショを選ぶだけ。評価点が最大になるスキル、走破タイムが最短になるスキル、トレーナー技能試験のスコアが最大になるスキルを計算。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ウマ娘 評価点 最大化くん">
 <meta property="og:title" content="ウマ娘 評価点 最大化くん">
-<meta property="og:description" content="スキル獲得画面のスクショから、所持スキルPt内で評価点が最大になる組み合わせを算出します。">
+<meta property="og:description" content="スクショから、所持スキルPt内で評価点が最大・走破タイムが最短・技能試験スコアが最大になる取得スキルを計算します。">
 <link rel="canonical" href="https://umax-tools.com/">
 <meta property="og:url" content="https://umax-tools.com/">
-<meta property="og:image" content="https://umax-tools.com/ogp.png?v=2">
+<meta property="og:image" content="https://umax-tools.com/ogp.png?v=3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -207,16 +207,6 @@
     color: var(--muted); font-size: 14px; font-weight: 700; border-radius: 0;
   }
   .tabBar button[aria-selected="true"] { color: var(--accent-dark); border-bottom-color: var(--accent); }
-  .tabBar .wip { font-size: 10px; font-weight: 700; color: #fff; background: #b3261e;
-                 border-radius: 99px; padding: 1px 6px; margin-left: 5px; vertical-align: 2px; }
-
-  /* 準備中の告知。読み飛ばされないよう本文より目立たせる。 */
-  .wipNotice {
-    background: #fdecec; border: 1px solid #e3b4b4; border-radius: 10px;
-    padding: 12px 14px; margin: 0 0 16px; font-size: 13px;
-  }
-  .wipNotice b { color: #b3261e; }
-
   /* 1行に2組を並べると、スマホ幅で折り返してラベルと入力が離れる
      （実測: 「脚質」の下に別の入力が来て読み違える）。1行1組に固定する。 */
   .simRow { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: nowrap; }
@@ -400,7 +390,6 @@
   .tabBar button { flex: 1; min-height: 40px; margin: 0; border: 0 !important; border-radius: 9px;
     background: transparent; color: var(--muted); font-weight: 700; box-shadow: none; }
   .tabBar button[aria-selected="true"] { background: #fff; color: var(--accent-dark); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
-  .tabBar .wip { background: var(--accent); }
   .tabNote { margin: -6px 2px 12px; font-size: 12px; color: var(--muted); }
   .scenarioRow { display: flex; align-items: center; gap: 12px; margin: 12px 0 10px; }
   .scenarioRow label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; min-width: 7em; }
@@ -486,8 +475,8 @@
 
 <div class="tabBar" role="tablist">
   <button type="button" id="tabScore" role="tab" aria-selected="true" aria-controls="panelScore">評価点</button>
-  <button type="button" id="tabSim" role="tab" aria-selected="false" aria-controls="panelSim">最速<span class="wip">β</span></button>
-  <button type="button" id="tabExam" role="tab" aria-selected="false" aria-controls="panelExam">技能試験<span class="wip">β</span></button>
+  <button type="button" id="tabSim" role="tab" aria-selected="false" aria-controls="panelSim">最速</button>
+  <button type="button" id="tabExam" role="tab" aria-selected="false" aria-controls="panelExam">技能試験</button>
 </div>
 <p class="tabNote">①②の読み取り結果は、どのタブでも共通です。</p>
 
