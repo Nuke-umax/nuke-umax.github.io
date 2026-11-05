@@ -269,15 +269,9 @@
      ツールより下に置くのは、使いに来た人の邪魔をしないため。 */
   .about { margin-top: 28px; }
   .about h2 { font-size: 17px; margin: 24px 0 8px; color: var(--accent-dark); }
-  .about h3 { font-size: 14px; margin: 16px 0 4px; }
   .about p { font-size: 14px; margin: 0 0 10px; }
   .about ul { font-size: 14px; margin: 0 0 10px; padding-left: 1.3em; }
   .about li { margin-bottom: 4px; }
-  .about table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 8px 0 12px; }
-  .about th, .about td { border-bottom: 1px solid var(--border); padding: 5px 8px; text-align: left; }
-  .about th { color: var(--muted); font-size: 12px; font-weight: 600; }
-  .about td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .about .note { font-size: 13px; color: var(--muted); }
 
   /* ステータス・適性の確認。項目名・元画面の切り抜き・入力欄を1行に並べる。 */
   .checkGrid { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
@@ -306,28 +300,6 @@
   }
   .evoOptions label:has(input:checked) { border-color: var(--accent); background: #eef5f0; color: var(--accent-dark); font-weight: 700; }
   .evoOptions input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
-
-  /* 各手順の詳しい説明。本文は畳んでおき、(i) を押したときだけ重ねて出す。 */
-  .info {
-    position: relative;
-    width: 26px; height: 26px; min-height: 26px; padding: 0; border-radius: 50%;
-    background: var(--muted); color: #fff; font-size: 15px; font-weight: 700;
-    font-style: italic; line-height: 26px; vertical-align: middle;
-  }
-  /* 見た目は26pxの円のまま、指で押せるよう当たり判定だけ44px四方に広げる。 */
-  .info::after { content: ""; position: absolute; inset: -9px; }
-  .info:hover { background: var(--accent-dark); }
-  #infoOverlay {
-    position: fixed; inset: 0; display: none; z-index: 10;
-    background: rgba(20, 24, 22, .45); padding: 16px;
-    align-items: center; justify-content: center;
-  }
-  #infoOverlay.open { display: flex; }
-  #infoOverlay .card {
-    background: var(--card-bg); border-radius: 12px; padding: 18px 18px 14px;
-    max-width: 420px; max-height: 80vh; overflow-y: auto; font-size: 14px; line-height: 1.7;
-  }
-  #infoOverlay .card button { margin-top: 12px; width: 100%; min-height: 44px; }
 
   .optRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
   .optRow .sub { margin: 0; font-weight: 500; font-size: 13px; color: var(--muted); flex: 0 0 110px; }
@@ -390,13 +362,11 @@
   .tabBar button { flex: 1; min-height: 40px; margin: 0; border: 0 !important; border-radius: 9px;
     background: transparent; color: var(--muted); font-weight: 700; box-shadow: none; }
   .tabBar button[aria-selected="true"] { background: #fff; color: var(--accent-dark); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
-  .tabNote { margin: -6px 2px 12px; font-size: 12px; color: var(--muted); }
   .scenarioRow { display: flex; align-items: center; gap: 12px; margin: 12px 0 10px; }
   .scenarioRow label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; min-width: 7em; }
   .scenarioRow select { flex: 1; min-width: 0; }
   .scenarioRow + .scenarioRow { margin-top: 0; }
   .scenarioRow input { flex: 1; min-width: 0; }
-  #examNote { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
 
   /* 解説は折りたたんで最下部に。 */
   .aboutFold > summary { cursor: pointer; font-weight: 700; color: var(--accent-dark); padding: 4px 0; }
@@ -478,13 +448,12 @@
   <button type="button" id="tabSim" role="tab" aria-selected="false" aria-controls="panelSim">最速</button>
   <button type="button" id="tabExam" role="tab" aria-selected="false" aria-controls="panelExam">技能試験</button>
 </div>
-<p class="tabNote">①②の読み取り結果は、どのタブでも共通です。</p>
 
 <div id="panelScore" role="tabpanel">
 
 
 <section>
-  <label>③ 設定（任意） <button type="button" class="info" data-info="opt" aria-label="説明">i</button></label>
+  <label>③ 設定（任意）</label>
   <div class="optRow">
     <label for="uniqueLv" class="sub">固有スキルLv</label>
     <select id="uniqueLv">
@@ -502,13 +471,6 @@
       <option value="">なし（所持SP内で最大化）</option>
     </select>
   </div>
-  <!-- 保有Ptはヘッダーから自動で読むが、画面比率の違う端末では読めないことがある。
-       読めないと予算が決まらず計算そのものが止まるため、逃げ道として手入力を用意する
-       （ステータス・適性は確認パネルで直せるのに、ここだけ直せなかった）。 -->
-  <template data-info-body="opt">
-    <b>固有スキルLv</b>は手動で選択してください。<br>
-    <b>目標評価ランク</b>を選ぶと、そのランクの上限を超えない範囲で評価点が最大になるよう選びます。<br>
-  </template>
 </section>
 
 
@@ -516,7 +478,6 @@
 
 <datalist id="nameOptions"></datalist>
 
-<div id="infoOverlay"><div class="card"><div class="body"></div><button type="button">閉じる</button></div></div>
 
 </div><!-- /panelScore -->
 
@@ -526,7 +487,6 @@
     <ul>
       <li>残りスキルPtで<b>最も速く走れる組み合わせ</b>を、バ身（どれだけ前に出られるか）で選びます。</li>
       <li>順位・追い抜き・進路で決まる条件は<b>すべて満たされる前提</b>です。発動位置は実際のレースと同じく、発動できる区間の中でばらけます（複数回走らせた平均）。</li>
-      <li>調整中の機能です。仕様は予告なく変わります。</li>
       <li>計算はサーバーで行います。送るのは数値（ステータス・適性・スキルの番号）だけで、画像は送りません（<a href="privacy.html">プライバシーポリシー</a>）。</li>
       <li>計算には <a href="https://github.com/alpha123/uma-skill-tools" rel="noopener">uma-skill-tools</a>（GPL-3.0・作者 pecan）を用いています。</li>
     </ul>
@@ -645,7 +605,7 @@
         <option value="2" selected>絶好調</option>
       </select>
     </div>
-    <p class="sub" id="simCandidateNote">「評価点で選ぶ」タブでスクリーンショットを読み取ると、未取得スキルが候補として引き継がれます。</p>
+    <p class="sub" id="simCandidateNote">①②を読み取ると、未取得スキルが候補になります。読み取りなしでは候補スキル無しで計算します。</p>
   </section>
 
   <button id="simRunButton" style="width:100%">最速の組み合わせを計算する</button>
@@ -662,12 +622,8 @@
       <li>スキル獲得ボーナスは ノーマル+400／レア+1,200／進化+1,500。系統ごとに最上位の1個だけが数えられます（金を取れば白は数えません）。継承固有はノーマル、継承進化は進化として数えます。</li>
       <li>固有スキル、マイナス効果のスキルは対象外です。</li>
       <li>基礎能力ボーナスはステータスから自動で足します（1000以上+3,000、1201以上+2,000、スピードは2001以上+1,000）。スキルの取り方では変わりません。</li>
-      <li>勝利レースのボーナス（G1+100など）は含みません。</li>
-      <li>調整中の機能です。仕様は予告なく変わります。</li>
     </ul>
   </details>
-
-  <p class="sub" id="examNote">①②のスクリーンショットを読み取ると、ここで計算できます。育成シナリオは上の選択を使います。</p>
 
   <button id="examRunButton" style="width:100%">スコア最大のスキルを計算する</button>
   <div id="examStatus" class="sub" style="margin-top:8px"></div>
@@ -677,65 +633,22 @@
 <section class="about">
 <details class="aboutFold">
 <summary>評価点とスキル選びの仕組み</summary>
-  <h2>評価点とは何か</h2>
-  <p>育成を終えたウマ娘に付く総合的な数値です。内訳は3つで、この合計がそのまま評価点になります。</p>
-  <ul>
-    <li><b>ステータス評価点</b> … スピード・スタミナ・パワー・根性・賢さの5つを、それぞれの値に応じた点数に換算して合計したもの</li>
-    <li><b>固有スキルの評価点</b> … 固有スキルLv × 170</li>
-    <li><b>獲得スキルの評価点</b> … 取得したスキル1つずつの点数の合計</li>
-  </ul>
+  <h2>評価点の決まり方</h2>
+  <p>ステータス・固有スキル・獲得スキルの評価点の合計です。スキルの点数は、適性ランクと、すでに持っている下位スキルによって変わります。</p>
 
-  <h2>スキルの評価点はどう決まるか</h2>
-  <h3>適性ランクで倍率がかかる</h3>
-  <p>スキルには「中距離」「先行」のような発動条件があり、その条件に対する適性ランクで点数が変わります。</p>
-  <table>
-    <tr><th>適性ランク</th><th class="num">倍率</th></tr>
-    <tr><td>S・A</td><td class="num">1.1倍</td></tr>
-    <tr><td>B・C</td><td class="num">0.9倍</td></tr>
-    <tr><td>D・E・F</td><td class="num">0.8倍</td></tr>
-    <tr><td>G</td><td class="num">0.7倍</td></tr>
-  </table>
-  <p>条件が複数あるスキルは、条件ごとの倍率を掛け合わせます。同じスキルでも、そのウマ娘の適性次第で点数が変わるということです。</p>
+  <h2>最大化の方法</h2>
+  <p>取れる組み合わせは膨大で、点数の高いスキルから取っていく方法では最大になりません。このツールは動的計画法で、所持スキルPtで到達できる最大値を近似なしで求めます。</p>
 
-  <h3>○と◎は積み上げ式</h3>
-  <p>「中距離直線○」と「中距離直線◎」のような上位・下位の関係にあるスキルは、点数が独立していません。◎の点数は○を含んだ合計値です。</p>
-  <table>
-    <tr><th>スキル</th><th class="num">合計点</th><th class="num">○から増える分</th></tr>
-    <tr><td>中距離直線○</td><td class="num">217</td><td class="num">217</td></tr>
-    <tr><td>中距離直線◎</td><td class="num">262</td><td class="num">45</td></tr>
-  </table>
-  <p>すでに○を持っている状態で◎を取ると、増えるのは差分の45点だけです。</p>
+  <h2>必要Ptと読み取り</h2>
+  <p>必要Ptはヒントのレベルで割り引かれるため、スクリーンショットに写っている<b>実際の表示Pt</b>を読み取って使います。画像は<b>端末の外に出ません</b>。読み取りの誤りは、結果画面の「認識結果の確認・修整」で確認・修正できます。</p>
 
-  <h3>進化はPtを消費せず評価点が上がる＝お得</h3>
-  <p>条件を満たした金スキルは進化させられます。進化にスキルPtはかからず、評価点だけが上がります。取れる状況なら必ず取った方が得ですが、進化できるスキルはウマ娘やシナリオごとに違うため、把握しておく必要があります。</p>
-
-  <h2>なぜ「良さそうなものから取る」では最大にならないか</h2>
-  <p>スキルPtは限られています。手持ちのPtで買える組み合わせは膨大にあり、点数の高いスキルから順に取っていく方法では最大になりません。高い1つを諦めて安いものを複数取った方が合計点が上がる、という状況が普通に起きるためです。</p>
-  <p>さらに、同じファミリーのスキル（○・◎・金スキル）は重ねて数えられないので、「どの段階まで取るか」も含めて選ぶ必要があります。</p>
-  <p>これは<b>多肢選択ナップサック問題</b>という形の問題で、このツールは動的計画法で厳密に解いています。近似ではなく、その予算で到達できる最大値そのものを出します。</p>
-
-  <h2>ヒントによる割引を実際の表示から読み取る</h2>
-  <p>スキルの必要Ptはヒントのレベルで割り引かれます。割引率はウマ娘ごと・スキルごとに違うため、マスタ上の定価で計算すると実際とずれます。</p>
-  <p>このツールはスクリーンショットに写っている<b>実際の表示Pt</b>を読み取って使います。画面に出ていない上位ティア（○が表示されているときの◎）については、同じスキルのヒントレベルは共通なので、表示されている下位ティアから割引率を割り出して見積もります。</p>
-
-  <h2>このツールでできないこと</h2>
-  <ul>
-    <li><b>読み取りを間違えることがあります。</b> スキル名は画面から文字の形を照合して読んでいるため、字形の似たスキルを取り違える場合があります。結果画面の「認識結果の確認・修整」で1行ずつ確認・修正できます。切り抜いた元画像も並べて表示するので、目で確かめられます</li>
-    <li><b>撮り漏れは検出できないことがあります。</b> スクロールの送り幅が大きく、前後のスクショに共通する行が無いと、その間のスキルは存在しないものとして扱われます。2〜3行重ねて撮ってください</li>
-    <li><b>動作を確認できているのは一部の端末だけです。</b> 画面の解像度や縦横比が違う端末では、位置の検出が外れる可能性があります</li>
-    <li><b>スマートフォンでの利用を前提にしています。</b> PC・タブレットの画面比では検証していません</li>
-  </ul>
-
-  <h2>画像の扱い</h2>
-  <p>選んだ画像は<b>端末の外に出ません</b>。読み取りも計算もすべてブラウザの中で完結しており、サーバーへの送信は行いません。詳しくは<a href="privacy.html">プライバシーポリシー</a>をご覧ください。</p>
   <h2>もっと詳しく</h2>
   <ul>
     <li><a href="scoring.html">評価点の計算の仕組み</a> … ステータス・固有・スキルの3要素と、ステータスの累進構造</li>
     <li><a href="strategy.html">スキル取得の考え方</a> … スキルごとの効率の差と、効率順に取るだけでは最大にならない理由</li>
     <li><a href="evolutions.html">進化スキル一覧</a> … どの金スキルがどの進化になるか。658件を収録</li>
+    <li><a href="usage.html">使い方</a> … 撮影の手順と制限事項</li>
   </ul>
-
-  <p class="note">ゲームの開発・運営元とは関係のない非公式ツールです。ゲーム内の仕様は更新で変わることがあります。</p>
 </details>
 </section>
 
@@ -769,17 +682,6 @@
 <script src="pipeline.js?v=104"></script>
 <script src="course3d.js?v=4"></script>
 <script>
-// ①〜③の(i)ボタン。詳しい説明は普段は畳んでおき、押したときだけ重ねて表示する。
-const infoOverlay = document.getElementById("infoOverlay");
-document.querySelectorAll("button.info").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const body = document.querySelector(`template[data-info-body="${btn.dataset.info}"]`);
-    infoOverlay.querySelector(".body").replaceChildren(body.content.cloneNode(true));
-    infoOverlay.classList.add("open");
-  });
-});
-infoOverlay.addEventListener("click", () => infoOverlay.classList.remove("open"));
-
 const statusEl = document.getElementById("status");
 const resultsEl = document.getElementById("results");
 const progressBarEl = document.getElementById("progressBar");
@@ -1678,8 +1580,7 @@ let simPrefilledFrom = null;
 function simCandidatesFromSession() {
   const note = document.getElementById("simCandidateNote");
   if (!session.recognizedRows.length) {
-    note.textContent = "「評価点で選ぶ」タブでスクリーンショットを読み取ると、未取得スキルが候補として引き継がれます。"
-      + "読み取り結果が無い場合は、下のステータスだけで計算します（候補スキルなし）。";
+    note.textContent = "①②を読み取ると、未取得スキルが候補になります。読み取りなしでは候補スキル無しで計算します。";
     return [];
   }
   // 引き継ぎは読み取り結果が変わったときだけ。計算のたびに上書きすると、
