@@ -24856,6 +24856,23 @@
      "characterCardId": "108802",
      "characterName": "サトノクラウン",
      "characterCommonName": "水着クラウン"
+    },
+    {
+     "skillId": 102903111,
+     "name": "もっす、通してくなンしぇ！",
+     "fromGoldSkillId": 202471,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "先行",
+     "characterCardId": "102903",
+     "characterName": "ユキノビジン",
+     "characterCommonName": "姫ユキノ"
     }
    ],
    "negativeSkill": null,
@@ -24921,6 +24938,17 @@
      "usesEvolution": true,
      "fromGoldSkillId": 202471,
      "characterCardId": "108802"
+    },
+    {
+     "name": "もっす、通してくなンしぇ！",
+     "topSkillId": 102903111,
+     "memberIds": [
+      202472,
+      102903111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 202471,
+     "characterCardId": "102903"
     }
    ]
   },
@@ -40142,6 +40170,24 @@
      "characterCardId": null,
      "characterName": null,
      "characterCommonName": null
+    },
+    {
+     "skillId": 102903211,
+     "name": "万果豊穣",
+     "fromGoldSkillId": 204171,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 170,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ]
+     ],
+     "conditionText": "中距離/マイル",
+     "characterCardId": "102903",
+     "characterName": "ユキノビジン",
+     "characterCommonName": "姫ユキノ"
     }
    ],
    "negativeSkill": null,
@@ -40172,8 +40218,18 @@
       414061
      ],
      "usesEvolution": true,
+     "fromGoldSkillId": 204171
+    },
+    {
+     "name": "万果豊穣",
+     "topSkillId": 102903211,
+     "memberIds": [
+      204172,
+      102903211
+     ],
+     "usesEvolution": true,
      "fromGoldSkillId": 204171,
-     "characterCardId": null
+     "characterCardId": "102903"
     }
    ]
   },
@@ -43015,6 +43071,63 @@
      "topSkillId": 204762,
      "memberIds": [
       204762
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 20477,
+   "skills": [
+    {
+     "skillId": 204772,
+     "name": "狼煙を上げて",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 140,
+     "conditionGroups": [
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "差し"
+    },
+    {
+     "skillId": 204771,
+     "name": "出陣",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 140,
+     "conditionGroups": [
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "差し"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "狼煙を上げて",
+     "topSkillId": 204772,
+     "memberIds": [
+      204772
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "出陣",
+     "topSkillId": 204771,
+     "memberIds": [
+      204772,
+      204771
      ],
      "usesEvolution": false
     }
@@ -55538,6 +55651,22 @@
    "conditionText": "作戦・差し",
    "characterCardId": "102503",
    "characterName": "マンハッタンカフェ"
+  },
+  {
+   "skillId": 120291,
+   "name": "今ぞ刈りどき祝祭の季",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "chuKyori",
+     "mile"
+    ]
+   ],
+   "conditionText": "中距離/マイル",
+   "characterCardId": "102903",
+   "characterName": "ユキノビジン"
   },
   {
    "skillId": 120301,
