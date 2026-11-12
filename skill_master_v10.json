@@ -48602,6 +48602,110 @@
    ]
   },
   {
+   "familyId": 90144,
+   "skills": [
+    {
+     "skillId": 901441,
+     "name": "エパヌイスマンの大号令",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "エパヌイスマンの大号令",
+     "topSkillId": 901441,
+     "memberIds": [
+      901441
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 90145,
+   "skills": [
+    {
+     "skillId": 901451,
+     "name": "冠絶タクティクス",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "oikomi",
+       "senko"
+      ]
+     ],
+     "conditionText": "追込/先行"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "冠絶タクティクス",
+     "topSkillId": 901451,
+     "memberIds": [
+      901451
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 90149,
+   "skills": [
+    {
+     "skillId": 901491,
+     "name": "烈々と咲く",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "sashi",
+       "senko"
+      ]
+     ],
+     "conditionText": "中距離・差し/先行"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "烈々と咲く",
+     "topSkillId": 901491,
+     "memberIds": [
+      901491
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
    "familyId": 91001,
    "kind": "inheritedUnique",
    "skills": [
@@ -49818,6 +49922,39 @@
      "topSkillId": 910421,
      "memberIds": [
       910421
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 91043,
+   "skills": [
+    {
+     "skillId": 910431,
+     "name": "最恐！いたずら計画なのだ♪",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "先行"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "最恐！いたずら計画なのだ♪",
+     "topSkillId": 910431,
+     "memberIds": [
+      910431
      ],
      "usesEvolution": false
     }
@@ -51340,6 +51477,35 @@
    ]
   },
   {
+   "familyId": 91108,
+   "skills": [
+    {
+     "skillId": 911081,
+     "name": "かくて宿りし血は目覚め",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "かくて宿りし血は目覚め",
+     "topSkillId": 911081,
+     "memberIds": [
+      911081
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
    "familyId": 91109,
    "kind": "inheritedUnique",
    "skills": [
@@ -51426,6 +51592,35 @@
      "topSkillId": 911101,
      "memberIds": [
       911101
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 91113,
+   "skills": [
+    {
+     "skillId": 911131,
+     "name": "渚のヴィーナスタイム♡",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "渚のヴィーナスタイム♡",
+     "topSkillId": 911131,
+     "memberIds": [
+      911131
      ],
      "usesEvolution": false
     }
@@ -51521,6 +51716,40 @@
      "topSkillId": 911241,
      "memberIds": [
       911241
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 91127,
+   "skills": [
+    {
+     "skillId": 911271,
+     "name": "剛心鉄壁ガーディアン",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "choKyori",
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "長距離/中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "剛心鉄壁ガーディアン",
+     "topSkillId": 911271,
+     "memberIds": [
+      911271
      ],
      "usesEvolution": false
     }
@@ -51735,6 +51964,42 @@
    ]
   },
   {
+   "familyId": 92009,
+   "skills": [
+    {
+     "skillId": 920091,
+     "name": "究竟の弓勢",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "nige"
+      ],
+      [
+       "shiba"
+      ]
+     ],
+     "conditionText": "逃げ・芝"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "究竟の弓勢",
+     "topSkillId": 920091,
+     "memberIds": [
+      920091
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
    "familyId": 92010,
    "kind": "inheritedUnique",
    "skills": [
@@ -51826,6 +52091,138 @@
    ]
   },
   {
+   "familyId": 92017,
+   "skills": [
+    {
+     "skillId": 920171,
+     "name": "Cascading Might",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "sashi",
+       "senko"
+      ]
+     ],
+     "conditionText": "差し/先行"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "Cascading Might",
+     "topSkillId": 920171,
+     "memberIds": [
+      920171
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 92018,
+   "skills": [
+    {
+     "skillId": 920181,
+     "name": "Shadow Ancestress",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "Shadow Ancestress",
+     "topSkillId": 920181,
+     "memberIds": [
+      920181
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 92020,
+   "skills": [
+    {
+     "skillId": 920201,
+     "name": "海風にまったり身を任せ",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "nige"
+      ],
+      [
+       "shiba"
+      ]
+     ],
+     "conditionText": "逃げ・芝"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "海風にまったり身を任せ",
+     "topSkillId": 920201,
+     "memberIds": [
+      920201
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 92022,
+   "skills": [
+    {
+     "skillId": 920221,
+     "name": "麗走一直！ラーメン道",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "senko"
+      ]
+     ],
+     "conditionText": "先行"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "麗走一直！ラーメン道",
+     "topSkillId": 920221,
+     "memberIds": [
+      920221
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
    "familyId": 92023,
    "kind": "inheritedUnique",
    "skills": [
@@ -51911,6 +52308,35 @@
      "topSkillId": 920251,
      "memberIds": [
       920251
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 92029,
+   "skills": [
+    {
+     "skillId": 920291,
+     "name": "今ぞ刈りどき祝祭の季",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [],
+     "conditionText": null
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "今ぞ刈りどき祝祭の季",
+     "topSkillId": 920291,
+     "memberIds": [
+      920291
      ],
      "usesEvolution": false
     }
@@ -52364,6 +52790,40 @@
      "topSkillId": 920681,
      "memberIds": [
       920681
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 92074,
+   "skills": [
+    {
+     "skillId": 920741,
+     "name": "夕凪のリトリート・メモリー",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "choKyori",
+       "chuKyori"
+      ]
+     ],
+     "conditionText": "長距離/中距離"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "夕凪のリトリート・メモリー",
+     "topSkillId": 920741,
+     "memberIds": [
+      920741
      ],
      "usesEvolution": false
     }
