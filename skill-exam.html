@@ -380,6 +380,19 @@
   .staminaLine.ok { background: var(--accent-soft, #eaf1ec); color: var(--accent-dark); }
   .staminaLine.warn { background: var(--warn-bg); color: var(--warn); }
   .staminaLine.bad { background: #fbe9e7; color: #b3261e; font-weight: 700; }
+  .staminaChoice { margin: 10px 0 4px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+  .staminaChoice h3 { font-size: 14px; margin: 0 0 2px; }
+  .staminaChoice .lead { font-size: 12px; color: var(--muted); margin: 0 0 8px; line-height: 1.6; }
+  .staminaOption { display: flex; align-items: center; gap: 10px; padding: 9px 10px; margin-top: 6px;
+    border: 1px solid var(--border); border-radius: 10px; }
+  .staminaOption.current { border: 2px solid var(--accent); background: var(--accent-soft, #eaf1ec); }
+  .staminaOption .body { flex: 1 1 auto; min-width: 0; }
+  .staminaOption .name { font-size: 13px; font-weight: 700; }
+  .staminaOption .figures { font-size: 13px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .staminaOption .figures b { font-size: 15px; }
+  .staminaOption .swap { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+  .staminaOption button { flex: 0 0 auto; min-height: 36px; padding: 0 10px; font-size: 12px; }
+  .staminaOption .tag { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--accent-dark); }
   .c3dLegend { display: inline-flex; align-items: center; gap: 6px; }
   .c3dLegend i { width: 64px; height: 8px; border-radius: 4px;
     background: linear-gradient(90deg, rgb(223,229,223), rgb(160,196,172), rgb(24,122,74)); }
@@ -398,7 +411,7 @@
       <span class="siteHeader__name">評価点 最大化くん</span>
     </a>
     <a class="siteHeader__updates" href="updates.html">
-      <span class="siteHeader__dot" aria-hidden="true"></span>更新 11/13
+      <span class="siteHeader__dot" aria-hidden="true"></span>更新 11/16
     </a>
   </div>
 </header>
@@ -1895,6 +1908,10 @@ const simState = {
   busy: false,
   acquired: [],         // 取得済み（外せないが、計算にも表示にも含める）
   scenarioIds: new Set(),   // シナリオ進化のID。2個までの制限に使う
+  // 体力の段階表。先頭が最速の構成で、後ろほど体力不足が少ない。不足が無ければ1行だけ。
+  // 各行は { chosen: 新たに取るスキルID, bashin, sp, stamina }。
+  ladder: [],
+  ladderIndex: 0,       // 段階表で選択中の行
 };
 
 function simSkillName(id) {
@@ -1938,23 +1955,113 @@ function byScreenOrder(ids) {
 }
 
 // 選んだ構成で体力が持つか。計算した構成のものなので、手で変えた後（未計算）は出さない。
+// 体力不足は「全力のスパートができない」こと。サーバが STAMINA_RUNS 回走らせて数えた結果を、回数で出す。
+// 割合（14%）より「100回中86回」の方が、何を数えたのかが伝わる。
+const STAMINA_RUNS = 100;      // サーバ側の STAMINA_VERIFY_RUNS と同じ値
+function fullSpurtCountText(stamina) {
+  const fullSpurtRuns = Math.round((1 - stamina.reducedSpurtRate) * STAMINA_RUNS);
+  return `${STAMINA_RUNS}回中${fullSpurtRuns}回`;
+}
+
 function renderStaminaLine() {
   const st = simState.stamina;
   if (!st || simState.measured == null) return null;
   const line = document.createElement("p");
   line.className = "staminaLine";
-  const percent = rate => Math.round(rate * 100);
-  if (st.hpOutRate > 0) {
+  // ゴール前60mは、ゲームのスパート計算が体力を見込まない区間。ここで尽きるのは仕様どおりなので警告にしない。
+  const SPURT_PLAN_MARGIN_M = 60;
+  const distance = simState.courseShape?.distance ?? Infinity;
+  const hasEarlyHpOut = st.hpOutRate > 0 && st.hpOutPos != null && st.hpOutPos < distance - SPURT_PLAN_MARGIN_M;
+  if (st.reducedSpurtRate > 0) {
+    line.classList.add(hasEarlyHpOut ? "bad" : "warn");
+    line.textContent = `体力不足：全力でスパートできたのは${fullSpurtCountText(st)}`
+      + (hasEarlyHpOut ? `（約${st.hpOutPos}m地点で体力が尽きる回あり）` : "");
+  } else if (hasEarlyHpOut) {
     line.classList.add("bad");
-    line.textContent = `体力切れ：約${st.hpOutPos}m地点（${percent(st.hpOutRate)}%の回）。回復スキルで改善の余地`;
-  } else if (st.reducedSpurtRate > 0) {
-    line.classList.add("warn");
-    line.textContent = `体力がやや不足：全力でスパートできない回が${percent(st.reducedSpurtRate)}%`;
+    line.textContent = `体力切れ：約${st.hpOutPos}m地点で体力が尽きる回あり`;
   } else {
     line.classList.add("ok");
-    line.textContent = `体力は足りる：ゴールで残り${percent(st.hpLeftRatio)}%`;
+    line.textContent = `体力は足りる：${fullSpurtCountText(st)}、全力でスパートできた`;
   }
   return line;
+}
+
+// 速さと体力のどちらを優先するかの選択。最速の構成に体力不足があるときだけ出す。
+// どこまでの不足を許すかは利用者とレースで違うので、しきい値は持たない。
+// 回復を増やした構成を並べ、「全力スパートできる回数」と「速さの差」を見比べて選べるようにする。
+function renderStaminaLadder() {
+  const rows = simState.ladder;
+  const isOptimizerResult = simState.measured != null && !simState.edited;
+  if (!isOptimizerResult || !rows.length || rows[0].stamina.reducedSpurtRate <= 0) return null;
+  const box = document.createElement("div");
+  box.className = "staminaChoice";
+  const head = document.createElement("h3");
+  head.textContent = "速さと体力の優先度";
+  const lead = document.createElement("p");
+  lead.className = "lead";
+  box.append(head, lead);
+  if (rows.length === 1) {
+    lead.textContent = "体力が足りない回がありますが、候補の中に、これを減らせる回復スキルはありません。";
+    return box;
+  }
+  lead.textContent = "回復スキルを増やすと、全力でスパートできる回が増える代わりに、少し遅くなります。";
+  const fastest = rows[0];
+  rows.forEach((row, index) => {
+    const isCurrent = index === simState.ladderIndex;
+    const option = document.createElement("div");
+    option.className = "staminaOption" + (isCurrent ? " current" : "");
+    const body = document.createElement("div");
+    body.className = "body";
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = index === 0 ? "速さ優先" : (rows.length > 2 ? "体力重視 " + index : "体力重視");
+    const figures = document.createElement("div");
+    figures.className = "figures";
+    const count = document.createElement("b");
+    count.textContent = fullSpurtCountText(row.stamina);
+    const diff = row.bashin - fastest.bashin;
+    figures.append("全力スパート ", count);
+    const speed = document.createElement("div");
+    speed.className = "figures";
+    speed.textContent = index === 0 ? "最も速い構成"
+      : "速さ優先より " + Math.abs(diff).toFixed(2) + "バ身 遅い";
+    body.append(name, figures, speed);
+    if (index > 0) {
+      // 速さ優先の構成から何を変えるか。段を重ねた分もまとめて見せる。
+      const added = row.chosen.filter(id => !fastest.chosen.includes(id)).map(simSkillName);
+      const removed = fastest.chosen.filter(id => !row.chosen.includes(id)).map(simSkillName);
+      const swap = document.createElement("div");
+      swap.className = "swap";
+      swap.textContent = [added.length ? "取る：" + added.join("、") : "",
+                          removed.length ? "外す：" + removed.join("、") : ""].filter(Boolean).join("　");
+      body.appendChild(swap);
+    }
+    option.appendChild(body);
+    if (isCurrent) {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = "選択中";
+      option.appendChild(tag);
+    } else {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "これにする";
+      button.disabled = simState.busy;
+      button.addEventListener("click", () => applyLadderRow(index));
+      option.appendChild(button);
+    }
+    box.appendChild(option);
+  });
+  return box;
+}
+
+// 段階表の行を選ぶ。構成を切り替え、コース図と発動地点をその構成で取り直す。
+function applyLadderRow(index) {
+  const row = simState.ladder[index];
+  if (!row || simState.busy) return;
+  simState.ladderIndex = index;
+  simState.chosen = row.chosen.slice();
+  recalcSim();
 }
 
 // 選択中の合計。実測が無ければ単体値の合計を「目安」として出す。
@@ -2061,6 +2168,8 @@ function renderSimResults() {
   el.appendChild(totals);
   const staminaLine = renderStaminaLine();
   if (staminaLine) el.appendChild(staminaLine);
+  const staminaLadder = renderStaminaLadder();
+  if (staminaLadder) el.appendChild(staminaLadder);
 
   // SPが余っていて、まだ買える候補があるのに選んでいないときは理由を添える。
   // 最適化は残った候補を今の構成に1つずつ足して試しており、伸びなかったものを
@@ -2317,13 +2426,11 @@ async function runSim() {
     inheritedSkillIds: inheritedSkillIdList(),
   };
   button.disabled = true;
-  // 計算時間は候補数と残りSPで大きく変わる（実測: 候補50件で2〜3秒、110件で8〜21秒）。
-  // 固定の秒数を出すと外れるので、候補数に応じた幅と、経過秒の表示にする。
-  const expectedRange = payload.candidates.length < 60 ? "数秒"
-    : payload.candidates.length < 100 ? "10〜20秒" : "10〜25秒";
+  // 計算時間は候補数・コースの距離・残りSPで大きく変わる（実測: 候補50件で数秒、
+  // 110件で13〜34秒）。幅を約束すると外れるので、秒数の目安は出さず、経過秒と「長くなりうる」ことだけを伝える。
   const startedAt = Date.now();
   const showProgress = () => {
-    status.textContent = `計算中…（目安 ${expectedRange}）　経過 ${Math.floor((Date.now() - startedAt) / 1000)}秒`;
+    status.textContent = `計算中…　経過 ${Math.floor((Date.now() - startedAt) / 1000)}秒（候補が多いと30秒以上かかります）`;
   };
   showProgress();
   const progressTimer = setInterval(showProgress, 1000);
@@ -2361,6 +2468,22 @@ async function runSim() {
     simState.stamina = data.stamina || null;
     simState.measured = data.bashinGain;
     simState.edited = false;
+    // 段階表。先頭に最速の構成を置き、サーバが返した「不足を減らした構成」を続ける。
+    const ladderSteps = [{ selected: data.selected || [], bashinGain: data.bashinGain, totalSp: data.totalSp,
+                           stamina: data.stamina }, ...(data.staminaLadder || [])];
+    simState.ladder = !data.stamina ? [] : ladderSteps.map(step => ({
+      chosen: step.selected.map(x => x.skillId).filter(id => !acquired.includes(id)),
+      bashin: step.bashinGain, sp: step.totalSp, stamina: step.stamina,
+    }));
+    simState.ladderIndex = 0;
+    // 段階表にだけ出てくるスキルも、名前とSPを引けるようにしておく。
+    for (const step of data.staminaLadder || []) {
+      for (const x of step.selected) {
+        if (simState.info.has(x.skillId)) continue;
+        const known = candidates.find(c => c.skillId === x.skillId);
+        simState.info.set(x.skillId, { sp: x.sp, bashin: 0, group: known?.group });
+      }
+    }
     simState.exclusionChanged = false;
     renderSimResults();
   } catch (e) {
