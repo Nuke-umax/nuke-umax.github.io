@@ -35438,7 +35438,48 @@
      "conditionText": "作戦・差し"
     }
    ],
-   "evolutions": [],
+   "evolutions": [
+    {
+     "skillId": 107501211,
+     "name": "雪中の松柏",
+     "fromGoldSkillId": 203591,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "chuKyori"
+      ],
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "中距離・差し",
+     "characterCardId": "107501",
+     "characterName": "デアリングタクト",
+     "characterCommonName": "タクト、デアタク"
+    },
+    {
+     "skillId": 107501221,
+     "name": "忘れじの雪景色",
+     "fromGoldSkillId": 203591,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 180,
+     "conditionGroups": [
+      [
+       "mile"
+      ],
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "マイル・差し",
+     "characterCardId": "107501",
+     "characterName": "デアリングタクト",
+     "characterCommonName": "タクト、デアタク"
+    }
+   ],
    "negativeSkill": null,
    "kind": "normal",
    "plans": [
@@ -35458,6 +35499,28 @@
       203591
      ],
      "usesEvolution": false
+    },
+    {
+     "name": "雪中の松柏",
+     "topSkillId": 107501211,
+     "memberIds": [
+      203592,
+      107501211
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203591,
+     "characterCardId": "107501"
+    },
+    {
+     "name": "忘れじの雪景色",
+     "topSkillId": 107501221,
+     "memberIds": [
+      203592,
+      107501221
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 203591,
+     "characterCardId": "107501"
     }
    ]
   },
@@ -43340,6 +43403,96 @@
    ]
   },
   {
+   "familyId": 20491,
+   "skills": [
+    {
+     "skillId": 204912,
+     "name": "静寂を裂いて",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 217,
+     "cumulativeScore": 217,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "差し"
+    },
+    {
+     "skillId": 204911,
+     "name": "ワイルドハント",
+     "tier": 2,
+     "rarity": 2,
+     "baseScore": 291,
+     "cumulativeScore": 508,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "差し"
+    }
+   ],
+   "evolutions": [
+    {
+     "skillId": 107501111,
+     "name": "ディアナの弓矢",
+     "fromGoldSkillId": 204911,
+     "baseScore": 416,
+     "cumulativeScore": 633,
+     "baseCost": 190,
+     "conditionGroups": [
+      [
+       "chuKyori",
+       "mile"
+      ],
+      [
+       "sashi"
+      ]
+     ],
+     "conditionText": "中距離/マイル・差し",
+     "characterCardId": "107501",
+     "characterName": "デアリングタクト",
+     "characterCommonName": "タクト、デアタク"
+    }
+   ],
+   "negativeSkill": null,
+   "kind": "normal",
+   "plans": [
+    {
+     "name": "静寂を裂いて",
+     "topSkillId": 204912,
+     "memberIds": [
+      204912
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "ワイルドハント",
+     "topSkillId": 204911,
+     "memberIds": [
+      204912,
+      204911
+     ],
+     "usesEvolution": false
+    },
+    {
+     "name": "ディアナの弓矢",
+     "topSkillId": 107501111,
+     "memberIds": [
+      204912,
+      107501111
+     ],
+     "usesEvolution": true,
+     "fromGoldSkillId": 204911,
+     "characterCardId": "107501"
+    }
+   ]
+  },
+  {
    "familyId": 21001,
    "skills": [
     {
@@ -46791,6 +46944,39 @@
      "topSkillId": 900741,
      "memberIds": [
       900741
+     ],
+     "usesEvolution": false
+    }
+   ]
+  },
+  {
+   "familyId": 90075,
+   "skills": [
+    {
+     "skillId": 900751,
+     "name": "灰雪の冠",
+     "tier": 1,
+     "rarity": 1,
+     "baseScore": 180,
+     "cumulativeScore": 180,
+     "baseCost": 200,
+     "conditionGroups": [
+      [
+       "shiba"
+      ]
+     ],
+     "conditionText": "芝"
+    }
+   ],
+   "evolutions": [],
+   "negativeSkill": null,
+   "kind": "inheritedUnique",
+   "plans": [
+    {
+     "name": "灰雪の冠",
+     "topSkillId": 900751,
+     "memberIds": [
+      900751
      ],
      "usesEvolution": false
     }
@@ -53922,6 +54108,21 @@
    "conditionText": null,
    "characterCardId": "107401",
    "characterName": "メジロブライト"
+  },
+  {
+   "skillId": 100751,
+   "name": "灰雪の冠",
+   "rarity": 3,
+   "isAwakened": false,
+   "cumulativeScore": 340,
+   "conditionGroups": [
+    [
+     "shiba"
+    ]
+   ],
+   "conditionText": "芝",
+   "characterCardId": "107501",
+   "characterName": "デアリングタクト"
   },
   {
    "skillId": 100761,
